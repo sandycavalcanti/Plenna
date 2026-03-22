@@ -55,7 +55,7 @@ npx expo start
 
 - Abrir o Android Studio  
 - Iniciar um Virtual Device  
-- Após rodar `npx expo start`, pressionar: a
+- Após rodar `npx expo start`, pressionar: 
 
 ```bash
 a
