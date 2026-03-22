@@ -13,8 +13,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import SplashScreen from './pages/SplashScreen';
 import LoginScreen from './pages/LoginScreen';
 import HomeScreen from './pages/HomeScreen';
-import ExploreScreen from './pages/ExploreScreen';
+import DashboardScreen from './pages/DashboardScreen';
 import ProfileScreen from './pages/ProfileScreen';
+import ForgotPasswordScreen from './pages/ForgotPasswordScreen';
+import HistoricalChatScreen from './pages/HistoricalChatScreen';
+import ChatScreen from './pages/ChatScreen';
 
 // Instância do Stack
 const Stack = createNativeStackNavigator();
@@ -28,8 +31,9 @@ function TabRoutes() {
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       {/* Cada Tab.Screen é um botão na barra inferior */}
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Explore" component={ExploreScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} /> 
+      <Tab.Screen name="HistoricalChat" component={HistoricalChatScreen} />
     </Tab.Navigator>
   );
 }
@@ -42,7 +46,8 @@ export default function Routes() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
-        
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Tab.Screen name="Chat" component={ChatScreen} />
         {/* "App" renderiza as Tabs */}
         <Stack.Screen name="App" component={TabRoutes} />
       </Stack.Navigator>

@@ -12,7 +12,6 @@ export default function SplashScreen({ navigation }) {
       // replace evita que o usuário volte para a Splash
       navigation.replace('Login');
     }, 2000);
-
     // Limpa o timer ao desmontar o componente
     return () => clearTimeout(timer);
   }, []);
@@ -21,7 +20,7 @@ export default function SplashScreen({ navigation }) {
     <View style={styles.container}>
       {/* Logo centralizada na tela */}
       <Image
-        source={require('../../../assets/logoPlenna.png')}
+        source={require('../../../assets/img/logoPlenna.png')}
         style={styles.logo}
       />
     </View>
