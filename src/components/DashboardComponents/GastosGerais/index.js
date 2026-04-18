@@ -34,20 +34,16 @@ export default function GastosTotais() {
 
         <Text style={styles.excedente}>+{porcentagem}% acima da meta</Text>
 
-        <BarChart horizontal
-          data={data}
-          barWidth={35}
-          spacing={20}
-          roundedTop
-          roundedBottom
-          yAxisThickness={0}
-          xAxisThickness={0}
-            hideRules
-          noOfSections={4}
-          maxValue={1400}
-          isAnimated
-          hideYAxisText
-        />
+        <View style={{ marginTop: -30 }}>
+          <BarChart horizontal
+            data={data}
+                  noOfSections={3}
+                  barBorderRadius={100}
+                  yAxisThickness={0}
+                  xAxisThickness={0}
+                  labelsDistanceFromXaxis={15}
+          />
+        </View>
 
       </View>
     </ScrollView>
@@ -57,7 +53,8 @@ export default function GastosTotais() {
 const styles = StyleSheet.create({
   card: {
     margin: 20,
-    padding: 16,
+    padding: 20,
+    paddingBottom: 0,
     backgroundColor: "#ECECEC",
     borderRadius: 16,
     borderWidth: 2,

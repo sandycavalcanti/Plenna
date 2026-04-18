@@ -9,21 +9,16 @@ export default function TempoApp() {
       value: 65,
       label: "Shein",
       frontColor: "#5A627F",
-      spacing: 18,
-      labelWidth: 70,
     },
     {
       value: 30,
       label: "Shopee",
       frontColor: "#7C86A8",
-      spacing: 18,
-      labelWidth: 70,
     },
     {
       value: 15,
       label: "Mercado Livre",
       frontColor: "#B0B7D6",
-      labelWidth: 110,
     }
   ];
 
@@ -35,25 +30,16 @@ export default function TempoApp() {
         <View style={styles.header}>
           <Text style={styles.title}>Tempo em sites (em minutos)</Text>
         </View>
-
-        {/* Gráfico */}
-        <BarChart
-          data={barData}
-          horizontal
-          barWidth={18}
-          spacing={22}
-          roundedTop
-          roundedBottom
-          xAxisThickness={0}
-          yAxisThickness={0}
-          hideRules={false}
-          rulesColor="#D9D9D9"
-          xAxisLabelTextStyle={{ color: "#444" }}
-          yAxisTextStyle={{ color: "#444" }}
-          noOfSections={4}
-          maxValue={70}
-          isAnimated
-        />
+        <View style={{ marginTop: -30 }}>
+          <BarChart horizontal
+            data={barData}
+                  noOfSections={4}
+                  barBorderRadius={100}
+                  yAxisThickness={0}
+                  xAxisThickness={0}
+                  labelsDistanceFromXaxis={20}
+          />
+        </View>
 
       </View>
     </ScrollView>
@@ -82,7 +68,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     color: "#222",
-    marginBottom: 15,
   },
 
   menu: {
