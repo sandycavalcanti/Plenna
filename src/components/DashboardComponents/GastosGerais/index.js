@@ -34,14 +34,18 @@ export default function GastosTotais() {
 
         <Text style={styles.excedente}>+{porcentagem}% acima da meta</Text>
 
-        <View style={{ marginTop: -30 }}>
-          <BarChart horizontal
+        <View style={{ backgroundColor: "#AAA4A4", borderRadius: 16, padding: 10 }}>
+          <BarChart 
+            horizontal
             data={data}
-                  noOfSections={3}
-                  barBorderRadius={100}
-                  yAxisThickness={0}
-                  xAxisThickness={0}
-                  labelsDistanceFromXaxis={15}
+            noOfSections={3}
+            barBorderRadius={100}
+            yAxisThickness={0}
+            xAxisThickness={0}
+            labelsDistanceFromXaxis={15}
+            endSpacing={0}
+
+            
           />
         </View>
 

@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(89, 93, 124, 0.84)',
+    backgroundColor: '#EFEFF5',
   },  
   overlay: {
     width: '85%',
@@ -13,11 +13,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderRadius: 20,
-    paddingTop: 20,
-    padding: 10,
-    borderColor: '#E6BAD1',
-    borderRadius: 30,
-    borderWidth: 2,
+    paddingTop: 15,
   },
   logo: {
     width: 180,
@@ -28,7 +24,7 @@ export const styles = StyleSheet.create({
     marginBottom: 5,
     fontFamily: 'SugoDisplay',
     fontSize: 60,
-    color: '#E6BAD1',
+    color: '#595D7C',
   },
   texto: {
     marginTop: 6

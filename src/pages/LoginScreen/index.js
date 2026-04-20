@@ -16,28 +16,26 @@ export default function LoginScreen({ navigation }) {
     function handleForgotPassword() {
         navigation.navigate('ForgotPassword');
     }
+    function handleSignUp() {
+        navigation.navigate('SignUp');
+    }
 
     return (
-        // Ajusta a tela quando o teclado aparece
         <KeyboardAvoidingView style={styles.container} behavior="padding">
-            {/* Logo do app */}
             <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
             <Text style={styles.titulo}> Bem-vindo! </Text>
             <View style={styles.overlay}> 
-                {/* Campos de entrada */}
                 <CustomTextInput placeholder="Email"/>
-                <CustomTextInput placeholder="Password" secureTextEntry/>
-                {/* Botão de login */}
-                <CustomButton title="Entrar" onPress={handleLogin} />
-                {/* Botão de 'esqueci a senha' */}
-                <Text style={[styles.texto, { color: '#a31414' }]} onPress={handleForgotPassword}>
-                Esqueceu sua senha?
+                <CustomTextInput placeholder="Senha" secureTextEntry/>
+                <Text style={[styles.texto, { color: '#a31414', alignSelf: 'flex-end', marginBottom: 30, paddingRight: 10, marginTop: -10 }]} onPress={handleForgotPassword}>
+                Esqueci minha senha
                 </Text>
+                <CustomButton title="Entrar" onPress={handleLogin} />
+
+              <Text style={[styles.texto, { color: 'rgba(89, 93, 124, 0.69)' }]} onPress={handleSignUp}>
+                  Criar conta
+              </Text>            
             </View>
-            {/* Link para criar conta */} 
-            <Text style={[styles.texto, { color: '#fff' }]}>
-                Não tem uma conta? Crie uma aqui!
-            </Text>
         </KeyboardAvoidingView>
     );
 }

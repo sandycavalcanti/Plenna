@@ -2,9 +2,9 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   button: {
-    width: '100%',
+    width: '55%',
     backgroundColor: '#595D7C',
-    borderRadius: 15,
+    borderRadius: 30,
     padding: 10,
     alignItems: 'center',
   },
