@@ -1,62 +1,167 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-
   container: {
     flex: 1,
-    backgroundColor: '#27273e',
+    backgroundColor: '#EFF2FF',
+  },
+
+  keyboardWrapper: {
+    flex: 1,
   },
 
   header: {
-    paddingTop: 50,
-    paddingBottom: 15,
+    paddingTop: 10,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#ffffff94',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(131, 111, 226, 0.16)',
+  },
+
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EEF1FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(131, 111, 226, 0.35)',
+    marginRight: 10,
   },
 
   headerTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#4652A4',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  headerSubtitle: {
+    marginTop: 1,
+    color: '#7D84B3',
+    fontSize: 12,
+  },
+
+  headerAction: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#F5F6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  list: {
+    flex: 1,
   },
 
   messages: {
-    padding: 15,
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 18,
+  },
+
+  messageRow: {
+    width: '100%',
+    marginBottom: 12,
+  },
+
+  messageRowAi: {
+    alignItems: 'flex-start',
+  },
+
+  messageRowUser: {
+    alignItems: 'flex-end',
   },
 
   message: {
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
-    maxWidth: '75%',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    maxWidth: '82%',
   },
 
   userMessage: {
-    backgroundColor: '#595D7C',
-    alignSelf: 'flex-end',
+    backgroundColor: '#4652A4',
+    borderBottomRightRadius: 6,
+    shadowColor: '#4652A4',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
 
   aiMessage: {
-    backgroundColor: '#2F3244',
-    alignSelf: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(131, 111, 226, 0.25)',
   },
 
   messageText: {
-    color: '#fff',
+    color: '#2F356B',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  userMessageText: {
+    color: '#FFFFFF',
   },
 
   inputArea: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    gap: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ffffff94',
+    marginHorizontal: 0,
+    marginTop: 8,
+    marginBottom: 0,
+    paddingTop: 8,
+    paddingHorizontal: 12,
+    gap: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(131, 111, 226, 0.2)',
+    borderRadius: 0,
+    shadowColor: '#1E245A',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+
+  iconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F7F8FF',
   },
 
   chatInput: {
     flex: 1,
+    marginBottom: 0,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(131, 111, 226, 0.18)',
+    backgroundColor: '#FFFFFF',
   },
 
+  sendButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4652A4',
+  },
 });
