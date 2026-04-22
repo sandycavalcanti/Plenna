@@ -17,10 +17,10 @@ import styles from './styles';
  * Responsabilidade: Estruturar visualmente seções com título, ação de edição
  * e renderização de conteúdo filho (children)
  */
-export default function ProfileCard({ title, children, onEdit }) {
+export default function ProfileCard({ title, children, onEdit, style }) {
   return (
     // Container principal do card
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {/* Cabeçalho com título e ação de edição */}
       <View style={styles.header}>
         {/* Título da seção */}
@@ -29,9 +29,11 @@ export default function ProfileCard({ title, children, onEdit }) {
         </View>
 
         {/* Botão de edição */}
-        <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-          <Feather name="edit-2" size={18} color="#4652A4" />
-        </TouchableOpacity>
+        {onEdit ? (
+          <TouchableOpacity style={styles.editButton} onPress={onEdit}>
+            <Feather name="edit-2" size={18} color="#4652A4" />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* Conteúdo dinâmico do card */}

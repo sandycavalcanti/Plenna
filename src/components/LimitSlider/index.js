@@ -119,9 +119,9 @@ export default function LimitSlider({
           step={safeStep}
           value={currentValue}
           onValueChange={handleSliderChange}
-          minimumTrackTintColor="#4F59BD"
+          minimumTrackTintColor="#595D7C"
           maximumTrackTintColor="#E3E0F4"
-          thumbTintColor="#4F59BD"
+          thumbTintColor="#595D7C"
           disabled={disabled}
           testID={testID}
         />
@@ -137,7 +137,7 @@ export default function LimitSlider({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginVertical: 12,
+    marginVertical: 5,
   },
   containerCompact: {
     marginVertical: 2,
@@ -145,8 +145,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111111',
+    color: '#595D7C',
     marginBottom: 8,
+    paddingHorizontal: 5,
   },
   titleCompact: {
     fontSize: 15,
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   valueText: {
-    color: '#101010',
+    color: '#595D7C',
     fontSize: 20,
     textAlign: 'center',
     fontWeight: '700',

@@ -4,12 +4,6 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F7F7FB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 380,
-    height: 380,
-    marginBottom: 20,
-  },
+    paddingTop: 50,
+  }
 });

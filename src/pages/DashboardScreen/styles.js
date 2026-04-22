@@ -13,7 +13,9 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#EFEFF5',
+    backgroundColor: '#F7F7FB',
+    borderBottomColor: '#e3dff891',
+    borderBottomWidth: 1,
   },
 
   monthChip: {
@@ -29,7 +31,7 @@ export const styles = StyleSheet.create({
   monthChipText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111111',
+    color: '#ffffff',
   },
 
   topBarActions: {

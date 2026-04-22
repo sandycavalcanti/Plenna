@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
+import ProfileCard from '../../ProfileComponents/ProfileCard';
 
 export default function TempoApp() {
   const barData = [
@@ -22,45 +23,26 @@ export default function TempoApp() {
   ];
 
   return (
-    <View style={{ backgroundColor: '#fff' }}>
-      <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Tempo em sites (em minutos)</Text>
-        </View>
-        <View style={{ marginTop: -30 }}>
+    <View style={styles.section}>
+      <ProfileCard title="Tempo em sites (em minutos)">
+        <View style={styles.chartWrapper}>
           <BarChart horizontal data={barData} noOfSections={4} barBorderRadius={100} yAxisThickness={0} xAxisThickness={0} labelsDistanceFromXaxis={20} />
         </View>
-      </View>
+      </ProfileCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    margin: 20,
-    padding: 16,
-    backgroundColor: '#ECECEC',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#6B6B8F',
+  section: {
+    marginHorizontal: 20,
+    marginVertical: 10,
   },
 
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#222',
-  },
-
-  menu: {
-    fontSize: 22,
-    color: '#444',
+  chartWrapper: {
+    width: '100%',
+    marginTop: -50,
+    marginBottom: 20,
+    paddingBottom: 8,
   },
 });

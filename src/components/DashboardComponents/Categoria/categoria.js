@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
+import ProfileCard from '../../ProfileComponents/ProfileCard';
 
 export default function Categoria() {
   const pieData = [
@@ -17,17 +18,8 @@ export default function Categoria() {
   );
 
   return (
-    <View style={{ backgroundColor: '#fff' }}>
-      <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Categoria de gastos</Text>
-
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Total de itens: 28</Text>
-          </View>
-        </View>
-
+    <View style={styles.section}>
+      <ProfileCard title="Categoria de gastos">
         {/* Conteúdo */}
         <View style={styles.content}>
           {/* Donut */}
@@ -40,49 +32,24 @@ export default function Categoria() {
             <LegendItem color="#5A627F" label="Livraria (12,5%)" />
           </View>
         </View>
-      </View>
+      </ProfileCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    margin: 20,
-    padding: 16,
-    backgroundColor: '#ECECEC',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#6B6B8F',
-  },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#222',
-  },
-
-  badge: {
-    backgroundColor: '#9C8CD6',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 14,
-  },
-
-  badgeText: {
-    color: '#fff',
-    fontWeight: '600',
+  section: {
+    marginHorizontal: 20,
+    marginVertical: 10,
   },
 
   content: {
+    width: '100%',
+    paddingHorizontal: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 8,
+    marginBottom: 8,
   },
 
   legendItem: {

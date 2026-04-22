@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#EFEFF5',
-    paddingTop: -42,
+    paddingTop: -50,
   },
   overlay: {
     width: '85%',
@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'SugoDisplay',
     fontSize: 52,
     color: '#595D7C',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   segmentAction: {
     marginTop: 10,
@@ -53,9 +53,6 @@ export const styles = StyleSheet.create({
     color: '#EF596D',
     fontSize: 18,
     textAlign: 'center',
-  },
-  segmentPlus: {
-    fontFamily: 'SugoDisplay',
   },
   checkboxRow: {
     width: '90%',
@@ -95,5 +92,84 @@ export const styles = StyleSheet.create({
   },
   button: {
     marginTop: 15,
+  },
+  stepThreeContainer: {
+    width: '95%',
+    alignItems: 'center',
+    flex: 0.95,
+  },
+  stepThreeTitle: {
+    fontFamily: 'SugoDisplay',
+    fontSize: 44,
+    color: '#595D7C',
+    marginBottom: 8,
+  },
+  stepThreeScroll: {
+    width: '100%',
+  },
+  stepThreeContent: {
+    alignItems: 'center',
+    paddingBottom: 26,
+    paddingTop: 6,
+  },
+  questionBlock: {
+    width: '95%',
+    borderWidth: 2,
+    borderRadius: 18,
+    borderColor: '#B6ACEA',
+    backgroundColor: '#F2F1F8',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginBottom: 12,
+    shadowColor: '#8B86B8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  questionTitle: {
+    color: '#595D7C',
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  stepThreeInput: {
+    width: '100%',
+    height: 44,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D7D2F0',
+    paddingHorizontal: 12,
+    color: '#343853',
+  },
+  optionsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionPill: {
+    borderWidth: 1,
+    borderColor: '#D5CFF0',
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  optionPillSelected: {
+    backgroundColor: '#AFA1E8',
+    borderColor: '#AFA1E8',
+  },
+  optionText: {
+    color: '#595D7C',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  optionTextSelected: {
+    color: '#FFFFFF',
+  },
+  stepThreeButton: {
+    marginTop: 8,
+    marginBottom: 8,
   },
 });

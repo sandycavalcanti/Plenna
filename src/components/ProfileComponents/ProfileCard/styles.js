@@ -41,13 +41,13 @@ export default StyleSheet.create({
   // Fundo para recortar visualmente a borda atrás do título
   titleWrapper: {
     paddingHorizontal: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#F7F7FB',
   },
 
   // Fundo para recortar visualmente a borda atrás do ícone de edição
   editButton: {
     paddingHorizontal: 6,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#F7F7FB',
   },
 
   // Estilo do título do card

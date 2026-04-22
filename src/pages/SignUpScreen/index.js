@@ -1,13 +1,65 @@
 import React, { useState } from 'react';
 import { styles } from './styles';
-import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
+import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
 
+const discomfortOptions = [
+  'Uso excessivo do celular',
+  'Compras por impulso',
+  'Falta de controle',
+  'Quero entender meus habitos',
+  'So curiosidade',
+];
+
+const screenTimeOptions = [
+  'Pouco (ate 2h)',
+  'Moderado (2-5h)',
+  'Alto (5-8h)',
+  'Muito alto (+8h)',
+];
+
+const triggerOptions = [
+  'Promocao relampago',
+  'Anuncios',
+  'Influencia de pessoas',
+  'Tedio',
+  'Ansiedade',
+  'Nao sei',
+];
+
 export default function SignUpScreen({ navigation }) {
 
   const [step, setStep] = useState(1);
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [digitalDiscomfort, setDigitalDiscomfort] = useState('');
+  const [screenTime, setScreenTime] = useState('');
+  const [consumptionTrigger, setConsumptionTrigger] = useState('');
+
+  const renderOptionGroup = (title, options, selectedValue, onSelect) => (
+    <View style={styles.questionBlock}>
+      <Text style={styles.questionTitle}>{title}</Text>
+
+      <View style={styles.optionsWrap}>
+        {options.map((option) => {
+          const isSelected = selectedValue === option;
+
+          return (
+            <TouchableOpacity
+              key={option}
+              activeOpacity={0.85}
+              style={[styles.optionPill, isSelected && styles.optionPillSelected]}
+              onPress={() => onSelect(option)}
+            >
+              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{option}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -33,7 +85,7 @@ export default function SignUpScreen({ navigation }) {
 
           <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction}>
             <Text style={styles.segmentActionText}>
-              Adicionar limites por segmento <Text style={styles.segmentPlus}>+</Text>
+              Adicionar limites por segmento +
             </Text>
           </TouchableOpacity>
 
@@ -49,10 +101,74 @@ export default function SignUpScreen({ navigation }) {
             </Text>
           </View>
 
-          <CustomButton title="Finalizar" style={styles.button} onPress={() => setStep(2)} />
+          <CustomButton title="Finalizar" style={styles.button} onPress={() => setStep(3)} />
 
         </View>
       )}
+
+      {step === 3 && (
+        <View style={styles.stepThreeContainer}>
+          <Text style={styles.stepThreeTitle}>Questionario</Text>
+
+          <ScrollView
+            style={styles.stepThreeScroll}
+            contentContainerStyle={styles.stepThreeContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.questionBlock}>
+              <Text style={styles.questionTitle}>Telefone</Text>
+              <TextInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="(00) 00000-0000"
+                keyboardType="phone-pad"
+                style={styles.stepThreeInput}
+              />
+            </View>
+
+            <View style={styles.questionBlock}>
+              <Text style={styles.questionTitle}>Data de nascimento</Text>
+              <TextInput
+                value={birthDate}
+                onChangeText={setBirthDate}
+                placeholder="DD/MM/AAAA"
+                keyboardType="numeric"
+                style={styles.stepThreeInput}
+              />
+            </View>
+
+            {renderOptionGroup(
+              'O que mais te incomoda no seu consumo digital?',
+              discomfortOptions,
+              digitalDiscomfort,
+              setDigitalDiscomfort,
+            )}
+
+            {renderOptionGroup(
+              'Quanto tempo voce acha que passa no celular?',
+              screenTimeOptions,
+              screenTime,
+              setScreenTime,
+            )}
+
+            {renderOptionGroup(
+              'O que mais te faz comprar ou consumir algo?',
+              triggerOptions,
+              consumptionTrigger,
+              setConsumptionTrigger,
+            )}
+
+            <CustomButton
+              title="Concluir cadastro"
+              style={styles.stepThreeButton}
+              onPress={() => navigation.navigate('App')}
+            />
+          </ScrollView>
+        </View>
+      )}
+
     </KeyboardAvoidingView>
   );
+  
 }

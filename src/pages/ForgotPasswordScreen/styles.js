@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(89, 93, 124, 0.84)',
+    backgroundColor: '#EFEFF5',
   },
   logo: {
     width: 180,
@@ -26,12 +26,12 @@ export const styles = StyleSheet.create({
   titulo: {
     fontFamily: 'SugoDisplay',
     fontSize: 50,
-    color: '#E6BAD1',
+    color: '#595D7C',
     marginBottom: 10,
   },
 
   subtitulo: {
-    color: '#fff',
+    color: '#595D7C',
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -43,6 +43,7 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 15,
     marginBottom: 12,
+    color: '#000',
   },
 
   button: {
@@ -80,7 +81,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E6BAD1',
   },
   texto:{
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
     fontStyle: 'bold',
     paddingBottom: 10,

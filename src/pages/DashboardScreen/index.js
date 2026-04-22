@@ -16,18 +16,18 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.monthChip} onPress={() => {}}>
-          <MaterialIcons name="calendar-month" size={20} color="#111111" />
+          <MaterialIcons name="calendar-month" size={20} color="#ffffff" />
 
           <Text style={styles.monthChipText}>Janeiro</Text>
         </TouchableOpacity>
 
         <View style={styles.topBarActions}>
           <TouchableOpacity style={styles.iconAction} onPress={() => {}}>
-            <MaterialIcons name="add" size={30} color="#111111" />
+            <MaterialIcons name="add" size={30} color="#595D7C" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconAction} onPress={() => {}}>
-            <Feather name="filter" size={28} color="#111111" />
+            <Feather name="filter" size={28} color="#595D7C" />
           </TouchableOpacity>
         </View>
       </View>
