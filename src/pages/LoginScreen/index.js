@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { styles } from './styles';
 import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
+import { apiClient } from '../../api/client';
+import { tokenStorage } from '../../api/tokenStorage';
 
 // Tela de Login
 // Após clicar em "Login", o usuário é direcionado para a área principal (Tabs)
@@ -20,21 +22,59 @@ export default function LoginScreen({ navigation }) {
         navigation.navigate('SignUp');
     }
 
+    const email = useRef("");
+    const senha = useRef("");
+
+    async function Login(){
+        apiClient.post('/auth/login', {
+            email: email.current,
+            senha: senha.current
+        }
+        ).then(async (response) => {
+            const dados = response.data;
+            const token = dados.token;
+            await tokenStorage.setToken(token);
+            console.log(token)
+            handleLogin();
+        }).catch((error) => {
+            console.error("Erro ao fazer login: ", error);
+        });
+    }
+
+    async function irDireto() {
+        apiClient.post('/auth/login', {
+            email: "sandy2@email.com",
+            senha: "12345678"
+        }
+        ).then(async (response) => {
+            const dados = response.data;
+            const token = dados.token;
+            await tokenStorage.setToken(token);
+            console.log(token)
+            handleLogin();
+        }).catch((error) => {
+            console.error("Erro ao fazer login: ", error);
+        });
+    }
+
     return (
         <KeyboardAvoidingView style={styles.container} behavior="padding">
             <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
             <Text style={styles.titulo}> Bem-vindo! </Text>
             <View style={styles.overlay}> 
-                <CustomTextInput placeholder="Email"/>
-                <CustomTextInput placeholder="Senha" secureTextEntry/>
+                <CustomTextInput placeholder="Email" textValue={email} />
+                <CustomTextInput placeholder="Senha" secureTextEntry textValue={senha} />
                 <Text style={[styles.texto, { color: '#a31414', alignSelf: 'flex-end', marginBottom: 30, paddingRight: 10, marginTop: -10 }]} onPress={handleForgotPassword}>
                 Esqueci minha senha
                 </Text>
-                <CustomButton title="Entrar" onPress={handleLogin} />
+                <CustomButton title="Entrar" onPress={Login} />
 
               <Text style={[styles.texto, { color: 'rgba(89, 93, 124, 0.69)' }]} onPress={handleSignUp}>
                   Criar conta
-              </Text>            
+              </Text>      
+              <Text style={[styles.texto, { color: 'rgba(89, 93, 124, 0.69)' }]} onPress={irDireto}>
+                  Ir direto
+              </Text>               
             </View>
         </KeyboardAvoidingView>
     );

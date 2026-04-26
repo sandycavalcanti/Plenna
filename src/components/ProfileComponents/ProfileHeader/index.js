@@ -16,7 +16,7 @@ import styles from './styles';
  * Componente: ProfileHeader
  * Responsabilidade: Renderizar informações básicas do usuário no topo da tela
  */
-export default function ProfileHeader() {
+export default function ProfileHeader({ nome }) {
   return (
     // Container principal do cabeçalho
     <View style={styles.container}>
@@ -31,7 +31,7 @@ export default function ProfileHeader() {
       </View>
 
       {/* Nome do usuário */}
-      <Text style={styles.name}>Marina Souza</Text>
+      <Text style={styles.name}>{nome}</Text>
     </View>
   );
 }

@@ -7,41 +7,58 @@
  */
 
 //Importações necessárias para o componente
-import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import ProfileCard from '../ProfileCard';
-import styles from './styles';
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import ProfileCard from "../ProfileCard";
+import styles from "./styles";
 
 /**
  * Componente: Goals
  * Responsabilidade: Renderizar informações de metas financeiras do usuário
  */
-export default function Goals() {
-  const [goals, setGoals] = useState([
-    { id: 1, name: 'Viajar para Alemanha', value: 'R$5.000,00', checked: true },
-    { id: 2, name: 'Montar reserva de emergência', value: 'R$3.000,00', checked: false },
-    { id: 3, name: 'Trocar de notebook', value: 'R$4.500,00', checked: false },
-    { id: 4, name: 'Curso de especialização', value: 'R$1.200,00', checked: false },
-  ]);
+export default function Goals({ metas }) {
+  const [goals, setGoals] = useState(metas);
+
+  useEffect(() => {
+    setGoals(metas);
+  }, [metas]);
 
   function handleToggleGoal(goalId) {
-    setGoals((prevGoals) => prevGoals.map((goal) => (goal.id === goalId ? { ...goal, checked: !goal.checked } : goal)));
+    setGoals((prevGoals) =>
+      prevGoals.map((goal) =>
+        goal.meta_id === goalId
+          ? { ...goal, meta_completado: !goal.meta_completado }
+          : goal,
+      ),
+    );
   }
-
   return (
     // Card principal que encapsula o conteúdo de metas
     <ProfileCard title="Metas" onEdit={() => {}}>
       {goals.map((goal) => (
-        <Pressable key={goal.id} style={styles.goalItem} onPress={() => handleToggleGoal(goal.id)}>
+        <Pressable
+          key={goal.meta_id}
+          style={styles.goalItem}
+          onPress={() => handleToggleGoal(goal.meta_id)}
+        >
           {/* Indicador de status da meta */}
-          <View style={[styles.checkbox, goal.checked && styles.checkboxChecked]}>{goal.checked && <Feather name="check" size={18} color="#111111" />}</View>
+          <View
+            style={[
+              styles.checkbox,
+              goal.meta_completado && styles.checkboxChecked,
+            ]}
+          >
+            {goal.meta_completado && (
+              <Feather name="check" size={18} color="#111111" />
+            )}
+          </View>
 
           {/* Conteúdo da meta */}
           <View style={styles.goalContent}>
-            <Text style={styles.goalName}>{goal.name}</Text>
+            <Text style={styles.goalName}>{goal.meta_titulo}</Text>
 
-            <Text style={styles.value}>Valor: {goal.value}</Text>
+            <Text style={styles.value}>Valor: {goal.meta_valor}</Text>
           </View>
         </Pressable>
       ))}

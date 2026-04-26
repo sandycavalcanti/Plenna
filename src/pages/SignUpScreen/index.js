@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import axios from 'axios';
 import { styles } from './styles';
 import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
+import { URL_API } from '../../api/constants';
 
 const discomfortOptions = [
   'Uso excessivo do celular',
@@ -38,6 +40,13 @@ export default function SignUpScreen({ navigation }) {
   const [screenTime, setScreenTime] = useState('');
   const [consumptionTrigger, setConsumptionTrigger] = useState('');
 
+  const nome = useRef("");
+  const email = useRef("");
+  const senha = useRef("");
+  const confirmacaoSenha = useRef("");
+  const limiteGasto = useRef(0);
+  const limiteTempo = useRef(0);
+
   const renderOptionGroup = (title, options, selectedValue, onSelect) => (
     <View style={styles.questionBlock}>
       <Text style={styles.questionTitle}>{title}</Text>
@@ -61,17 +70,48 @@ export default function SignUpScreen({ navigation }) {
     </View>
   );
 
+  async function Cadastrar() {
+    console.log(nome.current, email.current, senha.current, confirmacaoSenha.current, limiteGasto.current, limiteTempo.current);
+
+    await axios.post(URL_API + "/auth/register", {
+      nome: nome.current,
+      email: email.current,
+      senha: senha.current,
+      preferenciasMetaValor: limiteGasto.current,
+      preferenciasMetaTempo: limiteTempo.current
+    }).then((response) => {
+      setStep(3);
+    }).catch((error) => {
+      console.error("Erro ao cadastrar usuário:", error);
+    });
+  }
+
+  function Verificar() {
+
+    axios.get(URL_API + "/users/email/" + email.current).then(async (response) => {
+      const dados = response.data;
+      console.log("ja existe")
+
+    }).catch((error) => {
+      if(error.response && error.response.status === 404) {
+        setStep(2);
+      } else {
+        console.error(error)
+      }
+    });
+  }
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
 
       {step === 1 && (
         <View style={styles.overlay}>
-          <CustomTextInput placeholder="Como devemos te chamar?" />
-          <CustomTextInput placeholder="E-mail" secureTextEntry />
-          <CustomTextInput placeholder="Senha" secureTextEntry />
-          <CustomTextInput placeholder="Confirmação da senha" secureTextEntry />
-          <CustomButton title="Cadastrar" style={styles.button} onPress={() => setStep(2)} />
+          <CustomTextInput placeholder="Como devemos te chamar?" textValue={nome} />
+          <CustomTextInput placeholder="E-mail" secureTextEntry textValue={email} />
+          <CustomTextInput placeholder="Senha" secureTextEntry textValue={senha} />
+          <CustomTextInput placeholder="Confirmação da senha" secureTextEntry textValue={confirmacaoSenha} />
+          <CustomButton title="Cadastrar" style={styles.button} onPress={Verificar} />
         </View>
       )}
 
@@ -79,8 +119,8 @@ export default function SignUpScreen({ navigation }) {
         <View style={styles.stepTwoContainer}>
           <Text style={styles.titulo}>Preferências</Text>
           <View style={styles.borderOverlay}>
-            <LimitSlider title="Limite mensal de gasto" min={0} max={2000} step={10} initialValue={290} valor compact />
-            <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={90} horas compact />
+            <LimitSlider title="Limite mensal de gasto" min={0} max={2000} step={10} initialValue={290} valor compact textValue={limiteGasto} />
+            <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={90} horas compact textValue={limiteTempo} />
           </View>
 
           <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction}>
@@ -101,7 +141,7 @@ export default function SignUpScreen({ navigation }) {
             </Text>
           </View>
 
-          <CustomButton title="Finalizar" style={styles.button} onPress={() => setStep(3)} />
+          <CustomButton title="Finalizar" style={styles.button} onPress={Cadastrar} />
 
         </View>
       )}

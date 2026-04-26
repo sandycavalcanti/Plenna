@@ -7,7 +7,7 @@
  */
 
 //Importações necessárias para a tela de perfil
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import PersonalInfo from '../../components/ProfileComponents/PersonalInfo';
 import BudgetPreferences from '../../components/BudgetPreferences';
 import Goals from '../../components/ProfileComponents/Goals';
 import Permissions from '../../components/ProfileComponents/Permissions';
+import { apiClient } from '../../api/client';
 
 /**
  * Componente: ProfileScreen
@@ -28,24 +29,61 @@ export default function ProfileScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
   const bottomSpacing = tabBarHeight + insets.bottom + 32;
+  const [recarregar, setRecarregar] = useState(0);
+  const nome = useRef("");
+  const email = useRef("");
+  const telefone = useRef("");
+  const dataNascimento = useRef("");
+  const [metas, setMetas] = useState([]);
+
+  useEffect(() => {
+    Selecionar();
+    selecionarMetas();
+  }, []);
+
+  function Selecionar() {
+    apiClient.get('/users/user')
+      .then((response) => {
+        const dados = response.data;
+        nome.current = dados.usuario_nome;
+        email.current = dados.usuario_email;
+        telefone.current = dados.usuario_telefone;
+        dataNascimento.current = dados.usuario_data_nascimento;
+        setRecarregar((prev) => prev + 1);
+      })
+      .catch((error) => {
+        console.error("Erro ao buscar perfil: ", error);
+      });
+  }
+
+  function selecionarMetas() {
+    apiClient.get('/goals')
+      .then((response) => {
+        const dados = response.data;
+        setMetas(dados);
+      })
+      .catch((error) => {
+        console.error("Erro ao buscar metas: ", error);
+      });
+  }
 
   return (
     // Container com rolagem para acomodar todos os componentes
     <ScrollView style={styles.container} contentContainerStyle={[styles.contentContainer, { paddingBottom: bottomSpacing }]} scrollIndicatorInsets={{ bottom: bottomSpacing }}>
       {/* Cabeçalho do perfil */}
-      <ProfileHeader />
+      <ProfileHeader nome={nome.current} />
 
       {/* Informações pessoais do usuário */}
-      <PersonalInfo />
-
-      {/* Configurações de permissões */}
-      <Permissions />
+      <PersonalInfo email={email.current} telefone={telefone.current} dataNascimento={dataNascimento.current} />
 
       {/* Metas financeiras */}
-      <Goals />
+      <Goals metas={metas} />
 
       {/* Preferências de orçamento */}
-      <BudgetPreferences />
+      <BudgetPreferences /> 
+      
+      {/* Configurações de permissões */}
+      <Permissions />
     </ScrollView>
   );
 }

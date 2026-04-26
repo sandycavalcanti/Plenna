@@ -17,6 +17,7 @@ export default function LimitSlider({
   formatValue,
   disabled = false,
   testID,
+  textValue
 }) {
   const safeMin = Number.isFinite(min) ? min : 0;
   const safeMax = Number.isFinite(max) && max >= safeMin ? max : safeMin;
@@ -97,6 +98,7 @@ export default function LimitSlider({
 
   function handleSliderChange(nextValue) {
     const parsed = normalizeValue(nextValue);
+    textValue.current = parsed;
 
     if (!isControlled) {
       setInternalValue(parsed);
