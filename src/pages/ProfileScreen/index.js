@@ -31,35 +31,51 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const bottomSpacing = tabBarHeight + insets.bottom + 32;
   const [recarregar, setRecarregar] = useState(0);
-  const nome = useRef("");
-  const email = useRef("");
-  const telefone = useRef("");
-  const dataNascimento = useRef("");
+  const nome = useRef('');
+  const email = useRef('');
+  const telefone = useRef('');
+  const dataNascimento = useRef('');
+  const preferenciaGasto = useRef('');
   const [metas, setMetas] = useState([]);
+  const [preferencias, setPreferencias] = useState([]);
 
   useEffect(() => {
     Selecionar();
     selecionarMetas();
+    selecionarPreferencias();
   }, []);
 
   function Selecionar() {
-    apiClient.get('/users/user')
+    apiClient
+      .get('/users/user')
       .then((response) => {
         const dados = response.data;
         nome.current = dados.usuario_nome;
         email.current = dados.usuario_email;
         telefone.current = dados.usuario_telefone;
         dataNascimento.current = dados.usuario_data_nascimento;
+        preferenciaGasto.current = dados.usuario_preferencias_meta_valor;
         setRecarregar((prev) => prev + 1);
       })
       .catch(CatchError);
   }
 
   function selecionarMetas() {
-    apiClient.get('/goals')
+    apiClient
+      .get('/goals')
       .then((response) => {
         const dados = response.data;
         setMetas(dados);
+      })
+      .catch(CatchError);
+  }
+
+  function selecionarPreferencias() {
+    apiClient
+      .get('/preferencias-categoria')
+      .then((response) => {
+        const dados = response.data;
+        setPreferencias(dados);
       })
       .catch(CatchError);
   }
@@ -77,8 +93,8 @@ export default function ProfileScreen() {
       <Goals metas={metas} />
 
       {/* Preferências de orçamento */}
-      <BudgetPreferences /> 
-      
+      <BudgetPreferences valorIdeal={preferenciaGasto.current} preferencias={preferencias} />
+
       {/* Configurações de permissões */}
       <Permissions />
     </ScrollView>

@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { styles } from './styles';
-import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
+import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import { CatchError, URL_API } from '../../api/constants';
 
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
@@ -20,6 +21,10 @@ export default function SignUpScreen({ navigation }) {
   const [digitalDiscomfort, setDigitalDiscomfort] = useState('');
   const [screenTime, setScreenTime] = useState('');
   const [consumptionTrigger, setConsumptionTrigger] = useState('');
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   const nome = useRef('');
   const email = useRef('');
@@ -28,23 +33,47 @@ export default function SignUpScreen({ navigation }) {
   const limiteGasto = useRef(0);
   const limiteTempo = useRef(0);
 
-  const renderOptionGroup = (title, options, selectedValue, onSelect) => (
-    <View style={styles.questionBlock}>
-      <Text style={styles.questionTitle}>{title}</Text>
+  function abrirTelinhaCategorias() {
+    setCategoryModalVisible(true);
+    listarCategorias();
+  }
 
-      <View style={styles.optionsWrap}>
-        {options.map((option) => {
-          const isSelected = selectedValue === option;
+  function fecharTelinhaCategorias() {
+    setCategoryModalVisible(false);
+  }
 
-          return (
-            <TouchableOpacity key={option} activeOpacity={0.85} style={[styles.optionPill, isSelected && styles.optionPillSelected]} onPress={() => onSelect(option)}>
-              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{option}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
+  function selecionarCategoria(category) {
+    setSelectedCategories((prevCategories) => {
+      const exists = prevCategories.some((item) => item.categoria_id === category.categoria_id);
+
+      if (exists) {
+        return prevCategories;
+      }
+
+      return [
+        ...prevCategories,
+        {
+          ...category,
+          limite: 0,
+        },
+      ];
+    });
+
+    fecharTelinhaCategorias();
+  }
+
+  function atualizarLimiteCategoria(categoriaId, novoValor) {
+    setSelectedCategories((prevCategories) =>
+      prevCategories.map((item) =>
+        item.categoria_id === categoriaId
+          ? {
+              ...item,
+              limite: novoValor,
+            }
+          : item,
+      ),
+    );
+  }
 
   async function Cadastrar() {
     await axios
@@ -76,6 +105,37 @@ export default function SignUpScreen({ navigation }) {
       );
   }
 
+  function listarCategorias() {
+    setCategoriesLoading(true);
+    axios
+      .get(URL_API + '/categories')
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch(CatchError)
+      .finally(() => {
+        setCategoriesLoading(false);
+      });
+  }
+
+  const renderOptionGroup = (title, options, selectedValue, onSelect) => (
+    <View style={styles.questionBlock}>
+      <Text style={styles.questionTitle}>{title}</Text>
+
+      <View style={styles.optionsWrap}>
+        {options.map((option) => {
+          const isSelected = selectedValue === option;
+
+          return (
+            <TouchableOpacity key={option} activeOpacity={0.85} style={[styles.optionPill, isSelected && styles.optionPillSelected]} onPress={() => onSelect(option)}>
+              <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{option}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
@@ -98,9 +158,53 @@ export default function SignUpScreen({ navigation }) {
             <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={90} horas compact textValue={limiteTempo} />
           </View>
 
-          <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction}>
+          <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction} onPress={abrirTelinhaCategorias}>
             <Text style={styles.segmentActionText}>Adicionar limites por segmento +</Text>
           </TouchableOpacity>
+
+          <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={fecharTelinhaCategorias}>
+            <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 24 }} onPress={fecharTelinhaCategorias}>
+              <Pressable style={{ backgroundColor: '#fff', borderRadius: 20, padding: 18, maxHeight: '75%' }} onPress={(event) => event.stopPropagation()}>
+                <Text style={styles.questionTitle}>Selecione uma categoria</Text>
+
+                {categoriesLoading ? (
+                  <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                    <ActivityIndicator size="small" color="#a31414" />
+                  </View>
+                ) : (
+                  <FlatList
+                    data={categories}
+                    keyExtractor={(item) => String(item.categoria_id)}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity activeOpacity={0.85} onPress={() => selecionarCategoria(item)} style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#ececec' }}>
+                        <Text style={{ color: '#111', fontWeight: '600' }}>{item.categoria_nome}</Text>
+                      </TouchableOpacity>
+                    )}
+                    ListEmptyComponent={<Text style={{ paddingVertical: 16, color: '#666' }}>Nenhuma categoria encontrada.</Text>}
+                  />
+                )}
+
+                <TouchableOpacity activeOpacity={0.85} onPress={fecharTelinhaCategorias} style={{ marginTop: 12, alignItems: 'center', paddingVertical: 10 }}>
+                  <Text style={{ color: '#a31414', fontWeight: '600' }}>Fechar</Text>
+                </TouchableOpacity>
+              </Pressable>
+            </Pressable>
+          </Modal>
+
+          {selectedCategories.map((category) => (
+            <ProfileCard key={category.categoria_id} title={category.categoria_nome} style={{ width: '95%' }}>
+              <LimitSlider
+                title="Limite mensal"
+                min={0}
+                max={2000}
+                step={10}
+                valor
+                compact
+                value={category.limite}
+                onValueChange={(novoValor) => atualizarLimiteCategoria(category.categoria_id, novoValor)}
+              />
+            </ProfileCard>
+          ))}
 
           <View style={styles.checkboxRow}>
             <View style={styles.checkbox} />

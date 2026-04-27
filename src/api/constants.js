@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 
-export const URL_API = Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+const useLocalhost = false;
+
+export const URL_API = useLocalhost ? (Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000') : 'https://plenna-api-orpin.vercel.app/';
 
 // Função genérica para lidar com erros de requisições, é possível passar apenas CatchError diretamente,
 // que fará um log do erro, ou então especificar um texto para o log, uma função a ser executada em caso

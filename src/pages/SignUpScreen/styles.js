@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#EFEFF5',
+    backgroundColor: '#F7F7FB',
     paddingTop: -50,
   },
   overlay: {

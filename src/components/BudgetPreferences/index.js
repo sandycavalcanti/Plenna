@@ -17,16 +17,13 @@ import styles from './styles';
  * Responsabilidade: Renderizar informações de preferências financeiras do usuário
  */
 export default function BudgetPreferences({
-  idealSpending = 'R$290,00',
-  preferences = [
-    { label: 'Moda', value: 'R$200,00' },
-    { label: 'Higiene', value: 'R$90,00' },
-  ],
+  valorIdeal,
+  preferencias
 }) {
   const rows = [];
 
-  for (let i = 0; i < preferences.length; i += 2) {
-    rows.push(preferences.slice(i, i + 2));
+  for (let i = 0; i < preferencias.length; i += 2) {
+    rows.push(preferencias.slice(i, i + 2));
   }
 
   return (
@@ -37,16 +34,16 @@ export default function BudgetPreferences({
         <Text style={styles.label}>Expectativa de gasto ideal</Text>
 
         {/* Valor total definido pelo usuário */}
-        <Text style={styles.value}>{idealSpending}</Text>
+        <Text style={styles.value}>R$ {(parseFloat(valorIdeal) || 0).toFixed(2)}</Text>
       </View>
 
       {/* Linhas dinâmicas com categorias de gastos */}
       {rows.map((row, rowIndex) => (
         <View key={`row-${rowIndex}`} style={styles.row}>
           {row.map((item, itemIndex) => (
-            <View key={`${item.label}-${rowIndex}-${itemIndex}`} style={styles.smallBox}>
-              <Text style={styles.label}>{item.label}</Text>
-              <Text style={styles.value}>{item.value}</Text>
+            <View key={`${item.categoria_nome}-${rowIndex}-${itemIndex}`} style={styles.smallBox}>
+              <Text style={styles.label}>{item.categoria_nome}</Text>
+              <Text style={styles.value}>R$ {(parseFloat(item.preferencias_categoria_meta_mensal) || 0).toFixed(2)}</Text>
             </View>
           ))}
         </View>
