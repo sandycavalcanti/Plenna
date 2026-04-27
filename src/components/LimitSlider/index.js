@@ -45,6 +45,12 @@ export default function LimitSlider({
     }
   }, [safeMin, safeMax]);
 
+  useEffect(() => {
+    if(initialValue){
+      textValue.current = normalizeValue(initialValue);
+    }
+  }, []);
+
   const currentValue = useMemo(() => {
     if (isControlled) {
       return normalizeValue(value);

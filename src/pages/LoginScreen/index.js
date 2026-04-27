@@ -5,6 +5,7 @@ import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
+import { CatchError } from '../../api/constants';
 
 // Tela de Login
 // Após clicar em "Login", o usuário é direcionado para a área principal (Tabs)
@@ -36,25 +37,21 @@ export default function LoginScreen({ navigation }) {
             await tokenStorage.setToken(token);
             console.log(token)
             handleLogin();
-        }).catch((error) => {
-            console.error("Erro ao fazer login: ", error);
-        });
+        }).catch(CatchError);
     }
 
     async function irDireto() {
         apiClient.post('/auth/login', {
-            email: "sandy2@email.com",
-            senha: "12345678"
+            email: "sandy@email.com",
+            senha: "senha123"
         }
         ).then(async (response) => {
             const dados = response.data;
             const token = dados.token;
             await tokenStorage.setToken(token);
-            console.log(token)
+            console.log("token: ", token);
             handleLogin();
-        }).catch((error) => {
-            console.error("Erro ao fazer login: ", error);
-        });
+        }).catch(CatchError);
     }
 
     return (

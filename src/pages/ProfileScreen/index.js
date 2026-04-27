@@ -19,6 +19,7 @@ import BudgetPreferences from '../../components/BudgetPreferences';
 import Goals from '../../components/ProfileComponents/Goals';
 import Permissions from '../../components/ProfileComponents/Permissions';
 import { apiClient } from '../../api/client';
+import { CatchError } from '../../api/constants';
 
 /**
  * Componente: ProfileScreen
@@ -51,9 +52,7 @@ export default function ProfileScreen() {
         dataNascimento.current = dados.usuario_data_nascimento;
         setRecarregar((prev) => prev + 1);
       })
-      .catch((error) => {
-        console.error("Erro ao buscar perfil: ", error);
-      });
+      .catch(CatchError);
   }
 
   function selecionarMetas() {
@@ -62,9 +61,7 @@ export default function ProfileScreen() {
         const dados = response.data;
         setMetas(dados);
       })
-      .catch((error) => {
-        console.error("Erro ao buscar metas: ", error);
-      });
+      .catch(CatchError);
   }
 
   return (

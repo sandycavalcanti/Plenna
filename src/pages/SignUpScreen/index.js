@@ -5,34 +5,15 @@ import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, 
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
-import { URL_API } from '../../api/constants';
+import { CatchError, URL_API } from '../../api/constants';
 
-const discomfortOptions = [
-  'Uso excessivo do celular',
-  'Compras por impulso',
-  'Falta de controle',
-  'Quero entender meus habitos',
-  'So curiosidade',
-];
+const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 
-const screenTimeOptions = [
-  'Pouco (ate 2h)',
-  'Moderado (2-5h)',
-  'Alto (5-8h)',
-  'Muito alto (+8h)',
-];
+const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
 
-const triggerOptions = [
-  'Promocao relampago',
-  'Anuncios',
-  'Influencia de pessoas',
-  'Tedio',
-  'Ansiedade',
-  'Nao sei',
-];
+const triggerOptions = ['Promocao relampago', 'Anuncios', 'Influencia de pessoas', 'Tedio', 'Ansiedade', 'Nao sei'];
 
 export default function SignUpScreen({ navigation }) {
-
   const [step, setStep] = useState(1);
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -40,10 +21,10 @@ export default function SignUpScreen({ navigation }) {
   const [screenTime, setScreenTime] = useState('');
   const [consumptionTrigger, setConsumptionTrigger] = useState('');
 
-  const nome = useRef("");
-  const email = useRef("");
-  const senha = useRef("");
-  const confirmacaoSenha = useRef("");
+  const nome = useRef('');
+  const email = useRef('');
+  const senha = useRef('');
+  const confirmacaoSenha = useRef('');
   const limiteGasto = useRef(0);
   const limiteTempo = useRef(0);
 
@@ -56,12 +37,7 @@ export default function SignUpScreen({ navigation }) {
           const isSelected = selectedValue === option;
 
           return (
-            <TouchableOpacity
-              key={option}
-              activeOpacity={0.85}
-              style={[styles.optionPill, isSelected && styles.optionPillSelected]}
-              onPress={() => onSelect(option)}
-            >
+            <TouchableOpacity key={option} activeOpacity={0.85} style={[styles.optionPill, isSelected && styles.optionPillSelected]} onPress={() => onSelect(option)}>
               <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{option}</Text>
             </TouchableOpacity>
           );
@@ -71,34 +47,33 @@ export default function SignUpScreen({ navigation }) {
   );
 
   async function Cadastrar() {
-    console.log(nome.current, email.current, senha.current, confirmacaoSenha.current, limiteGasto.current, limiteTempo.current);
-
-    await axios.post(URL_API + "/auth/register", {
-      nome: nome.current,
-      email: email.current,
-      senha: senha.current,
-      preferenciasMetaValor: limiteGasto.current,
-      preferenciasMetaTempo: limiteTempo.current
-    }).then((response) => {
-      setStep(3);
-    }).catch((error) => {
-      console.error("Erro ao cadastrar usuário:", error);
-    });
+    await axios
+      .post(URL_API + '/auth/register', {
+        nome: nome.current,
+        email: email.current,
+        senha: senha.current,
+        preferenciasMetaValor: limiteGasto.current,
+        preferenciasMetaTempo: limiteTempo.current,
+      })
+      .then((response) => {
+        setStep(3);
+      })
+      .catch(CatchError);
   }
 
   function Verificar() {
-
-    axios.get(URL_API + "/users/email/" + email.current).then(async (response) => {
-      const dados = response.data;
-      console.log("ja existe")
-
-    }).catch((error) => {
-      if(error.response && error.response.status === 404) {
-        setStep(2);
-      } else {
-        console.error(error)
-      }
-    });
+    axios
+      .get(URL_API + '/users/email/' + email.current)
+      .then(async (response) => {
+        const dados = response.data;
+        console.log('Ja existe um usuario com esse email');
+      })
+      .catch((error) =>
+        CatchError(error, 'Erro ao verificar email: ', () => {
+          // Se o erro for 404, significa que o email nao existe e podemos prosseguir com o cadastro
+          setStep(2);
+        }),
+      );
   }
 
   return (
@@ -124,9 +99,7 @@ export default function SignUpScreen({ navigation }) {
           </View>
 
           <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction}>
-            <Text style={styles.segmentActionText}>
-              Adicionar limites por segmento +
-            </Text>
+            <Text style={styles.segmentActionText}>Adicionar limites por segmento +</Text>
           </TouchableOpacity>
 
           <View style={styles.checkboxRow}>
@@ -142,7 +115,6 @@ export default function SignUpScreen({ navigation }) {
           </View>
 
           <CustomButton title="Finalizar" style={styles.button} onPress={Cadastrar} />
-
         </View>
       )}
 
@@ -150,65 +122,27 @@ export default function SignUpScreen({ navigation }) {
         <View style={styles.stepThreeContainer}>
           <Text style={styles.stepThreeTitle}>Questionario</Text>
 
-          <ScrollView
-            style={styles.stepThreeScroll}
-            contentContainerStyle={styles.stepThreeContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={styles.stepThreeScroll} contentContainerStyle={styles.stepThreeContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <View style={styles.questionBlock}>
               <Text style={styles.questionTitle}>Telefone</Text>
-              <TextInput
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="(00) 00000-0000"
-                keyboardType="phone-pad"
-                style={styles.stepThreeInput}
-              />
+              <TextInput value={phone} onChangeText={setPhone} placeholder="(00) 00000-0000" keyboardType="phone-pad" style={styles.stepThreeInput} />
             </View>
 
             <View style={styles.questionBlock}>
               <Text style={styles.questionTitle}>Data de nascimento</Text>
-              <TextInput
-                value={birthDate}
-                onChangeText={setBirthDate}
-                placeholder="DD/MM/AAAA"
-                keyboardType="numeric"
-                style={styles.stepThreeInput}
-              />
+              <TextInput value={birthDate} onChangeText={setBirthDate} placeholder="DD/MM/AAAA" keyboardType="numeric" style={styles.stepThreeInput} />
             </View>
 
-            {renderOptionGroup(
-              'O que mais te incomoda no seu consumo digital?',
-              discomfortOptions,
-              digitalDiscomfort,
-              setDigitalDiscomfort,
-            )}
+            {renderOptionGroup('O que mais te incomoda no seu consumo digital?', discomfortOptions, digitalDiscomfort, setDigitalDiscomfort)}
 
-            {renderOptionGroup(
-              'Quanto tempo voce acha que passa no celular?',
-              screenTimeOptions,
-              screenTime,
-              setScreenTime,
-            )}
+            {renderOptionGroup('Quanto tempo voce acha que passa no celular?', screenTimeOptions, screenTime, setScreenTime)}
 
-            {renderOptionGroup(
-              'O que mais te faz comprar ou consumir algo?',
-              triggerOptions,
-              consumptionTrigger,
-              setConsumptionTrigger,
-            )}
+            {renderOptionGroup('O que mais te faz comprar ou consumir algo?', triggerOptions, consumptionTrigger, setConsumptionTrigger)}
 
-            <CustomButton
-              title="Concluir cadastro"
-              style={styles.stepThreeButton}
-              onPress={() => navigation.navigate('App')}
-            />
+            <CustomButton title="Concluir cadastro" style={styles.stepThreeButton} onPress={() => navigation.navigate('App')} />
           </ScrollView>
         </View>
       )}
-
     </KeyboardAvoidingView>
   );
-  
 }
