@@ -3,7 +3,7 @@ import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
-import Categoria from '../../components/DashboardComponents/Categoria/categoria';
+import Categoria from '../../components/DashboardComponents/Categoria';
 import TempoApp from '../../components/DashboardComponents/TempoApp';
 import GastosTotais from '../../components/DashboardComponents/GastosGerais';
 import AlertasHabito from '../../components/DashboardComponents/AlertasHabito';

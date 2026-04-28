@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import { styles } from './styles';
+import { COLORS } from '../../../constants';
 
 export default function TempoApp() {
   const barData = [
@@ -32,17 +34,3 @@ export default function TempoApp() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    marginHorizontal: 20,
-    marginVertical: 10,
-  },
-
-  chartWrapper: {
-    width: '100%',
-    marginTop: -50,
-    marginBottom: 20,
-    paddingBottom: 8,
-  },
-});

@@ -14,6 +14,7 @@ import ProfileCard from '../ProfileCard';
 import styles from './styles';
 import { apiClient } from '../../../api/client';
 import { CatchError, URL_API } from '../../../api/constants';
+import { COLORS } from '../../../constants';
 
 /**
  * Componente: Goals
@@ -44,7 +45,7 @@ export default function Goals({ metas }) {
       {goals.map((goal) => (
         <Pressable key={goal.meta_id} style={styles.goalItem} onPress={() => handleToggleGoal(goal.meta_id, goal.meta_completado)}>
           {/* Indicador de status da meta */}
-          <View style={[styles.checkbox, goal.meta_completado && styles.checkboxChecked]}>{goal.meta_completado && <Feather name="check" size={18} color="#111111" />}</View>
+          <View style={[styles.checkbox, goal.meta_completado && styles.checkboxChecked]}>{goal.meta_completado && <Feather name="check" size={18} color={COLORS.perfilCheckColor} />}</View>
 
           {/* Conteúdo da meta */}
           <View style={styles.goalContent}>

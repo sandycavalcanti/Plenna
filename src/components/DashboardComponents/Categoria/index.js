@@ -2,12 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import { styles } from './styles';
+import { COLORS } from '../../../constants';
 
 export default function Categoria() {
   const pieData = [
-    { value: 62.5, color: '#C79AB0', text: '62,5%' },
-    { value: 25, color: '#8B95C9', text: '25%' },
-    { value: 12.5, color: '#5A627F', text: '12,5%' },
+    { value: 62.5, color: COLORS.dadoDois, text: '62,5%' },
+    { value: 25, color: COLORS.dadoTres, text: '25%' },
+    { value: 12.5, color: COLORS.dadoUm, text: '12,5%' },
   ];
 
   const LegendItem = ({ color, label }) => (
@@ -27,46 +29,12 @@ export default function Categoria() {
 
           {/* Legenda */}
           <View style={{ marginLeft: 20 }}>
-            <LegendItem color="#C79AB0" label="Roupa (62,5%)" />
-            <LegendItem color="#8B95C9" label="Casa (25%)" />
-            <LegendItem color="#5A627F" label="Livraria (12,5%)" />
+            <LegendItem color={COLORS.dadoDois} label="Roupa (62,5%)" />
+            <LegendItem color={COLORS.dadoTres} label="Casa (25%)" />
+            <LegendItem color={COLORS.dadoUm} label="Livraria (12,5%)" />
           </View>
         </View>
       </ProfileCard>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    marginHorizontal: 20,
-    marginVertical: 10,
-  },
-
-  content: {
-    width: '100%',
-    paddingHorizontal: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-  },
-
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-
-  legendText: {
-    fontSize: 16,
-    color: '#333',
-  },
-});

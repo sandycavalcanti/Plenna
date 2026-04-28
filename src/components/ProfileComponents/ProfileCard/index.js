@@ -11,6 +11,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import styles from './styles';
+import { COLORS } from '../../../constants';
 
 /**
  * Componente: ProfileCard
@@ -31,7 +32,7 @@ export default function ProfileCard({ title, children, onEdit, style }) {
         {/* Botão de edição */}
         {onEdit ? (
           <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-            <Feather name="edit-2" size={18} color="#4652A4" />
+            <Feather name="edit-2" size={18} color={COLORS.perfilIconeEditar} />
           </TouchableOpacity>
         ) : null}
       </View>

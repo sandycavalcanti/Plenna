@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { COLORS } from '../../constants';
+import { styles } from './styles';
 
 export default function LimitSlider({
   title,
@@ -131,9 +133,9 @@ export default function LimitSlider({
           step={safeStep}
           value={currentValue}
           onValueChange={handleSliderChange}
-          minimumTrackTintColor="#595D7C"
-          maximumTrackTintColor="#E3E0F4"
-          thumbTintColor="#595D7C"
+          minimumTrackTintColor={COLORS.limitSliderThumbEsquerda}
+          maximumTrackTintColor={COLORS.limitSliderThumbDireita}
+          thumbTintColor={COLORS.limitSliderThumb}
           disabled={disabled}
           testID={testID}
         />
@@ -145,60 +147,3 @@ export default function LimitSlider({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    marginVertical: 5,
-  },
-  containerCompact: {
-    marginVertical: 2,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#595D7C',
-    marginBottom: 8,
-    paddingHorizontal: 5,
-  },
-  titleCompact: {
-    fontSize: 15,
-    marginBottom: 2,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  slider: {
-    flex: 1,
-    height: 40,
-    marginRight: 12,
-  },
-  sliderCompact: {
-    height: 28,
-    marginRight: 8,
-  },
-  valuePill: {
-    backgroundColor: '#E3E0F4',
-    borderRadius: 999,
-    minWidth: 124,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  valuePillCompact: {
-    minWidth: 74,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  valueText: {
-    color: '#595D7C',
-    fontSize: 20,
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  valueTextCompact: {
-    fontSize: 16,
-  },
-});

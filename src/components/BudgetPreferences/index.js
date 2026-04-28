@@ -16,10 +16,7 @@ import styles from './styles';
  * Componente: BudgetPreferences
  * Responsabilidade: Renderizar informações de preferências financeiras do usuário
  */
-export default function BudgetPreferences({
-  valorIdeal,
-  preferencias
-}) {
+export default function BudgetPreferences({ valorIdeal, preferencias }) {
   const rows = [];
 
   for (let i = 0; i < preferencias.length; i += 2) {

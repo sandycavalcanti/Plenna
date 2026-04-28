@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
 import { styles } from './styles';
 import { MaterialIcons } from '@expo/vector-icons';
+import { COLORS } from '../../../constants';
 
 export default function ChatItem({ title, lastMessage, onPress }) {
   return (
@@ -22,7 +23,7 @@ export default function ChatItem({ title, lastMessage, onPress }) {
         onPress={() => {
           console.log('Abrir menu');
         }}>
-        <MaterialIcons name="more-vert" size={22} color="#4652A4" />
+        <MaterialIcons name="more-vert" size={22} color={COLORS.histChatItemBotao3Pontos} />
       </TouchableOpacity>
     </View>
   );

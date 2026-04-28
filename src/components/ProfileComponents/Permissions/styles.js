@@ -9,6 +9,7 @@
 
 //Importação do módulo de estilos do React Native
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../../constants';
 
 /**
  * Objeto de estilos do componente
@@ -42,27 +43,27 @@ export default StyleSheet.create({
   text: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2F356B',
+    color: COLORS.perfilInfoLabel,
   },
 
   // Texto secundário explicativo
   sub: {
     fontSize: 12,
     marginTop: 3,
-    color: '#6D74A8',
+    color: COLORS.perfilInfoValor,
     lineHeight: 16,
   },
 
   // Mensagem de aviso sobre impacto das permissões
   warning: {
     fontSize: 12,
-    color: '#6D74A8',
+    color: COLORS.perfilPermissaoAvisoTexto,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.35)',
-    backgroundColor: '#EEF1FF',
+    borderColor: COLORS.perfilPermissaoAvisoBorda,
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
     lineHeight: 16,
   },
 });

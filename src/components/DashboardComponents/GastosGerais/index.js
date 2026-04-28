@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import { styles } from './styles';
+import { COLORS } from '../../../constants';
 
 export default function GastosTotais() {
   const gasto = 1250.78;
@@ -12,12 +14,12 @@ export default function GastosTotais() {
     {
       value: meta,
       label: 'Meta',
-      frontColor: '#626784',
+      frontColor: COLORS.dadoUm,
     },
     {
       value: gasto,
       label: 'Gasto',
-      frontColor: '#C79AB0',
+      frontColor: COLORS.dadoDois,
     },
   ];
 
@@ -26,7 +28,7 @@ export default function GastosTotais() {
       <ProfileCard title="Gastos Totais">
         <Text style={styles.valor}>R$ 1.250,78</Text>
         <Text style={styles.meta}>
-          Meta: <Text style={{ color: '#6E63B5' }}>R$800,00</Text>
+          Meta: <Text style={styles.metaValor}>R$800,00</Text>
         </Text>
 
         <Text style={styles.excedente}>+{porcentagem}% acima da meta</Text>
@@ -38,35 +40,3 @@ export default function GastosTotais() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    marginHorizontal: 20,
-    marginVertical: 10,
-  },
-
-  valor: {
-    fontSize: 36,
-    color: '#C02C7A',
-    fontWeight: '600',
-  },
-
-  meta: {
-    fontSize: 18,
-  },
-
-  excedente: {
-    color: '#C40000',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
-    marginLeft: 20,
-  },
-
-  chartContainer: {
-    borderRadius: 16,
-    padding: 10,
-    marginTop: -60,
-    marginBottom: -60,
-  },
-});

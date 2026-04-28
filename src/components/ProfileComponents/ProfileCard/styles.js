@@ -8,6 +8,7 @@
 
 //Importação do módulo de estilos do React Native
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../../constants';
 
 /**
  * Objeto de estilos do componente
@@ -18,7 +19,7 @@ export default StyleSheet.create({
   container: {
     position: 'relative',
     borderWidth: 1.5,
-    borderColor: 'rgba(131, 111, 226, 0.52)',
+    borderColor: COLORS.perfilProfileCardBorda,
     borderRadius: 16,
     padding: 14,
     paddingTop: 28,
@@ -41,20 +42,20 @@ export default StyleSheet.create({
   // Fundo para recortar visualmente a borda atrás do título
   titleWrapper: {
     paddingHorizontal: 8,
-    backgroundColor: '#F7F7FB',
+    backgroundColor: COLORS.fundoPrincipal,
   },
 
   // Fundo para recortar visualmente a borda atrás do ícone de edição
   editButton: {
     paddingHorizontal: 6,
-    backgroundColor: '#F7F7FB',
+    backgroundColor: COLORS.fundoPrincipal,
   },
 
   // Estilo do título do card
   title: {
     fontSize: 17,
     fontWeight: '500',
-    color: '#4652A4',
+    color: COLORS.perfilProfileCardTitulo,
   },
 
   // Container do conteúdo interno

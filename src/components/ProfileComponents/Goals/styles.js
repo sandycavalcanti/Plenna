@@ -7,6 +7,7 @@
  */
 
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../../constants';
 
 /**
  * Objeto de estilos do componente
@@ -20,9 +21,9 @@ export default StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderWidth: 1.5,
-    borderColor: 'rgba(137, 196, 209, 0.9)',
+    borderColor: COLORS.perfilMetaBorda,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: COLORS.perfilMetaFundo,
   },
 
   // Indicador visual de seleção
@@ -30,8 +31,8 @@ export default StyleSheet.create({
     width: 18,
     height: 18,
     borderWidth: 1,
-    borderColor: '#AFA6E6',
-    backgroundColor: '#AFA6E6',
+    borderColor: COLORS.perfilCheckboxBorda,
+    backgroundColor: COLORS.perfilCheckboxFundo,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -39,7 +40,7 @@ export default StyleSheet.create({
 
   // Estado marcado do indicador
   checkboxChecked: {
-    backgroundColor: '#AFA6E6',
+    backgroundColor: COLORS.perfilCheckboxFundo,
   },
 
   // Conteúdo textual da meta
@@ -50,7 +51,7 @@ export default StyleSheet.create({
   // Nome da meta
   goalName: {
     fontSize: 15,
-    color: '#111111',
+    color: COLORS.perfilMetaTitulo,
     fontWeight: '500',
     lineHeight: 22,
   },
@@ -59,7 +60,7 @@ export default StyleSheet.create({
   value: {
     marginTop: 2,
     fontSize: 12,
-    color: '#5A6293',
+    color: COLORS.perfilMetaValor,
     fontWeight: '600',
   },
 });

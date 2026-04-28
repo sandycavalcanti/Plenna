@@ -41,21 +41,6 @@ export const styles = StyleSheet.create({
     color: COLORS.cadTextInputTexto,
   },
 
-  button: {
-    width: '100%',
-    backgroundColor: COLORS.cadBotao,
-    borderRadius: 15,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 5,
-  },
-
-  buttonText: {
-    color: COLORS.cadBotaoTexto,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-
   link: {
     marginTop: 10,
     color: '#BD4E4E',

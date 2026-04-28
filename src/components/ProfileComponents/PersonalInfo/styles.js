@@ -8,13 +8,13 @@
  */
 
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../../constants';
 
 /**
  * Objeto de estilos do componente
  * Define tipografia, espaçamento e diferenciação visual de campos
  */
 export default StyleSheet.create({
-
   // Texto padrão das informações
   text: {
     fontSize: 14,
@@ -23,13 +23,13 @@ export default StyleSheet.create({
   // Rótulo principal da informação (ex.: Telefone)
   fieldLabel: {
     fontWeight: '700',
-    color: '#2F356B',
+    color: COLORS.perfilInfoLabel,
   },
 
   // Valor da informação em estilo mais neutro
   fieldValue: {
     fontWeight: '400',
-    color: '#4F567D',
+    color: COLORS.perfilInfoValor,
   },
 
   // Container de campo desabilitado (visual diferenciado)
@@ -40,21 +40,20 @@ export default StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.35)',
-    backgroundColor: '#EEF1FF',
+    borderColor: COLORS.perfilPermissaoAvisoBorda,
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
   },
 
   // Rótulo do campo desabilitado
   label: {
     fontSize: 12,
-    color: '#6D74A8',
+    color: COLORS.perfilPermissaoAvisoTexto,
     marginBottom: 4,
   },
 
   // Texto do valor em estado desabilitado
   disabledText: {
     fontSize: 14,
-    color: '#999',
+    color: COLORS.perfilPermissaoAvisoValor,
   },
-
 });

@@ -8,6 +8,7 @@
 
 //Importação do módulo de estilos do React Native
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../../constants';
 
 /**
  * Objeto de estilos do componente
@@ -30,7 +31,7 @@ export default StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#991414',
+    backgroundColor: COLORS.perfilFotoPlaceholder,
   },
 
   // Botão com ícone para editar imagem de perfil
@@ -41,11 +42,11 @@ export default StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#4652A4',
+    backgroundColor: COLORS.perfilIconeEditar,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#F7F7FB',
+    borderColor: COLORS.fundoPrincipal,
   },
 
   // Estilo do nome do usuário
@@ -54,6 +55,6 @@ export default StyleSheet.create({
     marginTop: 10,
     fontSize: 35,
     fontWeight: '600',
-    color: '#595D7C',
+    color: COLORS.perfilNome,
   },
 });

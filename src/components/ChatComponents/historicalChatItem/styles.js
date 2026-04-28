@@ -1,16 +1,17 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   container: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.histChatItemFundo,
     paddingVertical: 12,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.2)',
+    borderColor: COLORS.histChatItemBorda,
     borderRadius: 14,
     marginBottom: 10,
   },
@@ -21,12 +22,12 @@ export const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   title: {
-    color: '#2F356B',
+    color: COLORS.histChatItemTitulo,
     fontSize: 16,
     fontWeight: '600',
   },
   message: {
-    color: '#6D74A8',
+    color: COLORS.histChatItemMensagem,
     fontSize: 13,
     marginTop: 4,
   },
@@ -36,11 +37,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EEF1FF',
+    backgroundColor: COLORS.histChatItemBotao3PontosFundo,
     marginLeft: 10,
-  },
-  menuText: {
-    color: '#4652A4',
-    fontSize: 18,
   },
 });

@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.loginFundo,
+    backgroundColor: COLORS.cadFundo,
   },
   overlay: {
     width: '85%',
@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
     marginBottom: 5,
     fontFamily: 'SugoDisplay',
     fontSize: 60,
-    color: COLORS.loginTitulo,
+    color: COLORS.cadTitulo,
   },
   texto: {
     marginTop: 6,

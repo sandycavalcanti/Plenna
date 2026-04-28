@@ -8,33 +8,36 @@
 
 //Importação do módulo de estilos do React Native
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants';
 
 /**
  * Objeto de estilos do componente
  * Define layout, espaçamento, tipografia e estrutura visual
  */
 export default StyleSheet.create({
-
   // Caixa principal que exibe o valor total de gasto
   mainBox: {
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
     borderWidth: 1.5,
-    borderColor: 'rgba(137, 196, 209, 0.9)',
+    borderColor: COLORS.perfilLimiteCategoriaBorda,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: COLORS.perfilLimiteCategoriaFundo,
   },
 
   // Texto descritivo (rótulo)
   label: {
-    fontSize: 13,
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: COLORS.perfilLimiteCategoriaTexto,
   },
 
   // Texto do valor principal (destaque)
   value: {
-    fontWeight: 'bold',
+    fontSize: 12,
     marginTop: 4,
+    color: COLORS.perfilLimiteCategoriaValor,
   },
 
   // Container em linha para categorias
@@ -47,18 +50,9 @@ export default StyleSheet.create({
   smallBox: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: 'rgba(137, 196, 209, 0.9)',
+    borderColor: COLORS.perfilLimiteCategoriaBorda,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: COLORS.perfilLimiteCategoriaFundo,
     padding: 10,
   },
-  label: {
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  value: {
-    fontSize: 12,
-    marginTop: 4,
-  }
-
 });
