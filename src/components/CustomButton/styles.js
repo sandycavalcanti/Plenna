@@ -1,16 +1,17 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants';
 
 export const styles = StyleSheet.create({
   button: {
-    width: '100%',
-    backgroundColor: '#595D7C',
-    borderRadius: 15,
+    width: '55%',
+    backgroundColor: COLORS.customButtonFundo,
+    borderRadius: 30,
     padding: 10,
     alignItems: 'center',
   },
 
   buttonText: {
-    color: '#fff',
+    color: COLORS.customButtonTexto,
     fontSize: 16,
   },
 });
