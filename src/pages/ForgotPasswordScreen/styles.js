@@ -1,11 +1,12 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#EFEFF5',
+    backgroundColor: COLORS.cadFundo,
   },
   logo: {
     width: 180,
@@ -19,36 +20,30 @@ export const styles = StyleSheet.create({
     borderRadius: 30,
     paddingVertical: 15,
     paddingHorizontal: 15,
-    borderColor: '#E6BAD1',
+    borderColor: COLORS.recuperarSenhaBordaCaixa,
     borderWidth: 2,
   },
 
   titulo: {
     fontFamily: 'SugoDisplay',
     fontSize: 50,
-    color: '#595D7C',
+    color: COLORS.cadTitulo,
     marginBottom: 10,
-  },
-
-  subtitulo: {
-    color: '#595D7C',
-    marginBottom: 15,
-    textAlign: 'center',
   },
 
   input: {
     width: '100%',
     height: 45,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.cadTextInputFundo,
     borderRadius: 15,
     paddingHorizontal: 15,
     marginBottom: 12,
-    color: '#000',
+    color: COLORS.cadTextInputTexto,
   },
 
   button: {
     width: '100%',
-    backgroundColor: '#595D7C',
+    backgroundColor: COLORS.cadBotao,
     borderRadius: 15,
     paddingVertical: 12,
     alignItems: 'center',
@@ -56,7 +51,7 @@ export const styles = StyleSheet.create({
   },
 
   buttonText: {
-    color: '#fff',
+    color: COLORS.cadBotaoTexto,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -80,10 +75,10 @@ export const styles = StyleSheet.create({
   stepCircleActive: {
     backgroundColor: '#E6BAD1',
   },
-  texto:{
+  texto: {
     color: '#000',
     fontSize: 16,
     fontStyle: 'bold',
     paddingBottom: 10,
-  }
+  },
 });

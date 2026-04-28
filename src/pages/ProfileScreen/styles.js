@@ -13,12 +13,13 @@
  * Define estrutura base e aparência do container principal
  */
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   // Container principal da tela de perfil
   container: {
     flex: 1,
-    backgroundColor: '#F7F7FB',
+    backgroundColor: COLORS.fundoPrincipal,
   },
 
   // Estilos aplicados ao conteúdo rolável da tela

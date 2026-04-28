@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7FB',
+    backgroundColor: COLORS.fundoPrincipal,
   },
 
   topBar: {
@@ -13,8 +14,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F7F7FB',
-    borderBottomColor: '#e3dff891',
+    backgroundColor: COLORS.dashboardHeaderFundo,
+    borderBottomColor: COLORS.dashboardHeaderBorda,
     borderBottomWidth: 1,
   },
 
@@ -25,13 +26,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#D4AFCA',
+    backgroundColor: COLORS.dashboardChipMesFundo,
   },
 
   monthChipText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: COLORS.dashboardChipMesTexto,
   },
 
   topBarActions: {
@@ -46,12 +47,12 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7F7FB',
+    backgroundColor: COLORS.fundoPrincipal,
   },
 
   scroll: {
     flex: 1,
-    backgroundColor: '#F7F7FB',
+    backgroundColor: COLORS.fundoPrincipal,
   },
 
   scrollContent: {

@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EFF2FF',
+    backgroundColor: COLORS.chatFundo,
   },
 
   keyboardWrapper: {
@@ -17,9 +18,9 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.chatHeaderFundo,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(131, 111, 226, 0.16)',
+    borderBottomColor: COLORS.chatHeaderBorda,
   },
 
   headerLeft: {
@@ -31,23 +32,23 @@ export const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EEF1FF',
+    backgroundColor: COLORS.chatIconeRoboFundo,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.35)',
+    borderColor: COLORS.chatIconeRoboBorda,
     marginRight: 10,
   },
 
   headerTitle: {
-    color: '#4652A4',
+    color: COLORS.chatDestinatarioNome,
     fontSize: 16,
     fontWeight: '600',
   },
 
   headerSubtitle: {
     marginTop: 1,
-    color: '#7D84B3',
+    color: COLORS.chatDestinatarioStatus,
     fontSize: 12,
   },
 
@@ -55,7 +56,7 @@ export const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#F5F6FF',
+    backgroundColor: COLORS.chatBotao3PontosFundo,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -91,9 +92,9 @@ export const styles = StyleSheet.create({
   },
 
   userMessage: {
-    backgroundColor: '#4652A4',
+    backgroundColor: COLORS.chatRemetenteMensagemFundo,
     borderBottomRightRadius: 6,
-    shadowColor: '#4652A4',
+    shadowColor: COLORS.chatRemetenteMensagemBorda,
     shadowOpacity: 0.2,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -101,20 +102,20 @@ export const styles = StyleSheet.create({
   },
 
   aiMessage: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.chatDestinatarioMensagemFundo,
     borderBottomLeftRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.25)',
+    borderColor: COLORS.chatDestinatarioMensagemBorda,
   },
 
   messageText: {
-    color: '#2F356B',
+    color: COLORS.chatDestinatarioMensagemTexto,
     fontSize: 14,
     lineHeight: 20,
   },
 
   userMessageText: {
-    color: '#FFFFFF',
+    color: COLORS.chatRemetenteMensagemTexto,
   },
 
   inputArea: {
@@ -126,11 +127,11 @@ export const styles = StyleSheet.create({
     paddingTop: 8,
     paddingHorizontal: 12,
     gap: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.chatContainerEnviarFundo,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.2)',
+    borderColor: COLORS.chatContainerEnviarBorda,
     borderRadius: 0,
-    shadowColor: '#1E245A',
+    shadowColor: COLORS.chatContainerEnviarSombra,
     shadowOpacity: 0.06,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
@@ -143,7 +144,7 @@ export const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7F8FF',
+    backgroundColor: COLORS.chatBotoesAdicionaisEnviarFundo,
   },
 
   chatInput: {
@@ -152,8 +153,9 @@ export const styles = StyleSheet.create({
     height: 38,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.18)',
-    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.chatTextInputBorda,
+    backgroundColor: COLORS.chatTextInputFundo,
+    color: COLORS.chatTextInputTexto,
   },
 
   sendButton: {
@@ -162,6 +164,6 @@ export const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4652A4',
+    backgroundColor: COLORS.chatBotaoEnviarFundo,
   },
 });

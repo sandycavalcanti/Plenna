@@ -33,7 +33,6 @@ export default function Goals({ metas }) {
         completado: !isCompleted,
       })
       .then((response) => {
-        console.log(response.data);
         setGoals((prevGoals) => prevGoals.map((goal) => (goal.meta_id === goalId ? { ...goal, meta_completado: !goal.meta_completado } : goal)));
       })
       .catch(CatchError);

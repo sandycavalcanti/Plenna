@@ -5,6 +5,7 @@ import { styles } from './styles';
 import CustomTextInput from '../../components/CustomTextInput';
 import ChatItem from '../../components/ChatComponents/historicalChatItem';
 import { MaterialIcons } from '@expo/vector-icons';
+import { COLORS } from '../../constants/colors';
 
 export default function HistoricalChatScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -25,7 +26,7 @@ export default function HistoricalChatScreen({ navigation }) {
           onPress={() => {
             console.log('Abrir menu');
           }}>
-          <MaterialIcons name="more-vert" size={20} color="#6D74A8" />
+          <MaterialIcons name="more-vert" size={20} color={COLORS.histChatBotao3Pontos} />
         </TouchableOpacity>
       </View>
       <FlatList

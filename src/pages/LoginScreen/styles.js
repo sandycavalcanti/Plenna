@@ -1,12 +1,13 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#EFEFF5',
-  },  
+    backgroundColor: COLORS.loginFundo,
+  },
   overlay: {
     width: '85%',
     justifyContent: 'center',
@@ -20,13 +21,13 @@ export const styles = StyleSheet.create({
     height: 180,
   },
   titulo: {
-    fontSize: 24, 
+    fontSize: 24,
     marginBottom: 5,
     fontFamily: 'SugoDisplay',
     fontSize: 60,
-    color: '#595D7C',
+    color: COLORS.loginTitulo,
   },
   texto: {
-    marginTop: 6
-  }
+    marginTop: 6,
+  },
 });

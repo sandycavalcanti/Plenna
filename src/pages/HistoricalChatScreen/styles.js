@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7FB',
+    backgroundColor: COLORS.fundoPrincipal,
   },
   search: {
     paddingTop: 54,
@@ -20,16 +21,17 @@ export const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.3)',
-    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.histChatTextInputBorda,
+    backgroundColor: COLORS.histChatTextInputFundo,
+    color: COLORS.histChatTextInputTexto,
   },
   menuButton: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#EEF1FF',
+    backgroundColor: COLORS.histChatBotao3PontosFundo,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.35)',
+    borderColor: COLORS.histChatBotao3PontosBorda,
     alignItems: 'center',
     justifyContent: 'center',
   },

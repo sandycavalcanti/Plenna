@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../components/CustomTextInput';
 import { styles } from './styles';
+import { COLORS } from '../../constants/colors';
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
@@ -20,7 +21,7 @@ export default function ChatScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.headerAvatar}>
-              <MaterialIcons name="smart-toy" size={18} color="#4652A4" />
+              <MaterialIcons name="smart-toy" size={18} color={COLORS.chatIconeRobo} />
             </View>
 
             <View>
@@ -31,7 +32,7 @@ export default function ChatScreen() {
           </View>
 
           <TouchableOpacity style={styles.headerAction}>
-            <MaterialIcons name="more-vert" size={20} color="#6D74A8" />
+            <MaterialIcons name="more-vert" size={20} color={COLORS.chatBotao3Pontos} />
           </TouchableOpacity>
         </View>
 
@@ -54,17 +55,17 @@ export default function ChatScreen() {
         {/* INPUT */}
         <View style={[styles.inputArea, { paddingBottom: Math.max(insets.bottom, 8) }]}>
           <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="attach-file" size={20} color="#5F68A0" />
+            <MaterialIcons name="attach-file" size={20} color={COLORS.chatBotoesAdicionaisEnviar} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
-            <MaterialIcons name="photo-camera" size={20} color="#5F68A0" />
+            <MaterialIcons name="photo-camera" size={20} color={COLORS.chatBotoesAdicionaisEnviar} />
           </TouchableOpacity>
 
           <CustomTextInput placeholder="Digite uma mensagem..." style={styles.chatInput} />
 
           <TouchableOpacity style={styles.sendButton}>
-            <MaterialIcons name="send" size={18} color="#FFFFFF" />
+            <MaterialIcons name="send" size={18} color={COLORS.chatBotaoEnviar} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

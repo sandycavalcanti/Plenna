@@ -7,6 +7,7 @@ import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import { CatchError, URL_API } from '../../api/constants';
+import { COLORS } from '../../constants';
 
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 
@@ -163,29 +164,29 @@ export default function SignUpScreen({ navigation }) {
           </TouchableOpacity>
 
           <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={fecharTelinhaCategorias}>
-            <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 24 }} onPress={fecharTelinhaCategorias}>
-              <Pressable style={{ backgroundColor: '#fff', borderRadius: 20, padding: 18, maxHeight: '75%' }} onPress={(event) => event.stopPropagation()}>
+            <Pressable style={styles.pressableFecharModal} onPress={fecharTelinhaCategorias}>
+              <Pressable style={styles.modalContainer} onPress={(event) => event.stopPropagation()}>
                 <Text style={styles.questionTitle}>Selecione uma categoria</Text>
 
                 {categoriesLoading ? (
-                  <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-                    <ActivityIndicator size="small" color="#a31414" />
+                  <View style={styles.viewModalCarregando}>
+                    <ActivityIndicator size="small" color={COLORS.cadModalCarregando} />
                   </View>
                 ) : (
                   <FlatList
                     data={categories}
                     keyExtractor={(item) => String(item.categoria_id)}
                     renderItem={({ item }) => (
-                      <TouchableOpacity activeOpacity={0.85} onPress={() => selecionarCategoria(item)} style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#ececec' }}>
-                        <Text style={{ color: '#111', fontWeight: '600' }}>{item.categoria_nome}</Text>
+                      <TouchableOpacity activeOpacity={0.85} onPress={() => selecionarCategoria(item)} style={styles.categoriaNomeTouchable}>
+                        <Text style={styles.categoriaNome}>{item.categoria_nome}</Text>
                       </TouchableOpacity>
                     )}
-                    ListEmptyComponent={<Text style={{ paddingVertical: 16, color: '#666' }}>Nenhuma categoria encontrada.</Text>}
+                    ListEmptyComponent={<Text style={styles.avisoNenhumaCategoria}>Nenhuma categoria encontrada.</Text>}
                   />
                 )}
 
-                <TouchableOpacity activeOpacity={0.85} onPress={fecharTelinhaCategorias} style={{ marginTop: 12, alignItems: 'center', paddingVertical: 10 }}>
-                  <Text style={{ color: '#a31414', fontWeight: '600' }}>Fechar</Text>
+                <TouchableOpacity activeOpacity={0.85} onPress={fecharTelinhaCategorias} style={styles.textoFecharModalTouchable}>
+                  <Text style={styles.textoFecharModal}>Fechar</Text>
                 </TouchableOpacity>
               </Pressable>
             </Pressable>

@@ -8,6 +8,7 @@ import TempoApp from '../../components/DashboardComponents/TempoApp';
 import GastosTotais from '../../components/DashboardComponents/GastosGerais';
 import AlertasHabito from '../../components/DashboardComponents/AlertasHabito';
 import { styles } from './styles';
+import { COLORS } from '../../constants/colors';
 
 export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -16,18 +17,18 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.monthChip} onPress={() => {}}>
-          <MaterialIcons name="calendar-month" size={20} color="#ffffff" />
+          <MaterialIcons name="calendar-month" size={20} color={COLORS.dashboardChipMesTexto} />
 
           <Text style={styles.monthChipText}>Janeiro</Text>
         </TouchableOpacity>
 
         <View style={styles.topBarActions}>
           <TouchableOpacity style={styles.iconAction} onPress={() => {}}>
-            <MaterialIcons name="add" size={30} color="#595D7C" />
+            <MaterialIcons name="add" size={30} color={COLORS.dashboardIconeBotaoCanto} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconAction} onPress={() => {}}>
-            <Feather name="filter" size={28} color="#595D7C" />
+            <Feather name="filter" size={28} color={COLORS.dashboardIconeBotaoCanto} />
           </TouchableOpacity>
         </View>
       </View>
@@ -36,7 +37,7 @@ export default function DashboardScreen() {
         <GastosTotais />
         <Categoria />
         <TempoApp />
-        <AlertasHabito/>
+        <AlertasHabito />
       </ScrollView>
     </SafeAreaView>
   );
