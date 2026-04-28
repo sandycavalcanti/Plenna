@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-const useLocalhost = true;
+const useLocalhost = false; // Defina como true para usar localhost durante o desenvolvimento, false para produção
 
 export const URL_API = useLocalhost ? (Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000') : 'https://plenna-api-orpin.vercel.app/';
 

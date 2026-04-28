@@ -8,6 +8,8 @@ import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import { CatchError, URL_API } from '../../api/constants';
 import { COLORS } from '../../constants';
+import { apiClient } from '../../api/client';
+import { tokenStorage } from '../../api/tokenStorage';
 
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 
@@ -76,19 +78,34 @@ export default function SignUpScreen({ navigation }) {
     );
   }
 
-  async function Cadastrar() {
-    await axios
-      .post(URL_API + '/auth/register', {
+  async function CadastrarUsuario() {
+    try {
+      await axios.post(URL_API + '/auth/register', {
         nome: nome.current,
         email: email.current,
         senha: senha.current,
         preferenciasMetaValor: limiteGasto.current,
         preferenciasMetaTempo: limiteTempo.current,
-      })
-      .then((response) => {
-        setStep(3);
-      })
-      .catch(CatchError);
+      });
+
+      const loginResponse = await apiClient.post('/auth/login', {
+        email: email.current,
+        senha: senha.current,
+      });
+
+      await tokenStorage.setToken(loginResponse.data.token);
+
+      await apiClient.post('/preferencias-categoria/bulk', {
+        preferencias: selectedCategories.map((category) => ({
+          categoriaId: category.categoria_id,
+          metaMensal: category.limite,
+        })),
+      });
+
+      setStep(3);
+    } catch (error) {
+      CatchError(error);
+    }
   }
 
   function Verificar() {
@@ -219,7 +236,7 @@ export default function SignUpScreen({ navigation }) {
             </Text>
           </View>
 
-          <CustomButton title="Finalizar" style={styles.button} onPress={Cadastrar} />
+          <CustomButton title="Finalizar" style={styles.button} onPress={CadastrarUsuario} />
         </View>
       )}
 
