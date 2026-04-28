@@ -1,0 +1,213 @@
+import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.cadFundo,
+    paddingTop: -50,
+  },
+  overlay: {
+    width: '85%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingTop: 30,
+  },
+  borderOverlay: {
+    borderWidth: 2,
+    borderRadius: 18,
+    borderColor: COLORS.cadCaixaPreferenciasBorda,
+    width: '95%',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: COLORS.cadCaixaPreferenciasFundo,
+    shadowColor: COLORS.cadCaixaPreferenciasSombra,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  logo: {
+    width: 180,
+    height: 180,
+    marginBottom: 10,
+  },
+  stepTwoContainer: {
+    width: '95%',
+    alignItems: 'center',
+  },
+  titulo: {
+    fontFamily: 'SugoDisplay',
+    fontSize: 52,
+    color: COLORS.cadTitulo,
+    marginBottom: 14,
+  },
+  segmentAction: {
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  segmentActionText: {
+    color: COLORS.cadTextoAdicionarLimites,
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  checkboxRow: {
+    width: '90%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  checkbox: {
+    width: 14,
+    height: 14,
+    borderRadius: 1,
+    backgroundColor: COLORS.cadCheckboxFundo,
+    marginRight: 10,
+  },
+  checkboxText: {
+    color: COLORS.cadCheckboxTexto,
+  },
+  checkboxLink: {
+    color: COLORS.cadCheckboxLink,
+  },
+  button: {
+    marginTop: 15,
+  },
+  stepThreeContainer: {
+    width: '95%',
+    alignItems: 'center',
+    flex: 0.95,
+  },
+  stepThreeTitle: {
+    fontFamily: 'SugoDisplay',
+    fontSize: 44,
+    color: COLORS.cadTitulo,
+    marginBottom: 8,
+  },
+  stepThreeScroll: {
+    width: '100%',
+  },
+  stepThreeContent: {
+    alignItems: 'center',
+    paddingBottom: 26,
+    paddingTop: 6,
+  },
+  questionBlock: {
+    width: '95%',
+    borderWidth: 2,
+    borderRadius: 18,
+    borderColor: COLORS.questionarioCaixaBorda,
+    backgroundColor: COLORS.questionarioCaixaFundo,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginBottom: 12,
+    shadowColor: COLORS.questionarioCaixaSombra,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  questionTitle: {
+    color: COLORS.questionarioCaixaTexto,
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  stepThreeInput: {
+    width: '100%',
+    height: 44,
+    backgroundColor: COLORS.questionarioTextInputFundo,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.questionarioTextInputBorda,
+    paddingHorizontal: 12,
+    color: COLORS.questionarioTextInputTexto,
+  },
+  optionsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionPill: {
+    borderWidth: 1,
+    borderColor: COLORS.questionarioOpcaoBorda,
+    borderRadius: 999,
+    backgroundColor: COLORS.questionarioOpcaoFundo,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  optionPillSelected: {
+    backgroundColor: COLORS.questionarioOpcaoFundoSelecionada,
+    borderColor: COLORS.questionarioOpcaoBordaSelecionada,
+  },
+  optionText: {
+    color: COLORS.questionarioOpcaoTexto,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  optionTextSelected: {
+    color: COLORS.questionarioOpcaoTextoSelecionada,
+  },
+  stepThreeButton: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  pressableFecharModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalContainer: {
+    backgroundColor: COLORS.cadModalContainerFundo,
+    borderRadius: 20,
+    padding: 18,
+    maxHeight: '75%',
+  },
+  viewModalCarregando: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  textoFecharModalTouchable: {
+    marginTop: 12,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  textoFecharModal: {
+    color: COLORS.cadModalFecharTexto,
+    fontWeight: '600',
+  },
+  categoriaNomeTouchable: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.cadModalSeparadorItens,
+  },
+  categoriaNome: {
+    color: COLORS.cadModalItemTexto,
+    fontWeight: '600',
+  },
+  avisoNenhumaCategoria: {
+    paddingVertical: 16,
+    color: COLORS.cadModalAvisoTexto,
+  },
+  // finishButton: {
+  //   marginTop: 10,
+  //   minWidth: 155,
+  //   paddingHorizontal: 28,
+  //   paddingVertical: 10,
+  //   borderRadius: 999,
+  //   backgroundColor: '#DDB4CE',
+  //   shadowColor: '#555555',
+  //   shadowOffset: { width: 0, height: 3 },
+  //   shadowOpacity: 0.25,
+  //   shadowRadius: 4,
+  //   elevation: 4,
+  // },
+  // finishButtonText: {
+  //   color: '#F5EAF2',
+  //   textAlign: 'center',
+  // },
+});

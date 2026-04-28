@@ -9,9 +9,9 @@ import Routes from './src/routes';
 import { useFonts } from 'expo-font';
 
 export default function App() {
-
   const [fontsLoaded] = useFonts({
     SugoDisplay: require('./assets/fonts/Sugo-Pro-Display-Regular.ttf'),
+
   });
 
   if (!fontsLoaded) {

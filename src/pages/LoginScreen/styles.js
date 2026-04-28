@@ -1,36 +1,33 @@
 import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(89, 93, 124, 0.84)',
-  },  
+    backgroundColor: COLORS.cadFundo,
+  },
   overlay: {
     width: '85%',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderRadius: 20,
-    paddingTop: 20,
-    padding: 10,
-    borderColor: '#E6BAD1',
-    borderRadius: 30,
-    borderWidth: 2,
+    paddingTop: 15,
   },
   logo: {
     width: 180,
     height: 180,
   },
   titulo: {
-    fontSize: 24, 
+    fontSize: 24,
     marginBottom: 5,
     fontFamily: 'SugoDisplay',
     fontSize: 60,
-    color: '#E6BAD1',
+    color: COLORS.cadTitulo,
   },
   texto: {
-    marginTop: 6
-  }
+    marginTop: 6,
+  },
 });

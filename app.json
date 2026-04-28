@@ -7,32 +7,36 @@
     "icon": "./assets/img/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/img/icon.png",
+      "image": "./assets/img/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F7F7FB"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.Plenna"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/img/android-icon-background.png",
-        "backgroundImage": "./assets/img/android-icon-background.png",
-        "monochromeImage": "./assets/img/android-icon-background.png"
+        "foregroundImage": "./assets/img/adaptive-icon.png"
       },
-      "package": "com.Plenna"
+      "package": "com.Plenna",
+      "icon": "./assets/img/icon.png",
+      "iconBackgroundColor": "#E6F4FE"
+    },
+    "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#E6F4FE"
     },
     "web": {
       "favicon": "./assets/img/icon.png"
     },
-    "plugins": [
-      "expo-font"
-    ],
+    "plugins": ["expo-font"],
     "extra": {
       "eas": {
         "projectId": "a4c9bb3f-30b5-42ad-82b2-2919c555f0f0"
       }
-    }
+    },
+    "owner": "sandycavalcanti"
   }
 }

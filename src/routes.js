@@ -9,6 +9,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // Tab controla a barra inferior (Home, Explore, Profile)
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import { Ionicons } from '@expo/vector-icons';
+import { DefaultTheme } from '@react-navigation/native';
+
 // Telas do app
 import SplashScreen from './pages/SplashScreen';
 import LoginScreen from './pages/LoginScreen';
@@ -18,21 +21,57 @@ import ProfileScreen from './pages/ProfileScreen';
 import ForgotPasswordScreen from './pages/ForgotPasswordScreen';
 import HistoricalChatScreen from './pages/HistoricalChatScreen';
 import ChatScreen from './pages/ChatScreen';
+import SignUpScreen from './pages/SignUpScreen';
+
 
 // Instância do Stack
 const Stack = createNativeStackNavigator();
 
 // Instância da Tab
 const Tab = createBottomTabNavigator();
+const MyTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: '#595D7C',
+  },
+};
 
-// Navegação com barra inferior (área logada)
 function TabRoutes() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
-      {/* Cada Tab.Screen é um botão na barra inferior */}
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: '#1B2046',
+        tabBarInactiveTintColor: '#EFEFF5',
+        tabBarStyle: {
+          position: 'absolute',
+          left: 20,
+          right: 20,
+          height: 80,
+          paddingTop: 10,
+          backgroundColor: '#595D7C',
+          borderTopWidth: 0,
+          shadowColor: '#000', // sombra iO
+          shadowOpacity: 0.15,
+        },
+
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') iconName = 'home';
+          else if (route.name === 'Dashboard') iconName = 'stats-chart';
+          else if (route.name === 'Profile') iconName = 'person';
+          else if (route.name === 'HistoricalChat') iconName = 'chatbubbles';
+
+          return <Ionicons name={iconName} size={26} color={color} />;
+        },
+      })}
+    >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} /> 
+      <Tab.Screen name="Profile" component={ProfileScreen} />
       <Tab.Screen name="HistoricalChat" component={HistoricalChatScreen} />
     </Tab.Navigator>
   );
@@ -41,14 +80,14 @@ function TabRoutes() {
 // Navegação principal do app
 export default function Routes() {
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={MyTheme}>
       {/* Stack controla a ordem das telas */}
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Tab.Screen name="Chat" component={ChatScreen} />
-        {/* "App" renderiza as Tabs */}
+        <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="App" component={TabRoutes} />
       </Stack.Navigator>
     </NavigationContainer>
