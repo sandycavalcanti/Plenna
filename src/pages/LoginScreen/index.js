@@ -76,6 +76,9 @@ export default function LoginScreen({ navigation }) {
         <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={irDireto}>
           Ir direto
         </Text>
+        <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={() => navigation.navigate('Questionario')}>
+          Preencher questionário
+        </Text>
       </View>
     </KeyboardAvoidingView>
   );

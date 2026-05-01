@@ -22,6 +22,7 @@ import ForgotPasswordScreen from './pages/ForgotPasswordScreen';
 import HistoricalChatScreen from './pages/HistoricalChatScreen';
 import ChatScreen from './pages/ChatScreen';
 import SignUpScreen from './pages/SignUpScreen';
+import QuestionarioScreen from './pages/QuestionarioScreen';
 
 
 // Instância do Stack
@@ -88,6 +89,7 @@ export default function Routes() {
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen name="Questionario" component={QuestionarioScreen} />
         <Stack.Screen name="App" component={TabRoutes} />
       </Stack.Navigator>
     </NavigationContainer>
