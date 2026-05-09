@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import { styles } from './styles';

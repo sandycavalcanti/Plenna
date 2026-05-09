@@ -11,6 +11,6 @@ export const styles = StyleSheet.create({
     width: '100%',
     marginTop: -50,
     marginBottom: 20,
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
 });

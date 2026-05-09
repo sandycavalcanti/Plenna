@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,9 +9,24 @@ import GastosTotais from '../../components/DashboardComponents/GastosGerais';
 import AlertasHabito from '../../components/DashboardComponents/AlertasHabito';
 import { styles } from './styles';
 import { COLORS } from '../../constants/colors';
+import { apiClient } from '../../api/client';
+import { CatchError } from '../../api/constants';
 
 export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
+  const [tempoUso, setTempoUso] = useState([]);
+  useEffect(() => {
+    selecionarTempoUso();
+  }, []);
+
+  function selecionarTempoUso() {
+    apiClient
+      .get('/tempo-uso')
+      .then((response) => {
+        setTempoUso(response.data);
+      })
+      .catch(CatchError);
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -34,9 +49,9 @@ export default function DashboardScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
-        <GastosTotais />
-        <Categoria />
-        <TempoApp />
+        <GastosTotais/>
+        <Categoria/>
+        <TempoApp tempoUso={tempoUso} />
         <AlertasHabito />
       </ScrollView>
     </SafeAreaView>
