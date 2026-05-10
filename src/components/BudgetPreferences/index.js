@@ -40,7 +40,7 @@ export default function BudgetPreferences({ valorIdeal, preferencias }) {
           {row.map((item, itemIndex) => (
             <View key={`${item.categoria_nome}-${rowIndex}-${itemIndex}`} style={styles.smallBox}>
               <Text style={styles.label}>{item.categoria_nome}</Text>
-              <Text style={styles.value}>R$ {(parseFloat(item.preferencias_categoria_meta_mensal) || 0).toFixed(2)}</Text>
+              <Text style={styles.value}>R$ {(parseFloat(item.preferencia_meta) || 0).toFixed(2)}</Text>
             </View>
           ))}
         </View>

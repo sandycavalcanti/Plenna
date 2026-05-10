@@ -9,6 +9,7 @@
 //Importações necessárias para o componente
 import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import ProfileCard from '../ProfileCard';
 import styles from './styles';
@@ -21,6 +22,7 @@ import { COLORS } from '../../../constants';
  * Responsabilidade: Renderizar informações de metas financeiras do usuário
  */
 export default function Goals({ metas }) {
+  const navigation = useNavigation();
   const [goals, setGoals] = useState(metas);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function Goals({ metas }) {
 
   return (
     // Card principal que encapsula o conteúdo de metas
-    <ProfileCard title="Metas" onEdit={() => {}}>
+    <ProfileCard title="Metas" onEdit={() => navigation.navigate('EditProfile', { mode: 'goals' })}>
       {goals.map((goal) => (
         <Pressable key={goal.meta_id} style={styles.goalItem} onPress={() => handleToggleGoal(goal.meta_id, goal.meta_completado)}>
           {/* Indicador de status da meta */}

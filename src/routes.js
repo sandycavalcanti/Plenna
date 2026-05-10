@@ -23,7 +23,18 @@ import HistoricalChatScreen from './pages/HistoricalChatScreen';
 import ChatScreen from './pages/ChatScreen';
 import SignUpScreen from './pages/SignUpScreen';
 import QuestionarioScreen from './pages/QuestionarioScreen';
+import EditProfileScreen from './pages/EditProfileScreen';
 
+// Configuração de deeplinks para OAuth
+const linking = {
+  prefixes: ['plenna://', 'exp://', 'https://plenna-api-orpin.vercel.app'],
+  config: {
+    screens: {
+      OAuthSuccess: 'oauth-success',
+      OAuthError: 'oauth-error',
+    },
+  },
+};
 
 // Instância do Stack
 const Stack = createNativeStackNavigator();
@@ -68,8 +79,7 @@ function TabRoutes() {
 
           return <Ionicons name={iconName} size={26} color={color} />;
         },
-      })}
-    >
+      })}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
@@ -81,7 +91,7 @@ function TabRoutes() {
 // Navegação principal do app
 export default function Routes() {
   return (
-    <NavigationContainer theme={MyTheme}>
+    <NavigationContainer theme={MyTheme} linking={linking} fallback={<SplashScreen />}>
       {/* Stack controla a ordem das telas */}
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
@@ -90,6 +100,9 @@ export default function Routes() {
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Questionario" component={QuestionarioScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="OAuthSuccess" component={HomeScreen} options={{ animationEnabled: false }} />
+        <Stack.Screen name="OAuthError" component={LoginScreen} options={{ animationEnabled: false }} />
         <Stack.Screen name="App" component={TabRoutes} />
       </Stack.Navigator>
     </NavigationContainer>

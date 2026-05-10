@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text, TextInput } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { COLORS } from '../../constants';
 import { styles } from './styles';
@@ -40,6 +40,9 @@ export default function LimitSlider({
 
   const isControlled = Number.isFinite(value);
   const [internalValue, setInternalValue] = useState(normalizeValue(initialValue ?? safeMin));
+  const [inputText, setInputText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [dynamicMax, setDynamicMax] = useState(safeMax);
 
   useEffect(() => {
     if (!isControlled) {
@@ -106,20 +109,144 @@ export default function LimitSlider({
     return `${rounded}${suffix}`;
   }, [formatValue, currentValue, suffix, valor, horas, currencyFormatter]);
 
-  function handleSliderChange(nextValue) {
-    const parsed = normalizeValue(nextValue);
-    if (textValue && typeof textValue === 'object') {
-      textValue.current = parsed;
+  // Formata o texto enquanto o usuário digita
+  const formatInputText = useCallback(
+    (rawInput) => {
+      const digitsOnly = rawInput.replace(/\D/g, '');
+
+      if (horas) {
+        // Para horas: 6 → 0h06, 60 → 1h00, 600 → 10h00
+        const padded = digitsOnly.padStart(3, '0');
+        const minutes = parseInt(padded.slice(-2), 10);
+        const hours = parseInt(padded.slice(0, -2), 10);
+        return `${hours}h${String(minutes).padStart(2, '0')}`;
+      }
+
+      if (valor || suffix === 'R$') {
+        // Para reais: 1 → 0,01, 10 → 0,10, 100 → 1,00, 1000 → 10,00
+        const padded = digitsOnly.padStart(3, '0');
+        const cents = padded.slice(-2);
+        const reais = padded.slice(0, -2) || '0';
+        return `R$${reais},${cents}`;
+      }
+
+      return digitsOnly;
+    },
+    [horas, valor, suffix],
+  );
+
+  // Converte o texto formatado em valor numérico
+  const parseFormattedInput = useCallback(
+    (formatted) => {
+      if (horas) {
+        // "1h30" → 90 minutos
+        const match = formatted.match(/(\d+)h(\d{2})/);
+        if (match) {
+          const hours = parseInt(match[1], 10);
+          const minutes = parseInt(match[2], 10);
+          return hours * 60 + minutes;
+        }
+        return 0;
+      }
+
+      if (valor || suffix === 'R$') {
+        // "R$10,50" → 10.50
+        const digitsOnly = formatted.replace(/\D/g, '');
+        if (digitsOnly.length === 0) return 0;
+        return parseInt(digitsOnly, 10) / 100;
+      }
+
+      return parseInt(formatted.replace(/\D/g, ''), 10);
+    },
+    [horas, valor, suffix],
+  );
+
+  // Atualiza valor quando o usuário digita
+  const handleTextInputChange = useCallback(
+    (text) => {
+      if (text.trim() === '') {
+        setInputText('');
+        return;
+      }
+
+      const formatted = formatInputText(text);
+      setInputText(formatted);
+
+      const numericValue = parseFormattedInput(formatted);
+
+      // Se o valor exceder o max, aumenta o max e usa no mesmo ciclo.
+      const nextMax = Math.max(dynamicMax, numericValue);
+      if (nextMax !== dynamicMax) {
+        setDynamicMax(nextMax);
+      }
+
+      const boundedValue = Math.min(Math.max(numericValue, safeMin), nextMax);
+
+      if (textValue && typeof textValue === 'object') {
+        textValue.current = boundedValue;
+      }
+
+      if (!isControlled) {
+        setInternalValue(boundedValue);
+      }
+
+      if (typeof onValueChange === 'function') {
+        onValueChange(boundedValue);
+      }
+    },
+    [formatInputText, parseFormattedInput, dynamicMax, textValue, isControlled, onValueChange, safeMin],
+  );
+
+  const handleTextInputFocus = useCallback(() => {
+    setIsEditing(true);
+
+    if (horas) {
+      const minutes = Math.max(0, Math.round(currentValue));
+      setInputText(formatInputText(String(minutes)));
+      return;
     }
 
-    if (!isControlled) {
-      setInternalValue(parsed);
+    if (valor || suffix === 'R$') {
+      const cents = Math.max(0, Math.round(currentValue * 100));
+      setInputText(formatInputText(String(cents)));
+      return;
     }
 
-    if (typeof onValueChange === 'function') {
-      onValueChange(parsed);
-    }
-  }
+    setInputText(formatInputText(String(Math.max(0, Math.round(currentValue)))));
+  }, [formatInputText, currentValue, horas, valor, suffix]);
+
+  // Limpa o estado de edição quando perde o foco
+  const handleTextInputBlur = useCallback(() => {
+    setIsEditing(false);
+    setInputText('');
+  }, []);
+
+  const handleSliderChange = useCallback(
+    (nextValue) => {
+      // Normaliza o valor do slider
+      let parsed = nextValue;
+      if (!Number.isFinite(parsed)) {
+        parsed = safeMin;
+      } else if (parsed < safeMin) {
+        parsed = safeMin;
+      } else if (parsed > dynamicMax) {
+        parsed = dynamicMax;
+      }
+
+      if (textValue && typeof textValue === 'object') {
+        textValue.current = parsed;
+      }
+
+      if (!isControlled) {
+        setInternalValue(parsed);
+      }
+
+      if (typeof onValueChange === 'function') {
+        onValueChange(parsed);
+      }
+    },
+    [safeMin, dynamicMax, textValue, isControlled, onValueChange],
+  );
 
   return (
     <View style={[styles.container, compact && styles.containerCompact]}>
@@ -129,7 +256,7 @@ export default function LimitSlider({
         <Slider
           style={[styles.slider, compact && styles.sliderCompact]}
           minimumValue={safeMin}
-          maximumValue={safeMax}
+          maximumValue={dynamicMax}
           step={safeStep}
           value={currentValue}
           onValueChange={handleSliderChange}
@@ -141,7 +268,17 @@ export default function LimitSlider({
         />
 
         <View style={[styles.valuePill, compact && styles.valuePillCompact]}>
-          <Text style={[styles.valueText, compact && styles.valueTextCompact]}>{displayValue}</Text>
+          <TextInput
+            style={[styles.valueText, compact && styles.valueTextCompact]}
+            value={isEditing ? inputText : displayValue}
+            onChangeText={handleTextInputChange}
+            onFocus={handleTextInputFocus}
+            onBlur={handleTextInputBlur}
+            placeholder={displayValue}
+            placeholderTextColor={COLORS.cadCaixaPreferenciasValorTexto}
+            keyboardType="numeric"
+            maxLength={10}
+          />
         </View>
       </View>
     </View>

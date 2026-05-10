@@ -126,11 +126,12 @@ export const styles = StyleSheet.create({
     marginBottom: 0,
     paddingTop: 8,
     paddingHorizontal: 12,
+    // keep spacing between children but let RN handle gaps via margins
     gap: 8,
     backgroundColor: COLORS.chatContainerEnviarFundo,
     borderWidth: 1,
     borderColor: COLORS.chatContainerEnviarBorda,
-    borderRadius: 0,
+    borderRadius: 12,
     shadowColor: COLORS.chatContainerEnviarSombra,
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -149,6 +150,8 @@ export const styles = StyleSheet.create({
 
   chatInput: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     marginBottom: 0,
     height: 38,
     borderRadius: 12,

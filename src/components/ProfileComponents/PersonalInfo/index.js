@@ -9,6 +9,7 @@
 //Importações necessárias para o componente
 import React from 'react';
 import { View, Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import ProfileCard from '../ProfileCard';
 import styles from './styles';
 
@@ -40,9 +41,11 @@ function formatarData(valor) {
  * Responsabilidade: Renderizar dados pessoais do usuário de forma estruturada
  */
 export default function PersonalInfo({ email, telefone, dataNascimento }) {
+  const navigation = useNavigation();
+
   return (
     // Card principal que encapsula as informações pessoais
-    <ProfileCard title="Informações pessoais" onEdit={() => {}}>
+    <ProfileCard title="Informações pessoais" onEdit={() => navigation.navigate('EditProfile', { mode: 'info' })}>
       {/* Informação: E-mail */}
       <Text style={styles.text}>
         <Text style={styles.fieldLabel}>E-mail:</Text> <Text style={styles.fieldValue}>{email}</Text>

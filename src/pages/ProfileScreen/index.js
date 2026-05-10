@@ -54,7 +54,7 @@ export default function ProfileScreen() {
         email.current = dados.usuario_email;
         telefone.current = dados.usuario_telefone;
         dataNascimento.current = dados.usuario_data_nascimento;
-        preferenciaGasto.current = dados.usuario_preferencias_meta_valor;
+        preferenciaGasto.current = dados.usuario_meta_valor_mensal;
         setRecarregar((prev) => prev + 1);
       })
       .catch(CatchError);
@@ -72,7 +72,7 @@ export default function ProfileScreen() {
 
   function selecionarPreferencias() {
     apiClient
-      .get('/preferencias-categoria')
+      .get('/preferencia')
       .then((response) => {
         const dados = response.data;
         setPreferencias(dados);

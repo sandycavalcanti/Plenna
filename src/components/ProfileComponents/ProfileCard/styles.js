@@ -18,13 +18,13 @@ export default StyleSheet.create({
   // Container principal do card
   container: {
     position: 'relative',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: COLORS.perfilProfileCardBorda,
-    borderRadius: 16,
-    padding: 14,
-    paddingTop: 28,
-    marginTop: 10,
-    marginBottom: 16,
+    borderRadius: 12,
+    padding: 12,
+    paddingTop: 24,
+    marginTop: 6,
+    marginBottom: 12,
   },
 
   // Cabeçalho com título e botão de ação
