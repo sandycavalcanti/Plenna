@@ -375,6 +375,10 @@ export default function EditProfileScreen() {
         </View>
       ) : (
         <View style={styles.sectionsWrap}>
+          <TouchableOpacity activeOpacity={0.85} onPress={adicionarMeta} style={styles.addGoalAction}>
+            <Text style={styles.addGoalActionText}>Adicionar meta</Text>
+          </TouchableOpacity>
+
           {metas.map((m, idx) => (
             <ProfileCard key={m.meta_id || `goal-${idx}`} title={m.meta_titulo || 'Nova meta'} onRemove={() => removerMeta(idx)} style={styles.goalEditorCard}>
               <View style={styles.fieldBlock}>

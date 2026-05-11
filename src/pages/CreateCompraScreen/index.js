@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Alert, ActivityIndicator, TouchableOpacity, FlatList, Modal, Pressable } from 'react-native';
+import { ScrollView, View, Text, Alert, ActivityIndicator, TouchableOpacity, FlatList, Modal, Pressable, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
 import { apiClient } from '../../api/client';
@@ -22,6 +22,39 @@ function parseNumber(raw) {
   }
   const n = parseFloat(s);
   return isNaN(n) ? NaN : n;
+}
+
+function formatarValorMoedaParaTela(valor) {
+  const digitos = String(valor ?? '').replace(/\D/g, '');
+
+  if (!digitos) {
+    return '';
+  }
+
+  const numero = Number(digitos) / 100;
+
+  if (!Number.isFinite(numero)) {
+    return '';
+  }
+
+  return `R$ ${new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numero)}`;
+}
+
+function normalizarValorMoedaParaEntrada(valor) {
+  return String(valor ?? '').replace(/\D/g, '');
+}
+
+function valorMoedaParaNumero(valor) {
+  const digitos = String(valor ?? '').replace(/\D/g, '');
+
+  if (!digitos) {
+    return NaN;
+  }
+
+  return Number(digitos) / 100;
 }
 
 export default function CreateCompraScreen() {
@@ -98,7 +131,7 @@ export default function CreateCompraScreen() {
       const payloadItems = [];
       for (const it of items) {
         const nome = (it.nome || '').trim();
-        const valor = parseNumber(it.valor);
+        const valor = valorMoedaParaNumero(it.valor);
         const categoriaId = Number(it.categoriaId || 0);
 
         if (!nome) {
@@ -151,8 +184,9 @@ export default function CreateCompraScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.heroCard}>
+        <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
         <Text style={styles.heroTitle}>Nova Compra</Text>
-        <Text style={styles.heroSubtitle}>Adicione os itens da compra e finalize o cadastro.</Text>
+        <Text style={styles.heroSubtitle}>Adicione os itens da compra, escolha as categorias e finalize o cadastro.</Text>
       </View>
 
       <View style={styles.sectionsWrap}>
@@ -160,7 +194,13 @@ export default function CreateCompraScreen() {
           {items.map((it, idx) => (
             <View key={idx} style={styles.itemRow}>
               <CustomTextInput placeholder="Nome do item" value={it.nome} onChangeText={(t) => atualizarItem(idx, 'nome', t)} style={styles.itemInput} />
-              <CustomTextInput placeholder="R$ 0,00" value={it.valor} onChangeText={(t) => atualizarItem(idx, 'valor', t)} keyboardType="numeric" style={styles.itemInput} />
+              <CustomTextInput
+                placeholder="R$ 0,00"
+                value={formatarValorMoedaParaTela(it.valor)}
+                onChangeText={(t) => atualizarItem(idx, 'valor', normalizarValorMoedaParaEntrada(t))}
+                keyboardType="numeric"
+                style={styles.itemInput}
+              />
               <TouchableOpacity style={styles.selectCategoria} onPress={() => abrirSeletorCategoria(idx)}>
                 <Text style={styles.selectCategoriaText}>{it.categoriaId ? categories.find((c) => c.categoria_id === it.categoriaId)?.categoria_nome || 'Categoria' : 'Selecionar categoria'}</Text>
               </TouchableOpacity>
@@ -171,7 +211,7 @@ export default function CreateCompraScreen() {
           ))}
 
           <TouchableOpacity onPress={adicionarItem} style={styles.addItemButton}>
-            <Text style={styles.addItemText}>Adicionar item +</Text>
+            <Text style={styles.addItemText}>Adicionar item</Text>
           </TouchableOpacity>
         </ProfileCard>
 
