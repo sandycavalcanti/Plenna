@@ -12,6 +12,7 @@ import { COLORS } from '../../constants/colors';
 import { apiClient } from '../../api/client';
 import { CatchError } from '../../api/constants';
 import Impulsividade from '../../components/DashboardComponents/Impulsividade';
+import FormaPagamento from '../../components/DashboardComponents/FormaPagamento';
 
 export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -19,10 +20,19 @@ export default function DashboardScreen() {
   const [compras, setCompras] = useState([]);
   const [itens, setItens] = useState([]);
   const [usuario, setUsuario] = useState(null);
+  const [gastosCategoria, setGastosCategoria] = useState([]);
+  const [impulsividade, setImpulsividade] = useState(null);
+  const [gastosFormaPagamento, setGastosFormaPagamento] = useState(null);
+  const [limiteCompra, setLimiteCompra] = useState(null);
+
   useEffect(() => {
     selecionarTempoUso();
     selecionarCompras();
     selecionarUsuario();
+    GastoCategoria();
+    SelecionarImpulsividade();
+    SelecionarFormaPagamento();
+    SelecionarLimiteCompra();
   }, []);
 
   function selecionarTempoUso() {
@@ -55,6 +65,42 @@ export default function DashboardScreen() {
       .catch(CatchError);
   }
 
+  function GastoCategoria() {
+    apiClient
+      .get('/dashboard/gastos-categoria')
+      .then((response) => {
+        setGastosCategoria(response.data);
+      })
+      .catch(CatchError);
+  }
+
+  function SelecionarImpulsividade() {
+    apiClient
+      .get('/dashboard/impulsividade')
+      .then((response) => {
+        setImpulsividade(response.data);
+      })
+      .catch(CatchError);
+  }
+
+  function SelecionarFormaPagamento() {
+    apiClient
+      .get('/dashboard/gastos-forma-pagamento')
+      .then((response) => {
+        setGastosFormaPagamento(response.data);
+      })
+      .catch(CatchError);
+  }
+
+  function SelecionarLimiteCompra() {
+    apiClient
+      .get('/dashboard/limite-compras')
+      .then((response) => {
+        setLimiteCompra(response.data);
+      })
+      .catch(CatchError);
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
@@ -77,10 +123,25 @@ export default function DashboardScreen() {
 
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
         <GastosTotais compras={compras} meta={usuario?.usuario_meta_valor_mensal} />
-        <Categoria itens={itens} />
-        <Impulsividade compra={compras} />
+        <Categoria gastosCategoria={gastosCategoria} />
+        <Impulsividade data={impulsividade} />
         <TempoApp tempoUso={tempoUso} />
-        <AlertasHabito />
+        <Impulsividade
+          data={limiteCompra}
+          title="Compras acima do limite"
+          emptyMessage="Nenhuma compra disponível para análise"
+          centerLabel="acima do limite"
+          centerValueMode="quantity"
+          infoTitle="Limite de compras"
+          highLabel="Acima do limite"
+          mediumLabel="Próximo do limite"
+          lowLabel="Dentro do limite"
+          highDescription="Existem compras acima do valor limite definido para o período."
+          mediumDescription="O volume de compras já está se aproximando do limite definido."
+          lowDescription="As compras estão dentro do limite definido para o período."
+          totalKey="acima_limite"
+        />
+        <FormaPagamento gastosFormaPagamento={gastosFormaPagamento} />
       </ScrollView>
     </SafeAreaView>
   );

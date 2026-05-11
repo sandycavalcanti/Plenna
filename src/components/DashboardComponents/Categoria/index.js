@@ -7,24 +7,22 @@ import ProfileCard from '../../ProfileComponents/ProfileCard';
 
 const screenWidth = Dimensions.get('window').width;
 
-export default function Categoria({ itens = [] }) {
+export default function Categoria({ gastosCategoria = [] }) {
   const [expanded, setExpanded] = useState(false);
   const palette = [COLORS.dadoDois, COLORS.dadoTres, COLORS.dadoUm, COLORS.customButtonFundo, COLORS.limitSliderThumb];
 
-  const map = new Map();
-  let total = 0;
+  const total = gastosCategoria.reduce((sum, gasto) => {
+    if (!gasto || !gasto.total) return sum;
+    return sum + Number(gasto.total);
+  }, 0);
 
-  itens.forEach((it) => {
-    if (!it) return;
-    const nome = it.tb_categoria?.categoria_nome ?? `Categoria ${it.categoria_id}`;
-    const valor = Number(it.compra_item_valor ?? it.compra_item_valor) || 0;
-    total += valor;
-    map.set(nome, (map.get(nome) || 0) + valor);
-  });
-
-  const categories = Array.from(map.entries())
-    .map(([label, value], idx) => ({ label, value, color: palette[idx % palette.length] }))
-    .sort((a, b) => b.value - a.value);
+  const categories = gastosCategoria
+    .filter((gasto) => gasto && gasto.categoria_nome)
+    .map((gasto, idx) => ({
+      label: gasto.categoria_nome,
+      value: Number(gasto.total) || 0,
+      color: palette[idx % palette.length],
+    }));
 
   const displayedCategories = expanded ? categories : categories.slice(0, 2);
 
@@ -80,7 +78,7 @@ export default function Categoria({ itens = [] }) {
       <ProfileCard title="Gastos por categoria">
         <View style={styles.displayedCategories}>
           {displayedCategories.map((cat) => {
-            const percent = ((cat.value / total) * 100).toFixed(1);
+            const percent = total > 0 ? ((cat.value / total) * 100).toFixed(1) : 0;
             return <CategoryCard key={cat.label} cat={cat} percent={percent} />;
           })}
         </View>

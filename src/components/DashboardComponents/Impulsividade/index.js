@@ -11,50 +11,62 @@ const RING_STROKE = 12;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-function normalizePurchases(compra = [], compras = []) {
-  if (Array.isArray(compra) && compra.length > 0) {
-    return compra;
-  }
-
-  if (Array.isArray(compras) && compras.length > 0) {
-    return compras;
-  }
-
-  return [];
-}
-
-export default function Impulsividade({ compra = [], compras = [] }) {
+export default function Impulsividade({
+  data,
+  impulsividade = [],
+  title = 'Compras impulsivas',
+  emptyMessage = 'Nenhuma compra disponível para análise',
+  classificationKey = 'compra_classificacao',
+  classificationValue = 'IMPULSIVA',
+  totalKey = null,
+  centerLabel = 'impulsivas',
+  centerValueMode = 'percentage',
+  infoTitle = 'Taxa de impulsividade',
+  highLabel = 'Impulsividade alta',
+  mediumLabel = 'Impulsividade moderada',
+  lowLabel = 'Impulsividade baixa',
+  highDescription = 'O comportamento de compra está mais concentrado em decisões impulsivas.',
+  mediumDescription = 'Existe um nível intermediário de compras impulsivas no período.',
+  lowDescription = 'A maior parte das compras está fora do padrão impulsivo.',
+} = {}) {
   const [expanded, setExpanded] = useState(false);
-  const purchases = normalizePurchases(compra, compras);
-  const totalPurchases = purchases.length;
-  const impulsivePurchases = purchases.filter((item) => String(item?.compra_classificacao || '').toUpperCase() === 'IMPULSIVA').length;
+  const sourceData = data ?? impulsividade;
+  const isArrayData = Array.isArray(sourceData);
+  const isObjectData = !isArrayData && sourceData !== null && typeof sourceData === 'object';
+  const isEmptyArray = isArrayData && sourceData.length === 0;
+  const isEmptyObject = isObjectData && Object.keys(sourceData).length === 0;
 
-  const impulsivePercentage = totalPurchases > 0 ? Math.round((impulsivePurchases / totalPurchases) * 100) : 0;
-  const progress = Math.max(0, Math.min(100, impulsivePercentage));
-  const progressOffset = RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE;
-
-  const statusLabel = progress >= 50 ? 'Impulsividade alta' : progress >= 25 ? 'Impulsividade moderada' : 'Impulsividade baixa';
-
-  const statusDescription =
-    progress >= 50
-      ? 'O comportamento de compra está mais concentrado em decisões impulsivas.'
-      : progress >= 25
-        ? 'Existe um nível intermediário de compras impulsivas no período.'
-        : 'A maior parte das compras está fora do padrão impulsivo.';
-
-  if (totalPurchases === 0) {
+  // Se não houver dados, retorna mensagem
+  if ((!isArrayData && !isObjectData) || isEmptyArray || isEmptyObject) {
     return (
       <View style={styles.section}>
-        <ProfileCard title="Compras impulsivas">
-          <Text style={styles.emptyMessage}>Nenhuma compra disponível para análise</Text>
+        <ProfileCard title={title}>
+          <Text style={styles.emptyMessage}>{emptyMessage}</Text>
         </ProfileCard>
       </View>
     );
   }
 
+  // Normaliza tanto listas quanto objetos resumidos vindos da API
+  const totalQuantity = isArrayData ? sourceData.reduce((sum, item) => sum + Number(item?.quantidade || 0), 0) : Object.values(sourceData).reduce((sum, value) => sum + Number(value || 0), 0);
+
+  const relevantQuantity = isArrayData
+    ? sourceData.find((item) => String(item?.[classificationKey] || '').toUpperCase() === String(classificationValue).toUpperCase())?.quantidade || 0
+    : Number(sourceData?.[totalKey || 'acima_limite'] ?? 0) || 0;
+
+  const impulsivePercentage = totalQuantity > 0 ? Math.round((relevantQuantity / totalQuantity) * 100) : 0;
+  const progress = Math.max(0, Math.min(100, impulsivePercentage));
+  const progressOffset = RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE;
+
+  const statusLabel = progress >= 50 ? highLabel : progress >= 25 ? mediumLabel : lowLabel;
+
+  const statusDescription = progress >= 50 ? highDescription : progress >= 25 ? mediumDescription : lowDescription;
+
+  const centerValue = centerValueMode === 'quantity' ? relevantQuantity : `${progress}%`;
+
   return (
     <View style={styles.section}>
-      <ProfileCard title="Compras impulsivas">
+      <ProfileCard title={title}>
         <View style={styles.heroCard}>
           <View style={styles.ringWrap}>
             <View style={styles.ringShell}>
@@ -76,8 +88,8 @@ export default function Impulsividade({ compra = [], compras = [] }) {
               </Svg>
 
               <View style={styles.ringCenter}>
-                <Text style={styles.chartPercent}>{impulsivePercentage}%</Text>
-                <Text style={styles.chartCenterLabel}>impulsivas</Text>
+                <Text style={styles.chartPercent}>{centerValue}</Text>
+                <Text style={styles.chartCenterLabel}>{centerLabel}</Text>
               </View>
             </View>
           </View>
@@ -89,7 +101,7 @@ export default function Impulsividade({ compra = [], compras = [] }) {
                 <Text style={styles.statusPillText}>{statusLabel}</Text>
               </View>
 
-              <Text style={styles.infoTitle}>Taxa de impulsividade</Text>
+              <Text style={styles.infoTitle}>{infoTitle}</Text>
               <Text style={styles.infoDescription}>{statusDescription}</Text>
 
               <View style={styles.meterTrack}>

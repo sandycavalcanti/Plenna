@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Container principal da navegação
 import { NavigationContainer } from '@react-navigation/native';
@@ -55,16 +56,19 @@ const MyTheme = {
 
 // Componente customizado para a TabBar
 function CustomTabBar({ state, descriptors, navigation }) {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 8);
+
   return (
     <View
       style={{
         position: 'absolute',
         left: 0,
         right: 0,
-        height: 80,
+        height: 80 + bottomInset,
         bottom: 0,
         paddingTop: 0,
-        paddingBottom: 0,
+        paddingBottom: bottomInset,
         backgroundColor: '#595D7C',
         borderTopWidth: 0,
         shadowColor: '#000',
@@ -77,8 +81,6 @@ function CustomTabBar({ state, descriptors, navigation }) {
         justifyContent: 'space-around',
       }}>
       {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label = options.tabBarLabel;
         const isFocused = state.index === index;
 
         const onPress = () => {
@@ -119,7 +121,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
           backgroundColor: '#C97BA0',
           justifyContent: 'center',
           alignItems: 'center',
-          bottom: 30,
+          bottom: 30 + bottomInset,
           left: '50%',
           marginLeft: -38,
           shadowColor: '#000',
