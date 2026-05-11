@@ -4,30 +4,141 @@ import { COLORS } from '../../constants';
 export default StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    backgroundColor: COLORS.fundoPrincipal,
+    backgroundColor: COLORS.cadFundo,
   },
   content: {
-    paddingVertical: 24,
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 32,
   },
-  header: {
-    backgroundColor: COLORS.cadFundo,
-    paddingVertical: 18,
+  heroCard: {
+    alignItems: 'center',
+    backgroundColor: COLORS.fundoPrincipal,
+    borderRadius: 22,
     paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 14,
+    paddingVertical: 22,
   },
-  subtitle: { fontSize: 13, color: COLORS.dadoUm, marginTop: 6 },
+  heroLogo: {
+    width: 150,
+    height: 150,
+    marginBottom: 8,
+  },
+  heroBadge: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: COLORS.cadTextoAdicionarLimites,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  heroTitle: {
+    fontFamily: 'SugoDisplay',
+    fontSize: 42,
+    color: COLORS.cadTitulo,
+    textAlign: 'center',
+    lineHeight: 44,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: COLORS.dadoUm,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  sectionsWrap: {
+    gap: 20,
+  },
+  goalsIntroCard: {
+    alignItems: 'center',
+    backgroundColor: COLORS.fundoPrincipal,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  goalsIntroTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.cadTitulo,
+    textAlign: 'center',
+  },
+  goalsIntroSubtitle: {
+    fontSize: 13,
+    color: COLORS.dadoUm,
+    textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 18,
+  },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700', marginBottom: 16, color: COLORS.perfilNome },
-  label: { fontSize: 13, color: COLORS.perfilInfoLabel, marginTop: 8, marginBottom: 6 },
-
-  // inputs: we rely on CustomTextInput styles, but add small helpers
-  inputWrapper: { marginBottom: 8 },
-
-  // buttons (we usually reuse CustomButton, this is fallback)
-  actionsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-
+  sectionCard: {
+    width: '100%',
+    marginBottom: 0,
+  },
+  fieldBlock: {
+    marginBottom: 4,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.perfilInfoLabel,
+    marginBottom: 6,
+  },
+  optionsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  optionPill: {
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  optionPillSelected: {
+    backgroundColor: COLORS.cadCheckboxFundo,
+  },
+  optionText: {
+    color: COLORS.cadCaixaPreferenciasTitulo,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  optionTextSelected: {
+    color: '#FFFFFF',
+  },
+  inputWrapper: {
+    marginBottom: 0,
+  },
+  actionsRow: {
+    marginTop: 6,
+  },
+  saveButton: {
+    width: '100%',
+  },
+  addGoalAction: {
+    marginTop: 2,
+    marginBottom: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+  },
+  addGoalActionText: {
+    color: COLORS.cadTextoAdicionarLimites,
+    fontSize: 15,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  goalEditorCard: {
+    width: '100%',
+    marginBottom: 0,
+  },
+  goalDescriptionInput: {
+    backgroundColor: COLORS.customTextInputFundo,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
   // meta card
   metaCard: {
     backgroundColor: COLORS.perfilMetaFundo,

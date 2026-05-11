@@ -14,6 +14,38 @@ import { COLORS } from '../../../constants';
  * Define estrutura visual e tipografia dos elementos de metas
  */
 export default StyleSheet.create({
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.62)',
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    gap: 6,
+  },
+
+  emptyStateTitle: {
+    fontSize: 16,
+    color: COLORS.perfilMetaTitulo,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+
+  emptyStateSubtitle: {
+    fontSize: 13,
+    color: COLORS.perfilInfoValor,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 6,
+  },
+
+  emptyStateAction: {
+    marginTop: 4,
+    fontSize: 14,
+    color: COLORS.cadTextoAdicionarLimites,
+    fontWeight: '700',
+  },
+
   // Container do item de meta (clicável)
   goalItem: {
     flexDirection: 'row',

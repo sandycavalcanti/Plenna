@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'SugoDisplay',
     fontSize: 52,
     color: COLORS.cadTitulo,
-    marginBottom: 14,
+    marginBottom: 10,
   },
   segmentAction: {
     marginTop: 16,
@@ -262,22 +262,5 @@ export const styles = StyleSheet.create({
   avisoNenhumaCategoria: {
     paddingVertical: 16,
     color: COLORS.cadModalAvisoTexto,
-  },
-  // finishButton: {
-  //   marginTop: 10,
-  //   minWidth: 155,
-  //   paddingHorizontal: 28,
-  //   paddingVertical: 10,
-  //   borderRadius: 999,
-  //   backgroundColor: '#DDB4CE',
-  //   shadowColor: '#555555',
-  //   shadowOffset: { width: 0, height: 3 },
-  //   shadowOpacity: 0.25,
-  //   shadowRadius: 4,
-  //   elevation: 4,
-  // },
-  // finishButtonText: {
-  //   color: '#F5EAF2',
-  //   textAlign: 'center',
-  // },
+  }
 });

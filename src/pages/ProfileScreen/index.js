@@ -35,7 +35,10 @@ export default function ProfileScreen() {
   const email = useRef('');
   const telefone = useRef('');
   const dataNascimento = useRef('');
-  const preferenciaGasto = useRef('');
+  const gastoIdealMensal = useRef('');
+  const gastoIdealCompra = useRef('');
+  const tempoIdeal = useRef('');
+  const limiteCompra = useRef('');
   const [metas, setMetas] = useState([]);
   const [preferencias, setPreferencias] = useState([]);
 
@@ -54,7 +57,10 @@ export default function ProfileScreen() {
         email.current = dados.usuario_email;
         telefone.current = dados.usuario_telefone;
         dataNascimento.current = dados.usuario_data_nascimento;
-        preferenciaGasto.current = dados.usuario_meta_valor_mensal;
+        gastoIdealMensal.current = dados.usuario_meta_valor_mensal;
+        gastoIdealCompra.current = dados.usuario_meta_valor_compra;
+        tempoIdeal.current = dados.usuario_meta_tempo;
+        limiteCompra.current = dados.usuario_meta_limite_compra;
         setRecarregar((prev) => prev + 1);
       })
       .catch(CatchError);
@@ -93,7 +99,7 @@ export default function ProfileScreen() {
       <Goals metas={metas} />
 
       {/* Preferências de orçamento */}
-      <BudgetPreferences valorIdeal={preferenciaGasto.current} preferencias={preferencias} />
+      <BudgetPreferences gastoIdealMensal={gastoIdealMensal.current} gastoIdealCompra={gastoIdealCompra.current} preferencias={preferencias} />
 
       {/* Configurações de permissões */}
       <Permissions />

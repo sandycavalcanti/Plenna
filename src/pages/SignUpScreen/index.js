@@ -6,6 +6,7 @@ import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
+import PreferencesForm from '../../components/PreferencesForm';
 import { CatchError, URL_API } from '../../api/constants';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
@@ -290,8 +291,12 @@ export default function SignUpScreen({ navigation }) {
         if (valorMaximoCompra) {
           const somenteDigitos = String(valorMaximoCompra).replace(/\D/g, '');
           if (somenteDigitos) {
-            payload.metaValorCompra = Number(somenteDigitos) / 100;
+            payload.metaValorCompra = Number(somenteDigitos);
           }
+        }
+
+        if (limiteTempo.current !== undefined && limiteTempo.current !== null) {
+          payload.metaTempo = Number(limiteTempo.current);
         }
 
         // Enviar apenas se houver algo para atualizar
@@ -412,81 +417,31 @@ export default function SignUpScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
           <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
-          <CustomButton title="seguir" style={styles.button} onPress={() => setStep(2)} />
         </KeyboardAvoidingView>
       )}
       {step === 2 && (
-        <ScrollView style={{ width: '95%' }} contentContainerStyle={styles.stepTwoContainer}>
-          <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-          <Text style={styles.titulo}>Preferências</Text>
-          <View style={styles.borderOverlay}>
-            <View style={styles.stepTwoExtraFields}>
-              <View style={styles.stepTwoFieldCard}>
-                <Text style={styles.stepTwoFieldLabel}>Quantidade de compras por mês</Text>
-                <TextInput style={styles.stepTwoFieldInput} value={quantidadeComprasMes} onChangeText={atualizarQuantidadeComprasMes} placeholder="Ex.: 8" keyboardType="numeric" maxLength={3} />
-              </View>
+        <View style={{ width: '100%', flex: 1}}>
 
-              <View style={styles.stepTwoFieldCard}>
-                <Text style={styles.stepTwoFieldLabel}>Maior valor em uma única compra</Text>
-                <TextInput style={styles.stepTwoFieldInput} value={valorMaximoCompra} onChangeText={atualizarValorMaximoCompra} placeholder="R$ 0,00" keyboardType="numeric" maxLength={15} />
-              </View>
-            </View>
-
-            <LimitSlider title="Limite mensal de gasto" min={0} max={3000} step={10} valor compact value={limiteGastoValor} onValueChange={atualizarLimiteMensal} textValue={limiteGasto} />
-            <Text style={styles.stepTwoHelperText}>Escolha um teto mensal confortável para comprar sem pesar no bolso.</Text>
-            <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={90} horas compact textValue={limiteTempo} />
-            <Text style={styles.stepTwoHelperText}>Defina um tempo diário saudável para navegar em sites de compras.</Text>
-          </View>
-          {mostrarErroStepTwo && <Text style={styles.stepTwoErrorText}>{stepTwoErro}</Text>}
-          <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction} onPress={abrirTelinhaCategorias}>
-            <Text style={styles.segmentActionText}>Adicionar limites por segmento +</Text>
-          </TouchableOpacity>
-          <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={fecharTelinhaCategorias}>
-            <Pressable style={styles.pressableFecharModal} onPress={fecharTelinhaCategorias}>
-              <Pressable style={styles.modalContainer} onPress={(event) => event.stopPropagation()}>
-                <Text style={styles.questionTitle}>Selecione a categoria que deseja adicionar</Text>
-                <Text style={styles.questionSubtitle}>Toque em uma categoria para definir um limite mensal específico para esse segmento.</Text>
-
-                {categoriesLoading ? (
-                  <View style={styles.viewModalCarregando}>
-                    <ActivityIndicator size="small" color={COLORS.cadModalCarregando} />
-                  </View>
-                ) : (
-                  <FlatList
-                    data={categories}
-                    keyExtractor={(item) => String(item.categoria_id)}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity activeOpacity={0.85} onPress={() => selecionarCategoria(item)} style={styles.categoriaNomeTouchable}>
-                        <Text style={styles.categoriaNome}>{item.categoria_nome}</Text>
-                      </TouchableOpacity>
-                    )}
-                    ListEmptyComponent={<Text style={styles.avisoNenhumaCategoria}>Nenhuma categoria encontrada. Tente atualizar novamente mais tarde.</Text>}
-                  />
-                )}
-
-                <TouchableOpacity activeOpacity={0.85} onPress={fecharTelinhaCategorias} style={styles.textoFecharModalTouchable}>
-                  <Text style={styles.textoFecharModal}>Fechar</Text>
-                </TouchableOpacity>
-              </Pressable>
-            </Pressable>
-          </Modal>
-          {selectedCategories.map((category) => (
-            <ProfileCard key={category.categoria_id} title={category.categoria_nome} onRemove={() => removerCategoria(category.categoria_id)} style={{ width: '95%' }}>
-              <LimitSlider
-                title="Limite mensal"
-                min={0}
-                max={1000}
-                step={10}
-                valor
-                compact
-                value={category.limite}
-                onValueChange={(novoValor) => atualizarLimiteCategoria(category.categoria_id, novoValor)}
-              />
-            </ProfileCard>
-          ))}
-
-          <CustomButton title="Finalizar" style={styles.button} onPress={AtualizarUsuario} />
-        </ScrollView>
+          <PreferencesForm
+            quantidadeComprasMes={quantidadeComprasMes}
+            onQuantidadeComprasChange={setQuantidadeComprasMes}
+            valorMaximoCompra={valorMaximoCompra}
+            onValorMaximoCompraChange={setValorMaximoCompra}
+            limiteGastoValor={limiteGastoValor}
+            onLimiteGastoChange={setLimiteGastoValor}
+            limiteTempo={limiteTempo.current}
+            onLimiteTempoChange={(valor) => {
+              limiteTempo.current = valor;
+            }}
+            selectedCategories={selectedCategories}
+            onRemoverCategoria={removerCategoria}
+            onAdicionarCategoria={selecionarCategoria}
+            onAtualizarLimiteCategoria={atualizarLimiteCategoria}
+            onSalvar={AtualizarUsuario}
+            isEditing={false}
+            obterSomaLimitesCategorias={obterSomaLimitesCategorias}
+          />
+        </View>
       )}
     </View>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, TouchableOpacity } from 'react-native';
 
 // Container principal da navegação
 import { NavigationContainer } from '@react-navigation/native';
@@ -24,6 +25,8 @@ import ChatScreen from './pages/ChatScreen';
 import SignUpScreen from './pages/SignUpScreen';
 import QuestionarioScreen from './pages/QuestionarioScreen';
 import EditProfileScreen from './pages/EditProfileScreen';
+import EditPreferencesScreen from './pages/EditPreferencesScreen';
+import CreateCompraScreen from './pages/CreateCompraScreen';
 
 // Configuração de deeplinks para OAuth
 const linking = {
@@ -49,37 +52,133 @@ const MyTheme = {
   },
 };
 
+// Componente customizado para a TabBar
+function CustomTabBar({ state, descriptors, navigation }) {
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        height: 80,
+        bottom: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        backgroundColor: '#595D7C',
+        borderTopWidth: 0,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+      }}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const label = options.tabBarLabel;
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            preventDefault: false,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        // Renderizar apenas as 2 primeiras abas
+        if (index > 1) return null;
+
+        let iconName;
+        if (route.name === 'Home') iconName = 'home';
+        else if (route.name === 'Dashboard') iconName = 'stats-chart';
+
+        const isCloseToPlusButton = route.name === 'Dashboard';
+
+        return (
+          <TouchableOpacity key={route.key} onPress={onPress} style={{ flex: 1, alignItems: 'center', paddingVertical: 8, marginRight: isCloseToPlusButton ? 30 : 0 }}>
+            <Ionicons name={iconName} size={26} color={isFocused ? '#1B2046' : '#EFEFF5'} />
+          </TouchableOpacity>
+        );
+      })}
+
+      {/* Botão + no meio */}
+      <TouchableOpacity
+        style={{
+          position: 'absolute',
+          width: 76,
+          height: 76,
+          borderRadius: 50,
+          backgroundColor: '#C97BA0',
+          justifyContent: 'center',
+          alignItems: 'center',
+          bottom: 30,
+          left: '50%',
+          marginLeft: -38,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 4,
+          borderWidth: 3,
+          borderColor: '#EFEFF5',
+        }}
+        onPress={() => {
+          // Navega para tela de criação de compra
+          navigation.navigate('CreateCompra');
+        }}>
+        <Ionicons name="add" size={40} color="#FFF" />
+      </TouchableOpacity>
+
+      {/* Renderizar as 2 últimas abas */}
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            preventDefault: false,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        // Renderizar apenas as 2 últimas abas
+        if (index < 2) return null;
+
+        let iconName;
+        if (route.name === 'Profile') iconName = 'person';
+        else if (route.name === 'HistoricalChat') iconName = 'chatbubbles';
+
+        const isCloseToPlusButton = route.name === 'Profile';
+
+        return (
+          <TouchableOpacity key={route.key} onPress={onPress} style={{ flex: 1, alignItems: 'center', paddingVertical: 8, marginLeft: isCloseToPlusButton ? 30 : 0 }}>
+            <Ionicons name={iconName} size={26} color={isFocused ? '#1B2046' : '#EFEFF5'} />
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
 function TabRoutes() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: '#1B2046',
-        tabBarInactiveTintColor: '#EFEFF5',
-        tabBarStyle: {
-          position: 'absolute',
-          left: 20,
-          right: 20,
-          height: 80,
-          paddingTop: 10,
-          backgroundColor: '#595D7C',
-          borderTopWidth: 0,
-          shadowColor: '#000', // sombra iO
-          shadowOpacity: 0.15,
-        },
-
-        tabBarIcon: ({ color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'Dashboard') iconName = 'stats-chart';
-          else if (route.name === 'Profile') iconName = 'person';
-          else if (route.name === 'HistoricalChat') iconName = 'chatbubbles';
-
-          return <Ionicons name={iconName} size={26} color={color} />;
-        },
-      })}>
+      }}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
@@ -101,6 +200,8 @@ export default function Routes() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Questionario" component={QuestionarioScreen} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="EditPreferences" component={EditPreferencesScreen} />
+        <Stack.Screen name="CreateCompra" component={CreateCompraScreen} />
         <Stack.Screen name="OAuthSuccess" component={HomeScreen} options={{ animationEnabled: false }} />
         <Stack.Screen name="OAuthError" component={LoginScreen} options={{ animationEnabled: false }} />
         <Stack.Screen name="App" component={TabRoutes} />

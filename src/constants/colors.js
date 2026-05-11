@@ -105,7 +105,7 @@ export const COLORS = {
   chatTextInputTexto: '#000000',
   chatTextInputBorda: 'rgba(131, 111, 226, 0.2)',
   // PERFIL
-  perfilLimiteCategoriaBorda: 'rgba(73, 151, 169, 0.9)',
+  perfilLimiteCategoriaBorda: 'rgba(137, 196, 209, 0.9)',
   perfilLimiteCategoriaFundo: 'rgba(255, 255, 255, 0.45)',
   perfilCheckColor: '#111111',
   perfilCheckboxFundo: '#AFA6E6',
