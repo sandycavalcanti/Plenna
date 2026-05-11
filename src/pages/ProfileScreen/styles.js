@@ -25,6 +25,6 @@ export const styles = StyleSheet.create({
   // Estilos aplicados ao conteúdo rolável da tela
   contentContainer: {
     paddingHorizontal: 16,
-    paddingTop: 70,
+    paddingTop: 50,
   },
 });

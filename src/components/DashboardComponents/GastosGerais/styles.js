@@ -3,36 +3,64 @@ import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   section: {
-    marginHorizontal: 20,
-    marginVertical: 10,
+    marginHorizontal: 16,
+    marginVertical: 12,
   },
 
-  valor: {
-    fontSize: 36,
-    color: COLORS.dashboardGastosGeraisValor,
+  statsScroll: {
+    flexGrow: 0,
+  },
+
+  statCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    marginRight: 12,
+    borderTopWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+    minWidth: 220,
+  },
+
+  statIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+
+  statContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  statLabel: {
+    fontSize: 13,
     fontWeight: '600',
+    color: '#999999',
+    marginBottom: 5,
+    letterSpacing: 0.3,
   },
 
-  meta: {
-    fontSize: 18,
+  statValue: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: '#2F356B',
+    marginBottom: 5,
+    letterSpacing: -0.5,
   },
 
-  metaValor: {
-    color: COLORS.dashboardMetaValor,
-  },
-
-  excedente: {
-    color: COLORS.dashboardGastosGeraisAviso,
-    fontSize: 18,
+  statSubtitle: {
+    fontSize: 12,
     fontWeight: '600',
-    marginBottom: 10,
-    marginLeft: 20,
-  },
-
-  chartContainer: {
-    borderRadius: 16,
-    padding: 10,
-    marginTop: -60,
-    marginBottom: -60,
+    color: '#C02C7A',
   },
 });

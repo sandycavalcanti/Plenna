@@ -27,6 +27,7 @@ import QuestionarioScreen from './pages/QuestionarioScreen';
 import EditProfileScreen from './pages/EditProfileScreen';
 import EditPreferencesScreen from './pages/EditPreferencesScreen';
 import CreateCompraScreen from './pages/CreateCompraScreen';
+import { COLORS } from './constants';
 
 // Configuração de deeplinks para OAuth
 const linking = {
@@ -126,8 +127,8 @@ function CustomTabBar({ state, descriptors, navigation }) {
           shadowOpacity: 0.3,
           shadowRadius: 6,
           elevation: 4,
-          borderWidth: 3,
-          borderColor: '#EFEFF5',
+          borderWidth: 4,
+          borderColor: COLORS.fundoPrincipal,
         }}
         onPress={() => {
           // Navega para tela de criação de compra

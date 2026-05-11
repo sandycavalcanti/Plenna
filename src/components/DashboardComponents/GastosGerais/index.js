@@ -1,42 +1,53 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { BarChart } from 'react-native-gifted-charts';
-import ProfileCard from '../../ProfileComponents/ProfileCard';
+import { View, Text, ScrollView } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 
-export default function GastosTotais() {
-  const gasto = 1250.78;
-  const meta = 800;
-  const porcentagem = Math.round((gasto / meta - 1) * 100);
+export default function GastosTotais({ compras = [], meta = 0 }) {
+  const parsedMeta = Number(meta) || 0;
 
-  const data = [
-    {
-      value: meta,
-      label: 'Meta',
-      frontColor: COLORS.dadoUm,
-    },
-    {
-      value: gasto,
-      label: 'Gasto',
-      frontColor: COLORS.dadoDois,
-    },
-  ];
+  const gasto = compras.reduce((acc, c) => {
+    if (c == null) return acc;
+
+    if (typeof c === 'object') {
+      if ('compra_item_valor' in c) {
+        return acc + (Number(c.compra_item_valor) || 0);
+      }
+
+      if ('compra_valor' in c) {
+        return acc + (Number(c.compra_valor) || 0);
+      }
+    }
+
+    const n = Number(c) || 0;
+    return acc + n;
+  }, 0);
+
+  const porcentagem = parsedMeta > 0 ? Math.round(((gasto - parsedMeta) / parsedMeta) * 100) : 0;
+  const gastoFmt = gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const metaFmt = parsedMeta.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const StatCard = ({ icon, iconColor, label, value, subtitle }) => (
+    <View style={[styles.statCard, { borderTopColor: iconColor }]}>
+      <View style={[styles.statIconContainer, { backgroundColor: `${iconColor}20` }]}>
+        <MaterialCommunityIcons name={icon} size={28} color={iconColor} />
+      </View>
+      <View style={styles.statContent}>
+        <Text style={styles.statLabel}>{label}</Text>
+        <Text style={styles.statValue}>{value}</Text>
+        {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.section}>
-      <ProfileCard title="Gastos Totais">
-        <Text style={styles.valor}>R$ 1.250,78</Text>
-        <Text style={styles.meta}>
-          Meta: <Text style={styles.metaValor}>R$800,00</Text>
-        </Text>
-
-        <Text style={styles.excedente}>+{porcentagem}% acima da meta</Text>
-
-        <View style={styles.chartContainer}>
-          <BarChart horizontal data={data} noOfSections={3} barBorderRadius={100} yAxisThickness={0} xAxisThickness={0} labelsDistanceFromXaxis={15} endSpacing={0} />
-        </View>
-      </ProfileCard>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
+        <StatCard icon="wallet" iconColor={COLORS.dadoDois} label="Gastos totais" value={`R$ ${gastoFmt}`} subtitle={`${porcentagem >= 0 ? '+' : ''}${porcentagem}% da meta`} />
+        <StatCard icon="target" iconColor={COLORS.dadoTres} label="Meta" value={`R$ ${metaFmt}`} subtitle={`${Math.round((gasto / parsedMeta) * 100)}% atingido`} />
+        <StatCard icon="clock-outline" iconColor={COLORS.customButtonFundo} label="Tempo em sites" value="2h 45m" subtitle="Hoje" />
+      </ScrollView>
     </View>
   );
 }

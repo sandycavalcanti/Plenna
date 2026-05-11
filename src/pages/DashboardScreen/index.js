@@ -15,8 +15,13 @@ import { CatchError } from '../../api/constants';
 export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const [tempoUso, setTempoUso] = useState([]);
+  const [compras, setCompras] = useState([]);
+  const [itens, setItens] = useState([]);
+  const [usuario, setUsuario] = useState(null);
   useEffect(() => {
     selecionarTempoUso();
+    selecionarCompras();
+    selecionarUsuario();
   }, []);
 
   function selecionarTempoUso() {
@@ -24,6 +29,27 @@ export default function DashboardScreen() {
       .get('/tempo-uso')
       .then((response) => {
         setTempoUso(response.data);
+      })
+      .catch(CatchError);
+  }
+
+  function selecionarCompras() {
+    apiClient
+      .get('/compras')
+      .then((response) => {
+        const data = response.data || [];
+        const items = data.flatMap((c) => (Array.isArray(c.tb_compra_item) ? c.tb_compra_item.map((item) => ({ ...item, compra_id: c.compra_id })) : []));
+        setCompras(data);
+        setItens(items);
+      })
+      .catch(CatchError);
+  }
+
+  function selecionarUsuario() {
+    apiClient
+      .get('/users/user')
+      .then((response) => {
+        setUsuario(response.data);
       })
       .catch(CatchError);
   }
@@ -49,8 +75,8 @@ export default function DashboardScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
-        <GastosTotais/>
-        <Categoria/>
+        <GastosTotais compras={compras} meta={usuario?.usuario_meta_valor_mensal} />
+        <Categoria itens={itens} />
         <TempoApp tempoUso={tempoUso} />
         <AlertasHabito />
       </ScrollView>

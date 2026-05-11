@@ -29,7 +29,7 @@ import { CatchError } from '../../api/constants';
 export default function ProfileScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
-  const bottomSpacing = tabBarHeight + insets.bottom + 32;
+  const bottomSpacing = tabBarHeight + insets.bottom + 10;
   const [recarregar, setRecarregar] = useState(0);
   const nome = useRef('');
   const email = useRef('');
