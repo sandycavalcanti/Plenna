@@ -11,6 +11,7 @@ import { styles } from './styles';
 import { COLORS } from '../../constants/colors';
 import { apiClient } from '../../api/client';
 import { CatchError } from '../../api/constants';
+import Impulsividade from '../../components/DashboardComponents/Impulsividade';
 
 export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -77,6 +78,7 @@ export default function DashboardScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
         <GastosTotais compras={compras} meta={usuario?.usuario_meta_valor_mensal} />
         <Categoria itens={itens} />
+        <Impulsividade compra={compras} />
         <TempoApp tempoUso={tempoUso} />
         <AlertasHabito />
       </ScrollView>

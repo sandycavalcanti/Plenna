@@ -64,6 +64,8 @@ export const COLORS = {
   dashboardAlertaCardTexto: '#000000',
   dashboardAlertaCardDestaque: '#C2185B',
   dashboardAlertaCardRecomendacao: '#4B3F72',
+  dashboardBoxMaiorTempo: '#AFA6E667',
+  dashboardBoxMaiorTempoBorda: '#AFA6E6',
   // HISTÓRICO DE CHAT
   histChatBotao3Pontos: '#6D74A8',
   histChatBotao3PontosFundo: '#EEF1FF',
@@ -114,7 +116,7 @@ export const COLORS = {
   perfilMetaFundo: 'rgba(255, 255, 255, 0.45)',
   perfilMetaTitulo: '#111111',
   perfilMetaValor: '#5A6293',
-  perfilFotoPlaceholder: '#666666',
+  perfilFotoPlaceholder: '#424776',
   perfilNome: '#595D7C',
   perfilIconeEditar: '#4652A4',
   perfilProfileCardTitulo: '#4652A4',

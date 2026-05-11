@@ -46,6 +46,13 @@ export default StyleSheet.create({
     marginBottom: 0,
   },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  paymentLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.cadCaixaPreferenciasTitulo,
+    marginBottom: 8,
+    marginTop: 2,
+  },
   itemRow: {
     backgroundColor: '#FFFFFF',
     borderRadius: 18,

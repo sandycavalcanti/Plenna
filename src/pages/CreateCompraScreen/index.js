@@ -70,9 +70,10 @@ export default function CreateCompraScreen() {
   const [fonte, setFonte] = useState('');
   const [compraEmail, setCompraEmail] = useState(true);
   const [classificacao, setClassificacao] = useState('PENDENTE');
-  const [showCategoriesForItem, setShowCategoriesForItem] = useState(null);
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [categoryPickerForIndex, setCategoryPickerForIndex] = useState(null);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [selectedFormaPagamentoId, setSelectedFormaPagamentoId] = useState(null);
 
   useEffect(() => {
     listarDadosIniciais();
@@ -82,8 +83,12 @@ export default function CreateCompraScreen() {
     setLoading(true);
     try {
       const [respCats, respFormas] = await Promise.all([apiClient.get('/categories'), apiClient.get('/formas-pagamento')]);
-      setCategories(Array.isArray(respCats.data) ? respCats.data : []);
-      setFormasPagamento(Array.isArray(respFormas.data) ? respFormas.data : []);
+      const categoriasCarregadas = Array.isArray(respCats.data) ? respCats.data : [];
+      const formasCarregadas = Array.isArray(respFormas.data) ? respFormas.data : [];
+
+      setCategories(categoriasCarregadas);
+      setFormasPagamento(formasCarregadas);
+      setSelectedFormaPagamentoId((current) => current ?? formasCarregadas[0]?.forma_pagamento_id ?? null);
     } catch (error) {
       CatchError(error);
     } finally {
@@ -117,6 +122,19 @@ export default function CreateCompraScreen() {
     atualizarItem(categoryPickerForIndex, 'categoriaId', category.categoria_id);
     setCategoryModalVisible(false);
     setCategoryPickerForIndex(null);
+  }
+
+  function selecionarFormaPagamento(formaPagamento) {
+    setSelectedFormaPagamentoId(formaPagamento.forma_pagamento_id);
+    setPaymentModalVisible(false);
+  }
+
+  function obterNomeFormaPagamentoSelecionada() {
+    if (!selectedFormaPagamentoId) {
+      return 'Selecionar forma de pagamento';
+    }
+
+    return formasPagamento.find((forma) => forma.forma_pagamento_id === selectedFormaPagamentoId)?.forma_pagamento_nome || 'Selecionar forma de pagamento';
   }
 
   async function handleSalvar() {
@@ -156,7 +174,7 @@ export default function CreateCompraScreen() {
       }
 
       const payload = {
-        formaPagamentoId: formasPagamento[0]?.forma_pagamento_id ?? 1,
+        formaPagamentoId: selectedFormaPagamentoId ?? formasPagamento[0]?.forma_pagamento_id ?? 1,
         compraHorario: new Date().toISOString(),
         compraFonte: fonte || '',
         compraEmail: compraEmail,
@@ -216,6 +234,9 @@ export default function CreateCompraScreen() {
         </ProfileCard>
 
         <ProfileCard title="Informações" style={styles.sectionCard}>
+          <TouchableOpacity style={styles.selectCategoria} onPress={() => setPaymentModalVisible(true)}>
+            <Text style={styles.selectCategoriaText}>{obterNomeFormaPagamentoSelecionada()}</Text>
+          </TouchableOpacity>
           <CustomTextInput placeholder="Fonte (ex: site)" value={fonte} onChangeText={setFonte} />
         </ProfileCard>
 
@@ -238,6 +259,26 @@ export default function CreateCompraScreen() {
               )}
             />
             <TouchableOpacity onPress={() => setCategoryModalVisible(false)} style={styles.textoFecharModalTouchable}>
+              <Text style={styles.textoFecharModal}>Fechar</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={paymentModalVisible} animationType="fade" onRequestClose={() => setPaymentModalVisible(false)}>
+        <Pressable style={styles.pressableFecharModal} onPress={() => setPaymentModalVisible(false)}>
+          <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.questionTitle}>Selecione a forma de pagamento</Text>
+            <FlatList
+              data={formasPagamento}
+              keyExtractor={(item) => String(item.forma_pagamento_id)}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.categoriaNomeTouchable} onPress={() => selecionarFormaPagamento(item)}>
+                  <Text style={styles.categoriaNome}>{item.forma_pagamento_nome}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity onPress={() => setPaymentModalVisible(false)} style={styles.textoFecharModalTouchable}>
               <Text style={styles.textoFecharModal}>Fechar</Text>
             </TouchableOpacity>
           </Pressable>

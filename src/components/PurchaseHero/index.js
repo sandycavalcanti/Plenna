@@ -19,18 +19,9 @@ export default function PurchaseHero() {
   return (
     <View style={styles.container}>
       <View style={styles.heroCard}>
-        <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name="shopping-outline" size={40} color={COLORS.dadoDois} />
-        </View>
-
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>Comprei algo?</Text>
-          <Text style={styles.subtitle}>Registre sua compra em segundos</Text>
-        </View>
-
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleNovaCompra}>
-            <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
+            <MaterialCommunityIcons name="plus" size={18} color="#FFFFFF" />
             <Text style={styles.primaryButtonText}>Nova compra</Text>
           </TouchableOpacity>
 

@@ -4,84 +4,60 @@ import { COLORS } from '../../constants/colors';
 export const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 10,
   },
 
   heroCard: {
-    backgroundColor: '#F0E6F0',
-    borderRadius: 18,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-
-  contentContainer: {
-    flex: 1,
-    marginRight: 12,
-  },
-
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2F356B',
-    marginBottom: 4,
-    fontStyle: 'italic',
-  },
-
-  subtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#666666',
-    fontStyle: 'italic',
+    position: 'relative',
   },
 
   buttonsContainer: {
-    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flex: 1,
   },
 
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    gap: 6,
+    justifyContent: 'center',
+    minHeight: 44,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    gap: 10,
   },
 
   primaryButton: {
     backgroundColor: COLORS.dadoDois,
+    flex: 1,
+    marginRight: 12,
   },
 
   primaryButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
 
   secondaryButton: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderColor: COLORS.dadoDois,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
 
   secondaryButtonText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.dadoDois,
   },

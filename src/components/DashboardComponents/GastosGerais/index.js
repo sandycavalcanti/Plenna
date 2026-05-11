@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 
-export default function GastosTotais({ compras = [], meta = 0 }) {
+export default function GastosTotais({ compras = [], meta = 0, monthTitle = 'Resumo do mês' }) {
   const parsedMeta = Number(meta) || 0;
 
   const gasto = compras.reduce((acc, c) => {
@@ -43,6 +43,7 @@ export default function GastosTotais({ compras = [], meta = 0 }) {
 
   return (
     <View style={styles.section}>
+      <Text style={styles.monthTitle}>{monthTitle}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
         <StatCard icon="wallet" iconColor={COLORS.dadoDois} label="Gastos totais" value={`R$ ${gastoFmt}`} subtitle={`${porcentagem >= 0 ? '+' : ''}${porcentagem}% da meta`} />
         <StatCard icon="target" iconColor={COLORS.dadoTres} label="Meta" value={`R$ ${metaFmt}`} subtitle={`${Math.round((gasto / parsedMeta) * 100)}% atingido`} />

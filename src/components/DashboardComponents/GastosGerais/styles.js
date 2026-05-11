@@ -3,8 +3,9 @@ import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   section: {
-    marginHorizontal: 16,
-    marginVertical: 12,
+    marginHorizontal: 18,
+    marginVertical: 10,
+    overflow: 'visible',
   },
 
   statsScroll: {
@@ -18,13 +19,16 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 16,
-    marginRight: 12,
+    marginLeft: 5,
+    marginRight: 5,
+    marginBottom: 10,
     borderTopWidth: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 6,
+    overflow: 'visible',
     minWidth: 220,
   },
 
@@ -62,5 +66,12 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#C02C7A',
+  },
+
+  monthTitle: {
+    fontSize: 17,
+    fontWeight: '500',
+    color: COLORS.perfilProfileCardTitulo,
+    marginBottom: 8,
   },
 });
