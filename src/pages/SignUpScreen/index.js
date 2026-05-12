@@ -119,11 +119,6 @@ export default function SignUpScreen({ navigation }) {
     }));
   }
 
-  function abrirTelinhaCategorias() {
-    setCategoryModalVisible(true);
-    listarCategorias();
-  }
-
   function fecharTelinhaCategorias() {
     setCategoryModalVisible(false);
   }
@@ -338,32 +333,6 @@ export default function SignUpScreen({ navigation }) {
     } catch (error) {
       CatchError(error);
     }
-  }
-
-  function atualizarLimiteMensal(valor) {
-    setStepTwoTouched(true);
-    setLimiteGastoValor(valor);
-  }
-
-  function atualizarQuantidadeComprasMes(valor) {
-    const somenteDigitos = valor.replace(/\D/g, '');
-    setQuantidadeComprasMes(somenteDigitos);
-  }
-
-  function atualizarValorMaximoCompra(valor) {
-    const somenteDigitos = valor.replace(/\D/g, '');
-
-    if (!somenteDigitos) {
-      setValorMaximoCompra('');
-      return;
-    }
-
-    const preenchido = somenteDigitos.padStart(3, '0');
-    const centavos = preenchido.slice(-2);
-    const reaisNumero = Number(preenchido.slice(0, -2) || '0');
-    const reais = new Intl.NumberFormat('pt-BR').format(reaisNumero);
-
-    setValorMaximoCompra(`R$ ${reais},${centavos}`);
   }
 
   return (

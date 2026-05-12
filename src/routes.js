@@ -34,10 +34,7 @@ import { COLORS } from './constants';
 const linking = {
   prefixes: ['plenna://', 'exp://', 'https://plenna-api-orpin.vercel.app'],
   config: {
-    screens: {
-      OAuthSuccess: 'oauth-success',
-      OAuthError: 'oauth-error',
-    },
+    screens: {},
   },
 };
 
@@ -205,8 +202,6 @@ export default function Routes() {
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         <Stack.Screen name="EditPreferences" component={EditPreferencesScreen} />
         <Stack.Screen name="CreateCompra" component={CreateCompraScreen} />
-        <Stack.Screen name="OAuthSuccess" component={HomeScreen} options={{ animationEnabled: false }} />
-        <Stack.Screen name="OAuthError" component={LoginScreen} options={{ animationEnabled: false }} />
         <Stack.Screen name="App" component={TabRoutes} />
       </Stack.Navigator>
     </NavigationContainer>
