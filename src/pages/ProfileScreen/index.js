@@ -7,9 +7,10 @@
  */
 
 //Importações necessárias para a tela de perfil
-import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { ScrollView, RefreshControl } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './styles';
 // Importação dos componentes que compõem a tela de perfil
@@ -18,8 +19,8 @@ import PersonalInfo from '../../components/ProfileComponents/PersonalInfo';
 import BudgetPreferences from '../../components/BudgetPreferences';
 import Goals from '../../components/ProfileComponents/Goals';
 import Permissions from '../../components/ProfileComponents/Permissions';
-import { apiClient } from '../../api/client';
-import { CatchError } from '../../api/constants';
+import { useDataRefresh } from '../../hooks/useDataRefresh';
+import { COLORS } from '../../constants/colors';
 
 /**
  * Componente: ProfileScreen
@@ -30,7 +31,8 @@ export default function ProfileScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
   const bottomSpacing = tabBarHeight + insets.bottom + 10;
-  const [recarregar, setRecarregar] = useState(0);
+  const { fetchUsuario, fetchMetas, fetchPreferencias } = useDataRefresh();
+
   const nome = useRef('');
   const email = useRef('');
   const telefone = useRef('');
@@ -41,54 +43,50 @@ export default function ProfileScreen() {
   const limiteCompra = useRef('');
   const [metas, setMetas] = useState([]);
   const [preferencias, setPreferencias] = useState([]);
+  const [recarregar, setRecarregar] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const refetchAllData = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const [usuarioData, metasData, preferenciasData] = await Promise.all([fetchUsuario(), fetchMetas(), fetchPreferencias()]);
+
+      if (usuarioData) {
+        nome.current = usuarioData.usuario_nome;
+        email.current = usuarioData.usuario_email;
+        telefone.current = usuarioData.usuario_telefone;
+        dataNascimento.current = usuarioData.usuario_data_nascimento;
+        gastoIdealMensal.current = usuarioData.usuario_meta_valor_mensal;
+        gastoIdealCompra.current = usuarioData.usuario_meta_valor_compra;
+        tempoIdeal.current = usuarioData.usuario_meta_tempo;
+        limiteCompra.current = usuarioData.usuario_meta_limite_compra;
+      }
+
+      setMetas(metasData);
+      setPreferencias(preferenciasData);
+      setRecarregar((prev) => prev + 1);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchUsuario, fetchMetas, fetchPreferencias]);
 
   useEffect(() => {
-    Selecionar();
-    selecionarMetas();
-    selecionarPreferencias();
+    refetchAllData();
   }, []);
 
-  function Selecionar() {
-    apiClient
-      .get('/users/user')
-      .then((response) => {
-        const dados = response.data;
-        nome.current = dados.usuario_nome;
-        email.current = dados.usuario_email;
-        telefone.current = dados.usuario_telefone;
-        dataNascimento.current = dados.usuario_data_nascimento;
-        gastoIdealMensal.current = dados.usuario_meta_valor_mensal;
-        gastoIdealCompra.current = dados.usuario_meta_valor_compra;
-        tempoIdeal.current = dados.usuario_meta_tempo;
-        limiteCompra.current = dados.usuario_meta_limite_compra;
-        setRecarregar((prev) => prev + 1);
-      })
-      .catch(CatchError);
-  }
-
-  function selecionarMetas() {
-    apiClient
-      .get('/goals')
-      .then((response) => {
-        const dados = response.data;
-        setMetas(dados);
-      })
-      .catch(CatchError);
-  }
-
-  function selecionarPreferencias() {
-    apiClient
-      .get('/preferencia')
-      .then((response) => {
-        const dados = response.data;
-        setPreferencias(dados);
-      })
-      .catch(CatchError);
-  }
+  useFocusEffect(
+    useCallback(() => {
+      refetchAllData();
+    }, [refetchAllData]),
+  );
 
   return (
     // Container com rolagem para acomodar todos os componentes
-    <ScrollView style={styles.container} contentContainerStyle={[styles.contentContainer, { paddingBottom: bottomSpacing }]} scrollIndicatorInsets={{ bottom: bottomSpacing }}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.contentContainer, { paddingBottom: bottomSpacing }]}
+      scrollIndicatorInsets={{ bottom: bottomSpacing }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dadoUm} />}>
       {/* Cabeçalho do perfil */}
       <ProfileHeader nome={nome.current} />
 

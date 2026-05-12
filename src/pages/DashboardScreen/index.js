@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { ScrollView, View, Text, TouchableOpacity, RefreshControl } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
 import Categoria from '../../components/DashboardComponents/Categoria';
@@ -9,13 +10,14 @@ import GastosTotais from '../../components/DashboardComponents/GastosGerais';
 import AlertasHabito from '../../components/DashboardComponents/AlertasHabito';
 import { styles } from './styles';
 import { COLORS } from '../../constants/colors';
-import { apiClient } from '../../api/client';
-import { CatchError } from '../../api/constants';
+import { useDataRefresh } from '../../hooks/useDataRefresh';
 import Impulsividade from '../../components/DashboardComponents/Impulsividade';
 import FormaPagamento from '../../components/DashboardComponents/FormaPagamento';
 
 export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
+  const { loading, setLoading, fetchTempoUso, fetchCompras, fetchUsuario, fetchGastosCategoria, fetchImpulsividade, fetchGastosFormaPagamento, fetchLimiteCompra } = useDataRefresh();
+
   const [tempoUso, setTempoUso] = useState([]);
   const [compras, setCompras] = useState([]);
   const [itens, setItens] = useState([]);
@@ -24,82 +26,46 @@ export default function DashboardScreen() {
   const [impulsividade, setImpulsividade] = useState(null);
   const [gastosFormaPagamento, setGastosFormaPagamento] = useState(null);
   const [limiteCompra, setLimiteCompra] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
+  // Função que busca todos os dados em paralelo
+  const refetchAllData = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const [tempoUsoData, comprasData, usuarioData, gastosCategoriaData, impulsividadeData, gastosFormaPagamentoData, limiteCompraData] = await Promise.all([
+        fetchTempoUso(),
+        fetchCompras(),
+        fetchUsuario(),
+        fetchGastosCategoria(),
+        fetchImpulsividade(),
+        fetchGastosFormaPagamento(),
+        fetchLimiteCompra(),
+      ]);
+
+      setTempoUso(tempoUsoData);
+      setCompras(comprasData.compras);
+      setItens(comprasData.itens);
+      setUsuario(usuarioData);
+      setGastosCategoria(gastosCategoriaData);
+      setImpulsividade(impulsividadeData);
+      setGastosFormaPagamento(gastosFormaPagamentoData);
+      setLimiteCompra(limiteCompraData);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchTempoUso, fetchCompras, fetchUsuario, fetchGastosCategoria, fetchImpulsividade, fetchGastosFormaPagamento, fetchLimiteCompra]);
+
+  // Buscar dados na primeira renderização
   useEffect(() => {
-    selecionarTempoUso();
-    selecionarCompras();
-    selecionarUsuario();
-    GastoCategoria();
-    SelecionarImpulsividade();
-    SelecionarFormaPagamento();
-    SelecionarLimiteCompra();
+    refetchAllData();
   }, []);
 
-  function selecionarTempoUso() {
-    apiClient
-      .get('/tempo-uso')
-      .then((response) => {
-        setTempoUso(response.data);
-      })
-      .catch(CatchError);
-  }
-
-  function selecionarCompras() {
-    apiClient
-      .get('/compras')
-      .then((response) => {
-        const data = response.data || [];
-        const items = data.flatMap((c) => (Array.isArray(c.tb_compra_item) ? c.tb_compra_item.map((item) => ({ ...item, compra_id: c.compra_id })) : []));
-        setCompras(data);
-        setItens(items);
-      })
-      .catch(CatchError);
-  }
-
-  function selecionarUsuario() {
-    apiClient
-      .get('/users/user')
-      .then((response) => {
-        setUsuario(response.data);
-      })
-      .catch(CatchError);
-  }
-
-  function GastoCategoria() {
-    apiClient
-      .get('/dashboard/gastos-categoria')
-      .then((response) => {
-        setGastosCategoria(response.data);
-      })
-      .catch(CatchError);
-  }
-
-  function SelecionarImpulsividade() {
-    apiClient
-      .get('/dashboard/impulsividade')
-      .then((response) => {
-        setImpulsividade(response.data);
-      })
-      .catch(CatchError);
-  }
-
-  function SelecionarFormaPagamento() {
-    apiClient
-      .get('/dashboard/gastos-forma-pagamento')
-      .then((response) => {
-        setGastosFormaPagamento(response.data);
-      })
-      .catch(CatchError);
-  }
-
-  function SelecionarLimiteCompra() {
-    apiClient
-      .get('/dashboard/limite-compras')
-      .then((response) => {
-        setLimiteCompra(response.data);
-      })
-      .catch(CatchError);
-  }
+  // Refetch quando a tela ganha foco
+  useFocusEffect(
+    useCallback(() => {
+      refetchAllData();
+    }, [refetchAllData]),
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -121,7 +87,11 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dashboardChipMesTexto} />}>
         <GastosTotais compras={compras} meta={usuario?.usuario_meta_valor_mensal} />
         <Categoria gastosCategoria={gastosCategoria} />
         <Impulsividade data={impulsividade} />

@@ -20,6 +20,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.fundoPrincipal,
+    marginBottom: 10,
   },
 
   // Estilos aplicados ao conteúdo rolável da tela
