@@ -7,9 +7,10 @@ export default StyleSheet.create({
     backgroundColor: COLORS.cadFundo,
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 18,
-    paddingBottom: 32,
+    paddingBottom: 56,
   },
   heroCard: {
     alignItems: 'center',
@@ -130,6 +131,9 @@ export default StyleSheet.create({
   goalEditorCard: {
     width: '100%',
     marginBottom: 0,
+  },
+  goalEditorCardCollapsed: {
+    paddingBottom: 8,
   },
   goalDescriptionInput: {
     backgroundColor: COLORS.customTextInputFundo,

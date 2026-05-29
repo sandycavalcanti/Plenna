@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Alert, ActivityIndicator, TextInput, Image, TouchableOpacity } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View, Text, Alert, ActivityIndicator, TextInput, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from './styles';
 import { apiClient } from '../../api/client';
 import { CatchError } from '../../api/constants';
@@ -125,6 +126,14 @@ function formatarValorMoedaParaTela(valor) {
   }).format(numero)}`;
 }
 
+function gerarChaveLocalMeta(metaId) {
+  if (metaId) {
+    return String(metaId);
+  }
+
+  return `nova-meta-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export default function EditProfileScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -147,6 +156,7 @@ export default function EditProfileScreen() {
   });
   const [metas, setMetas] = useState([]);
   const [removedGoalIds, setRemovedGoalIds] = useState([]);
+  const [collapsedGoalKeys, setCollapsedGoalKeys] = useState([]);
 
   useEffect(() => {
     carregar();
@@ -172,8 +182,10 @@ export default function EditProfileScreen() {
 
       const respGoals = await apiClient.get('/goals');
       const goals = Array.isArray(respGoals.data) ? respGoals.data : [];
-      setMetas(goals);
+      const goalsComChave = goals.map((goal) => ({ ...goal, localKey: gerarChaveLocalMeta(goal.meta_id) }));
+      setMetas(goalsComChave);
       setRemovedGoalIds([]);
+      setCollapsedGoalKeys(goalsComChave.map((goal) => goal.localKey));
     } catch (error) {
       CatchError(error);
     } finally {
@@ -275,7 +287,10 @@ export default function EditProfileScreen() {
   }
 
   function adicionarMeta() {
-    setMetas((prev) => [...prev, { meta_titulo: '', meta_descricao: '', meta_valor: '' }]);
+    const localKey = gerarChaveLocalMeta();
+
+    setMetas((prev) => [...prev, { localKey, meta_titulo: '', meta_descricao: '', meta_valor: '' }]);
+    setCollapsedGoalKeys((current) => [...current, localKey]);
   }
 
   function removerMeta(index) {
@@ -286,8 +301,16 @@ export default function EditProfileScreen() {
         setRemovedGoalIds((current) => (current.includes(meta.meta_id) ? current : [...current, meta.meta_id]));
       }
 
+      if (meta?.localKey) {
+        setCollapsedGoalKeys((current) => current.filter((key) => key !== meta.localKey));
+      }
+
       return prev.filter((_, currentIndex) => currentIndex !== index);
     });
+  }
+
+  function alternarMetaColapsada(localKey) {
+    setCollapsedGoalKeys((current) => (current.includes(localKey) ? current.filter((key) => key !== localKey) : [...current, localKey]));
   }
 
   function parseNumber(raw) {
@@ -342,80 +365,96 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <View style={styles.heroCard}>
-        <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
-        <Text style={styles.heroTitle}>{mode === 'goals' ? 'Editar Metas' : 'Editar Informações'}</Text>
-        <Text style={styles.heroSubtitle}>{mode === 'goals' ? 'Gerencie suas metas financeiras — adicione, edite ou remova.' : 'Gerencie suas informações pessoais — adicione, edite ou remova.'}</Text>
-      </View>
-
-      {mode === 'info' ? (
-        <View style={styles.sectionsWrap}>
-          <ProfileCard title="Dados básicos" style={styles.sectionCard}>
-            {renderTextField('Nome', user.nome, (t) => setUser((u) => ({ ...u, nome: t })), 'Nome')}
-            {renderTextField('E-mail', user.email, (t) => setUser((u) => ({ ...u, email: t })), 'E-mail', { keyboardType: 'email-address', autoCapitalize: 'none' })}
-            {renderTextField('Telefone', formatarTelefoneParaTela(user.telefone), (t) => setUser((u) => ({ ...u, telefone: manterSomenteDigitos(t).slice(0, 11) })), '(00) 00000-0000', {
-              keyboardType: 'phone-pad',
-              maxLength: 15,
-            })}
-            {renderTextField('Data de nascimento', formatarDataParaTela(user.dataNascimento), (t) => setUser((u) => ({ ...u, dataNascimento: extrairDigitosDaData(t) })), 'DD/MM/AAAA', {
-              keyboardType: 'numeric',
-              maxLength: 10,
-            })}
-          </ProfileCard>
-
-          <ProfileCard title="Hábitos digitais" style={styles.sectionCard}>
-            {renderOptionGroup('O que mais te incomoda no seu consumo digital?', discomfortOptions, user.incomodoConsumo, (option) => setUser((u) => ({ ...u, incomodoConsumo: option })))}
-            {renderOptionGroup('Quanto tempo voce acha que passa no celular?', screenTimeOptions, user.tempoTela, (option) => setUser((u) => ({ ...u, tempoTela: option })))}
-            {renderOptionGroup('O que mais te faz comprar ou consumir algo?', triggerOptions, user.gatilhoConsumo, (option) => setUser((u) => ({ ...u, gatilhoConsumo: option })))}
-          </ProfileCard>
-          <View style={styles.actionsRow}>
-            <CustomButton title={saving ? 'Salvando...' : 'Salvar'} onPress={salvarInfo} style={styles.saveButton} />
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+          <View style={styles.heroCard}>
+            <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
+            <Text style={styles.heroTitle}>{mode === 'goals' ? 'Editar Metas' : 'Editar Informações'}</Text>
+            <Text style={styles.heroSubtitle}>
+              {mode === 'goals' ? 'Gerencie suas metas financeiras — adicione, edite ou remova.' : 'Gerencie suas informações pessoais — adicione, edite ou remova.'}
+            </Text>
           </View>
-        </View>
-      ) : (
-        <View style={styles.sectionsWrap}>
-          <TouchableOpacity activeOpacity={0.85} onPress={adicionarMeta} style={styles.addGoalAction}>
-            <Text style={styles.addGoalActionText}>Adicionar meta</Text>
-          </TouchableOpacity>
 
-          {metas.map((m, idx) => (
-            <ProfileCard key={m.meta_id || `goal-${idx}`} title={m.meta_titulo || 'Nova meta'} onRemove={() => removerMeta(idx)} style={styles.goalEditorCard}>
-              <View style={styles.fieldBlock}>
-                <Text style={styles.fieldLabel}>Título</Text>
-                <CustomTextInput placeholder="Título" value={m.meta_titulo} onChangeText={(t) => atualizarMeta(idx, 'meta_titulo', t)} style={styles.inputWrapper} />
+          {mode === 'info' ? (
+            <View style={styles.sectionsWrap}>
+              <ProfileCard title="Dados básicos" style={styles.sectionCard}>
+                {renderTextField('Nome', user.nome, (t) => setUser((u) => ({ ...u, nome: t })), 'Nome')}
+                {renderTextField('E-mail', user.email, (t) => setUser((u) => ({ ...u, email: t })), 'E-mail', { keyboardType: 'email-address', autoCapitalize: 'none' })}
+                {renderTextField('Telefone', formatarTelefoneParaTela(user.telefone), (t) => setUser((u) => ({ ...u, telefone: manterSomenteDigitos(t).slice(0, 11) })), '(00) 00000-0000', {
+                  keyboardType: 'phone-pad',
+                  maxLength: 15,
+                })}
+                {renderTextField('Data de nascimento', formatarDataParaTela(user.dataNascimento), (t) => setUser((u) => ({ ...u, dataNascimento: extrairDigitosDaData(t) })), 'DD/MM/AAAA', {
+                  keyboardType: 'numeric',
+                  maxLength: 10,
+                })}
+              </ProfileCard>
+
+              <ProfileCard title="Hábitos digitais" style={styles.sectionCard}>
+                {renderOptionGroup('O que mais te incomoda no seu consumo digital?', discomfortOptions, user.incomodoConsumo, (option) => setUser((u) => ({ ...u, incomodoConsumo: option })))}
+                {renderOptionGroup('Quanto tempo voce acha que passa no celular?', screenTimeOptions, user.tempoTela, (option) => setUser((u) => ({ ...u, tempoTela: option })))}
+                {renderOptionGroup('O que mais te faz comprar ou consumir algo?', triggerOptions, user.gatilhoConsumo, (option) => setUser((u) => ({ ...u, gatilhoConsumo: option })))}
+              </ProfileCard>
+              <View style={styles.actionsRow}>
+                <CustomButton title={saving ? 'Salvando...' : 'Salvar'} onPress={salvarInfo} style={styles.saveButton} />
               </View>
+            </View>
+          ) : (
+            <View style={styles.sectionsWrap}>
+              <TouchableOpacity activeOpacity={0.85} onPress={adicionarMeta} style={styles.addGoalAction}>
+                <Text style={styles.addGoalActionText}>Adicionar meta</Text>
+              </TouchableOpacity>
 
-              <View style={styles.fieldBlock}>
-                <Text style={styles.fieldLabel}>Descrição</Text>
-                <TextInput
-                  placeholder="Descrição"
-                  value={m.meta_descricao || ''}
-                  onChangeText={(t) => atualizarMeta(idx, 'meta_descricao', t)}
-                  style={styles.goalDescriptionInput}
-                  multiline
-                  numberOfLines={4}
-                />
+              {metas.map((m, idx) => (
+                <ProfileCard
+                  key={m.localKey || m.meta_id || `goal-${idx}`}
+                  title={m.meta_titulo || 'Nova meta'}
+                  onToggleCollapse={() => alternarMetaColapsada(m.localKey)}
+                  isCollapsed={collapsedGoalKeys.includes(m.localKey)}
+                  onRemove={() => removerMeta(idx)}
+                  style={[styles.goalEditorCard, collapsedGoalKeys.includes(m.localKey) && styles.goalEditorCardCollapsed]}>
+                  {!collapsedGoalKeys.includes(m.localKey) ? (
+                    <>
+                      <View style={styles.fieldBlock}>
+                        <Text style={styles.fieldLabel}>Título</Text>
+                        <CustomTextInput placeholder="Título" value={m.meta_titulo} onChangeText={(t) => atualizarMeta(idx, 'meta_titulo', t)} style={styles.inputWrapper} />
+                      </View>
+
+                      <View style={styles.fieldBlock}>
+                        <Text style={styles.fieldLabel}>Descrição</Text>
+                        <TextInput
+                          placeholder="Descrição"
+                          value={m.meta_descricao || ''}
+                          onChangeText={(t) => atualizarMeta(idx, 'meta_descricao', t)}
+                          style={styles.goalDescriptionInput}
+                          multiline
+                          numberOfLines={4}
+                        />
+                      </View>
+
+                      <View style={styles.fieldBlock}>
+                        <Text style={styles.fieldLabel}>Valor</Text>
+                        <CustomTextInput
+                          placeholder="R$ 0,00"
+                          value={formatarValorMoedaParaTela(m.meta_valor)}
+                          onChangeText={(t) => atualizarMeta(idx, 'meta_valor', String(t).replace(/[^0-9,.-]/g, ''))}
+                          keyboardType="numeric"
+                          style={styles.inputWrapper}
+                        />
+                      </View>
+                    </>
+                  ) : null}
+                </ProfileCard>
+              ))}
+
+              <View style={styles.actionsRow}>
+                <CustomButton title={saving ? 'Salvando...' : 'Salvar Metas'} onPress={salvarMetas} style={styles.saveButton} />
               </View>
-
-              <View style={styles.fieldBlock}>
-                <Text style={styles.fieldLabel}>Valor</Text>
-                <CustomTextInput
-                  placeholder="R$ 0,00"
-                  value={formatarValorMoedaParaTela(m.meta_valor)}
-                  onChangeText={(t) => atualizarMeta(idx, 'meta_valor', String(t).replace(/[^0-9,.-]/g, ''))}
-                  keyboardType="numeric"
-                  style={styles.inputWrapper}
-                />
-              </View>
-            </ProfileCard>
-          ))}
-
-          <View style={styles.actionsRow}>
-            <CustomButton title={saving ? 'Salvando...' : 'Salvar Metas'} onPress={salvarMetas} style={styles.saveButton} />
-          </View>
-        </View>
-      )}
-    </ScrollView>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

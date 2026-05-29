@@ -39,6 +39,12 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
 
+  actionsWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+
   // Fundo para recortar visualmente a borda atrás do título
   titleWrapper: {
     paddingHorizontal: 8,
