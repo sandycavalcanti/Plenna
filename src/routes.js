@@ -47,7 +47,7 @@ const MyTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#595D7C',
+    background: COLORS.fundoPrincipal,
   },
 };
 

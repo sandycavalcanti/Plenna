@@ -10,6 +10,7 @@ export default StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 18,
     paddingBottom: 32,
+    flexGrow: 1,
   },
   heroCard: {
     alignItems: 'center',

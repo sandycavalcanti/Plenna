@@ -20,7 +20,7 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/img/adaptive-icon.png"
       },
-      "softwareKeyboardLayoutMode": "resize",
+      "softwareKeyboardLayoutMode": "pan",
       "package": "com.Plenna",
       "icon": "./assets/img/icon.png",
       "iconBackgroundColor": "#E6F4FE"

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Alert, ActivityIndicator, TouchableOpacity, FlatList, Modal, Pressable, Image } from 'react-native';
+import { ScrollView, View, Text, Alert, ActivityIndicator, TouchableOpacity, FlatList, Modal, Pressable, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
 import { apiClient } from '../../api/client';
@@ -183,7 +183,6 @@ export default function CreateCompraScreen() {
       };
 
       await apiClient.post('/compras', payload);
-      Alert.alert('Sucesso', 'Compra cadastrada.');
       navigation.goBack();
     } catch (error) {
       CatchError(error);
@@ -200,90 +199,92 @@ export default function CreateCompraScreen() {
     );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <View style={styles.heroCard}>
-        <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
-        <Text style={styles.heroTitle}>Nova Compra</Text>
-        <Text style={styles.heroSubtitle}>Adicione os itens da compra, escolha as categorias e finalize o cadastro.</Text>
-      </View>
-
-      <View style={styles.sectionsWrap}>
-        <ProfileCard title="Itens" style={styles.sectionCard}>
-          {items.map((it, idx) => (
-            <View key={idx} style={styles.itemRow}>
-              <CustomTextInput placeholder="Nome do item" value={it.nome} onChangeText={(t) => atualizarItem(idx, 'nome', t)} style={styles.itemInput} />
-              <CustomTextInput
-                placeholder="R$ 0,00"
-                value={formatarValorMoedaParaTela(it.valor)}
-                onChangeText={(t) => atualizarItem(idx, 'valor', normalizarValorMoedaParaEntrada(t))}
-                keyboardType="numeric"
-                style={styles.itemInput}
-              />
-              <TouchableOpacity style={styles.selectCategoria} onPress={() => abrirSeletorCategoria(idx)}>
-                <Text style={styles.selectCategoriaText}>{it.categoriaId ? categories.find((c) => c.categoria_id === it.categoriaId)?.categoria_nome || 'Categoria' : 'Selecionar categoria'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => removerItem(idx)} style={styles.removeItemButton}>
-                <Text style={styles.removeItemText}>Remover</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-
-          <TouchableOpacity onPress={adicionarItem} style={styles.addItemButton}>
-            <Text style={styles.addItemText}>Adicionar item</Text>
-          </TouchableOpacity>
-        </ProfileCard>
-
-        <ProfileCard title="Informações" style={styles.sectionCard}>
-          <TouchableOpacity style={styles.selectCategoria} onPress={() => setPaymentModalVisible(true)}>
-            <Text style={styles.selectCategoriaText}>{obterNomeFormaPagamentoSelecionada()}</Text>
-          </TouchableOpacity>
-          <CustomTextInput placeholder="Fonte (ex: site)" value={fonte} onChangeText={setFonte} />
-        </ProfileCard>
-
-        <View style={styles.actionsRow}>
-          <CustomButton title={saving ? 'Salvando...' : 'Salvar Compra'} onPress={handleSalvar} style={styles.saveButton} />
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <View style={styles.heroCard}>
+          <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
+          <Text style={styles.heroTitle}>Nova Compra</Text>
+          <Text style={styles.heroSubtitle}>Adicione os itens da compra, escolha as categorias e finalize o cadastro.</Text>
         </View>
-      </View>
 
-      <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={() => setCategoryModalVisible(false)}>
-        <Pressable style={styles.pressableFecharModal} onPress={() => setCategoryModalVisible(false)}>
-          <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.questionTitle}>Selecione a categoria</Text>
-            <FlatList
-              data={categories}
-              keyExtractor={(item) => String(item.categoria_id)}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.categoriaNomeTouchable} onPress={() => selecionarCategoriaParaItem(item)}>
-                  <Text style={styles.categoriaNome}>{item.categoria_nome}</Text>
+        <View style={styles.sectionsWrap}>
+          <ProfileCard title="Itens" style={styles.sectionCard}>
+            {items.map((it, idx) => (
+              <View key={idx} style={styles.itemRow}>
+                <CustomTextInput placeholder="Nome do item" value={it.nome} onChangeText={(t) => atualizarItem(idx, 'nome', t)} style={styles.itemInput} />
+                <CustomTextInput
+                  placeholder="R$ 0,00"
+                  value={formatarValorMoedaParaTela(it.valor)}
+                  onChangeText={(t) => atualizarItem(idx, 'valor', normalizarValorMoedaParaEntrada(t))}
+                  keyboardType="numeric"
+                  style={styles.itemInput}
+                />
+                <TouchableOpacity style={styles.selectCategoria} onPress={() => abrirSeletorCategoria(idx)}>
+                  <Text style={styles.selectCategoriaText}>{it.categoriaId ? categories.find((c) => c.categoria_id === it.categoriaId)?.categoria_nome || 'Categoria' : 'Selecionar categoria'}</Text>
                 </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity onPress={() => setCategoryModalVisible(false)} style={styles.textoFecharModalTouchable}>
-              <Text style={styles.textoFecharModal}>Fechar</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+                <TouchableOpacity onPress={() => removerItem(idx)} style={styles.removeItemButton}>
+                  <Text style={styles.removeItemText}>Remover</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
 
-      <Modal transparent visible={paymentModalVisible} animationType="fade" onRequestClose={() => setPaymentModalVisible(false)}>
-        <Pressable style={styles.pressableFecharModal} onPress={() => setPaymentModalVisible(false)}>
-          <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.questionTitle}>Selecione a forma de pagamento</Text>
-            <FlatList
-              data={formasPagamento}
-              keyExtractor={(item) => String(item.forma_pagamento_id)}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.categoriaNomeTouchable} onPress={() => selecionarFormaPagamento(item)}>
-                  <Text style={styles.categoriaNome}>{item.forma_pagamento_nome}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity onPress={() => setPaymentModalVisible(false)} style={styles.textoFecharModalTouchable}>
-              <Text style={styles.textoFecharModal}>Fechar</Text>
+            <TouchableOpacity onPress={adicionarItem} style={styles.addItemButton}>
+              <Text style={styles.addItemText}>Adicionar item</Text>
             </TouchableOpacity>
+          </ProfileCard>
+
+          <ProfileCard title="Informações" style={styles.sectionCard}>
+            <TouchableOpacity style={styles.selectCategoria} onPress={() => setPaymentModalVisible(true)}>
+              <Text style={styles.selectCategoriaText}>{obterNomeFormaPagamentoSelecionada()}</Text>
+            </TouchableOpacity>
+            <CustomTextInput placeholder="Fonte (ex: site)" value={fonte} onChangeText={setFonte} />
+          </ProfileCard>
+
+          <View style={styles.actionsRow}>
+            <CustomButton title={saving ? 'Salvando...' : 'Salvar Compra'} onPress={handleSalvar} style={styles.saveButton} />
+          </View>
+        </View>
+
+        <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={() => setCategoryModalVisible(false)}>
+          <Pressable style={styles.pressableFecharModal} onPress={() => setCategoryModalVisible(false)}>
+            <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
+              <Text style={styles.questionTitle}>Selecione a categoria</Text>
+              <FlatList
+                data={categories}
+                keyExtractor={(item) => String(item.categoria_id)}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={styles.categoriaNomeTouchable} onPress={() => selecionarCategoriaParaItem(item)}>
+                    <Text style={styles.categoriaNome}>{item.categoria_nome}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity onPress={() => setCategoryModalVisible(false)} style={styles.textoFecharModalTouchable}>
+                <Text style={styles.textoFecharModal}>Fechar</Text>
+              </TouchableOpacity>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
-    </ScrollView>
+        </Modal>
+
+        <Modal transparent visible={paymentModalVisible} animationType="fade" onRequestClose={() => setPaymentModalVisible(false)}>
+          <Pressable style={styles.pressableFecharModal} onPress={() => setPaymentModalVisible(false)}>
+            <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
+              <Text style={styles.questionTitle}>Selecione a forma de pagamento</Text>
+              <FlatList
+                data={formasPagamento}
+                keyExtractor={(item) => String(item.forma_pagamento_id)}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={styles.categoriaNomeTouchable} onPress={() => selecionarFormaPagamento(item)}>
+                    <Text style={styles.categoriaNome}>{item.forma_pagamento_nome}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity onPress={() => setPaymentModalVisible(false)} style={styles.textoFecharModalTouchable}>
+                <Text style={styles.textoFecharModal}>Fechar</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

@@ -92,7 +92,7 @@ export const COLORS = {
   chatBotao3PontosFundo: '#F5F6FF',
   chatBotoesAdicionaisEnviar: '#5F68A0',
   chatBotoesAdicionaisEnviarFundo: '#F7F8FF',
-  chatBotaoEnviar: '#FFFFFF',
+  chatBotaoEnviar: '#4652A4',
   chatBotaoEnviarFundo: '#4652A4',
   chatDestinatarioMensagemFundo: '#FFFFFF',
   chatDestinatarioMensagemTexto: '#2F356B',
