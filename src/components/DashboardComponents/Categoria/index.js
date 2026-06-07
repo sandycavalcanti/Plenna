@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import { formatarValorMonetarioParaTela } from '../../CustomTextInput/currency';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -57,7 +58,7 @@ export default function Categoria({ gastosCategoria = [] }) {
           <Text style={styles.categoryLabel}>{cat.label}</Text>
           <Text style={styles.categoryPercent}>{percent}%</Text>
         </View>
-        <Text style={styles.categoryValue}>R$ {cat.value.toFixed(2)}</Text>
+        <Text style={styles.categoryValue}>{formatarValorMonetarioParaTela(cat.value) || 'R$ 0,00'}</Text>
         <View style={styles.progressBarContainer}>
           <View style={[styles.progressBar, { backgroundColor: cat.color, width: `${percent}%` }]} />
         </View>

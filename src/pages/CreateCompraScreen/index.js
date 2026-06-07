@@ -7,55 +7,9 @@ import { CatchError } from '../../api/constants';
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
+import { valorMoedaParaNumero } from '../../components/CustomTextInput/currency';
 
 const classificacoes = ['PENDENTE', 'IMPULSIVA', 'NAO_IMPULSIVA'];
-
-function parseNumber(raw) {
-  if (raw === undefined || raw === null) return NaN;
-  let s = String(raw).trim();
-  s = s.replace(/[^0-9,.-]/g, '');
-  const commaCount = (s.match(/,/g) || []).length;
-  if (commaCount > 0 && s.indexOf('.') === -1) {
-    s = s.replace(',', '.');
-  } else {
-    s = s.replace(/,/g, '');
-  }
-  const n = parseFloat(s);
-  return isNaN(n) ? NaN : n;
-}
-
-function formatarValorMoedaParaTela(valor) {
-  const digitos = String(valor ?? '').replace(/\D/g, '');
-
-  if (!digitos) {
-    return '';
-  }
-
-  const numero = Number(digitos) / 100;
-
-  if (!Number.isFinite(numero)) {
-    return '';
-  }
-
-  return `R$ ${new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numero)}`;
-}
-
-function normalizarValorMoedaParaEntrada(valor) {
-  return String(valor ?? '').replace(/\D/g, '');
-}
-
-function valorMoedaParaNumero(valor) {
-  const digitos = String(valor ?? '').replace(/\D/g, '');
-
-  if (!digitos) {
-    return NaN;
-  }
-
-  return Number(digitos) / 100;
-}
 
 export default function CreateCompraScreen() {
   const navigation = useNavigation();
@@ -212,13 +166,7 @@ export default function CreateCompraScreen() {
             {items.map((it, idx) => (
               <View key={idx} style={styles.itemRow}>
                 <CustomTextInput placeholder="Nome do item" value={it.nome} onChangeText={(t) => atualizarItem(idx, 'nome', t)} style={styles.itemInput} />
-                <CustomTextInput
-                  placeholder="R$ 0,00"
-                  value={formatarValorMoedaParaTela(it.valor)}
-                  onChangeText={(t) => atualizarItem(idx, 'valor', normalizarValorMoedaParaEntrada(t))}
-                  keyboardType="numeric"
-                  style={styles.itemInput}
-                />
+                <CustomTextInput placeholder="R$ 0,00" value={it.valor} onChangeText={(t) => atualizarItem(idx, 'valor', t)} mask="currency" keyboardType="numeric" style={styles.itemInput} />
                 <TouchableOpacity style={styles.selectCategoria} onPress={() => abrirSeletorCategoria(idx)}>
                   <Text style={styles.selectCategoriaText}>{it.categoriaId ? categories.find((c) => c.categoria_id === it.categoriaId)?.categoria_nome || 'Categoria' : 'Selecionar categoria'}</Text>
                 </TouchableOpacity>

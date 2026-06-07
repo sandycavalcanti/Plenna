@@ -169,7 +169,7 @@ export default StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#E8E3E8',
+    backgroundColor: '#D6C0D6',
   },
   submitButton: {
     flex: 1,

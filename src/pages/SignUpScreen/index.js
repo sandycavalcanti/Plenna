@@ -7,6 +7,7 @@ import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import PreferencesForm from '../../components/PreferencesForm';
+import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
 import { CatchError, URL_API } from '../../api/constants';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
@@ -284,9 +285,9 @@ export default function SignUpScreen({ navigation }) {
         }
 
         if (valorMaximoCompra) {
-          const somenteDigitos = String(valorMaximoCompra).replace(/\D/g, '');
-          if (somenteDigitos) {
-            payload.metaValorCompra = Number(somenteDigitos);
+          const valorMaximoCompraNumerico = valorMonetarioParaNumero(valorMaximoCompra);
+          if (!Number.isNaN(valorMaximoCompraNumerico)) {
+            payload.metaValorCompra = valorMaximoCompraNumerico;
           }
         }
 
@@ -389,8 +390,7 @@ export default function SignUpScreen({ navigation }) {
         </KeyboardAvoidingView>
       )}
       {step === 2 && (
-        <View style={{ width: '100%', flex: 1}}>
-
+        <View style={{ width: '100%', flex: 1 }}>
           <PreferencesForm
             quantidadeComprasMes={quantidadeComprasMes}
             onQuantidadeComprasChange={setQuantidadeComprasMes}

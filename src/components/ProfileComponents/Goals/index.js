@@ -16,6 +16,7 @@ import styles from './styles';
 import { apiClient } from '../../../api/client';
 import { CatchError, URL_API } from '../../../api/constants';
 import { COLORS } from '../../../constants';
+import { formatarValorMoedaParaTela } from '../../CustomTextInput/currency';
 
 /**
  * Componente: Goals
@@ -60,7 +61,7 @@ export default function Goals({ metas }) {
             <View style={styles.goalContent}>
               <Text style={styles.goalName}>{goal.meta_titulo}</Text>
 
-              <Text style={styles.value}>Valor: R$ {(parseFloat(goal.meta_valor) || 0).toFixed(2)}</Text>
+              <Text style={styles.value}>Valor: {formatarValorMoedaParaTela(goal.meta_valor) || 'R$ 0,00'}</Text>
             </View>
           </Pressable>
         ))

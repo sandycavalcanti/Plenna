@@ -2,15 +2,20 @@ import React from 'react';
 import { Text, TextInput, View } from 'react-native';
 import { styles } from './styles';
 import { COLORS } from '../../constants/colors';
+import { formatarValorMoedaParaTela, normalizarValorMoedaParaEntrada } from './currency';
 
-export default function CustomTextInput({ placeholder, style, textValue, value, onChangeText, errorMessage, isValid, ...rest }) {
+export default function CustomTextInput({ placeholder, style, textValue, value, onChangeText, errorMessage, isValid, mask, ...rest }) {
+  const displayValue = mask === 'currency' ? formatarValorMoedaParaTela(value) : value;
+
   function handleChangeText(text) {
+    const nextText = mask === 'currency' ? normalizarValorMoedaParaEntrada(text) : text;
+
     if (onChangeText) {
-      onChangeText(text);
+      onChangeText(nextText);
     }
 
     if (textValue) {
-      textValue.current = text;
+      textValue.current = nextText;
     }
   }
 
@@ -21,7 +26,7 @@ export default function CustomTextInput({ placeholder, style, textValue, value, 
           placeholder={placeholder}
           placeholderTextColor={rest.placeholderTextColor || 'rgba(0,0,0,0.4)'}
           style={[styles.input, { color: COLORS.cadTextInputTexto || '#000' }]}
-          value={value}
+          value={displayValue}
           onChangeText={handleChangeText}
           {...rest}
         />

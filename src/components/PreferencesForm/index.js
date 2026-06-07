@@ -9,6 +9,7 @@ import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, T
 import LimitSlider from '../LimitSlider';
 import ProfileCard from '../ProfileComponents/ProfileCard';
 import CustomButton from '../CustomButton';
+import { formatarValorMonetarioParaTela, normalizarValorMonetarioParaEntrada } from '../CustomTextInput/currency';
 import { CatchError, URL_API } from '../../api/constants';
 import { COLORS } from '../../constants';
 import styles from './styles';
@@ -65,16 +66,6 @@ export default function PreferencesForm({
   const mostrarErroStepTwo = (stepTwoTouched || stepTwoAttempted) && stepTwoInvalido;
   const stepTwoErro = mostrarErroStepTwo ? `A soma dos limites por categoria não pode exceder o limite mensal.` : '';
 
-  function formatarValorCompra(valor) {
-    const somenteDigitos = String(valor || '').replace(/\D/g, '');
-
-    if (!somenteDigitos) {
-      return '';
-    }
-
-    return `R$ ${new Intl.NumberFormat('pt-BR').format(Number(somenteDigitos))}`;
-  }
-
   function abrirTelinhaCategorias() {
     setCategoryModalVisible(true);
     listarCategorias();
@@ -109,9 +100,7 @@ export default function PreferencesForm({
   }
 
   function atualizarValorMaximoCompra(valor) {
-    const somenteDigitos = valor.replace(/\D/g, '');
-
-    onValorMaximoCompraChange(somenteDigitos);
+    onValorMaximoCompraChange(normalizarValorMonetarioParaEntrada(valor));
   }
 
   function atualizarLimiteMensal(valor) {
@@ -160,9 +149,9 @@ export default function PreferencesForm({
             <Text style={styles.stepTwoFieldLabel}>Maior valor em uma única compra</Text>
             <TextInput
               style={styles.stepTwoFieldInput}
-              value={formatarValorCompra(valorMaximoCompra)}
+              value={formatarValorMonetarioParaTela(valorMaximoCompra)}
               onChangeText={atualizarValorMaximoCompra}
-              placeholder="R$ 500"
+              placeholder="R$ 0,00"
               keyboardType="numeric"
               maxLength={15}
             />

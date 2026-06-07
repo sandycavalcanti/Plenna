@@ -109,23 +109,6 @@ function dataBRParaBanco(digitos) {
   return new Date(Date.UTC(ano, mes - 1, dia)).toISOString();
 }
 
-function formatarValorMoedaParaTela(valor) {
-  const numero = parseFloat(
-    String(valor ?? '')
-      .replace(/[^0-9,.-]/g, '')
-      .replace(',', '.'),
-  );
-
-  if (!Number.isFinite(numero)) {
-    return '';
-  }
-
-  return `R$ ${new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numero)}`;
-}
-
 function gerarChaveLocalMeta(metaId) {
   if (metaId) {
     return String(metaId);
@@ -437,8 +420,9 @@ export default function EditProfileScreen() {
                         <Text style={styles.fieldLabel}>Valor</Text>
                         <CustomTextInput
                           placeholder="R$ 0,00"
-                          value={formatarValorMoedaParaTela(m.meta_valor)}
-                          onChangeText={(t) => atualizarMeta(idx, 'meta_valor', String(t).replace(/[^0-9,.-]/g, ''))}
+                          value={m.meta_valor}
+                          onChangeText={(t) => atualizarMeta(idx, 'meta_valor', t)}
+                          mask="currency"
                           keyboardType="numeric"
                           style={styles.inputWrapper}
                         />

@@ -8,6 +8,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Image, Text, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import PreferencesForm from '../../components/PreferencesForm';
+import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
 import { apiClient } from '../../api/client';
 import { CatchError, URL_API } from '../../api/constants';
 import styles from './styles';
@@ -154,9 +155,9 @@ export default function EditPreferencesScreen() {
       }
 
       if (valorMaximoCompra) {
-        const somenteDigitos = String(valorMaximoCompra).replace(/\D/g, '');
-        if (somenteDigitos) {
-          payload.metaValorCompra = Number(somenteDigitos);
+        const valorMaximoCompraNumerico = valorMonetarioParaNumero(valorMaximoCompra);
+        if (!Number.isNaN(valorMaximoCompraNumerico)) {
+          payload.metaValorCompra = valorMaximoCompraNumerico;
         }
       }
 
