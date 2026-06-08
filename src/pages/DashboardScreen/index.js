@@ -66,6 +66,13 @@ export default function DashboardScreen() {
       refetchAllData();
     }, [refetchAllData]),
   );
+  const [dataSelecionada, setDataSelecionada] = useState(new Date());
+
+  const mesAtual = dataSelecionada
+    .toLocaleDateString('pt-BR', {
+      month: 'long',
+    })
+    .replace(/^./, (letra) => letra.toUpperCase());
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -73,14 +80,10 @@ export default function DashboardScreen() {
         <TouchableOpacity style={styles.monthChip} onPress={() => {}}>
           <MaterialIcons name="calendar-month" size={20} color={COLORS.dashboardChipMesTexto} />
 
-          <Text style={styles.monthChipText}>Janeiro</Text>
+          <Text style={styles.monthChipText}>{mesAtual}</Text>
         </TouchableOpacity>
 
         <View style={styles.topBarActions}>
-          <TouchableOpacity style={styles.iconAction} onPress={() => {}}>
-            <MaterialIcons name="add" size={30} color={COLORS.dashboardIconeBotaoCanto} />
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.iconAction} onPress={() => {}}>
             <Feather name="filter" size={28} color={COLORS.dashboardIconeBotaoCanto} />
           </TouchableOpacity>

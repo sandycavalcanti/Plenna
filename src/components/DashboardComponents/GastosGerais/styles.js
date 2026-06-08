@@ -64,6 +64,7 @@ export const styles = StyleSheet.create({
 
   statSubtitle: {
     fontSize: 12,
+    marginTop: 4,
     fontWeight: '600',
     color: '#C02C7A',
   },

@@ -8,16 +8,7 @@ export const styles = StyleSheet.create({
   },
 
   heroCard: {
-    backgroundColor: '#FBF9FE',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#E5DDF6',
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 2,
+    padding: 5,
   },
 
   ringWrap: {

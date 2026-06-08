@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import { styles } from './styles';
@@ -23,7 +23,7 @@ function formatMinutes(totalMinutes) {
 
 export default function TempoApp({ tempoUso = [], title = 'Tempo em sites de compra' }) {
   const [expanded, setExpanded] = useState(false);
-
+  const barAnim = useRef(new Animated.Value(0)).current;
   const agregado = tempoUso.reduce((acc, item) => {
     const nome = item.tempo_uso_nome || 'Desconhecido';
     const minutos = Number(item.tempo_uso_minutos ?? 0);
@@ -43,8 +43,18 @@ export default function TempoApp({ tempoUso = [], title = 'Tempo em sites de com
   const colors = [COLORS.dadoDois, COLORS.dadoTres, COLORS.dadoUm, COLORS.customButtonFundo];
 
   const getItemColor = (index) => colors[index % colors.length];
+    useEffect(() => {
+      barAnim.setValue(0);
 
+      Animated.timing(barAnim, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    }, [items.length]);
   if (items.length === 0) {
+
     return (
       <View style={styles.section}>
         <ProfileCard title={title}>
@@ -63,7 +73,6 @@ export default function TempoApp({ tempoUso = [], title = 'Tempo em sites de com
             <Text style={styles.summaryValue} numberOfLines={1}>
               {topItem?.label || 'Sem dados'}
             </Text>
-            <Text style={styles.summaryCaption}>{topItem ? `${formatMinutes(topItem.value)} de uso` : 'Nenhum registro disponível'}</Text>
           </View>
 
           <View style={styles.summaryBadge}>
@@ -92,7 +101,20 @@ export default function TempoApp({ tempoUso = [], title = 'Tempo em sites de com
                   </View>
 
                   <View style={styles.rankTrack}>
-                    <View style={[styles.rankFill, { width: `${(item.value / maxValue) * 100}%`, backgroundColor: color }]} />
+                    <Animated.View
+                      style={[
+                        styles.rankFill,
+                        {
+                          width: `${(item.value / maxValue) * 100}%`,
+                          backgroundColor: color,
+                          transform: [
+                            {
+                              scaleX: barAnim,
+                            },
+                          ],
+                        },
+                      ]}
+                    />
                   </View>
 
                   <Text style={styles.rankShare}>{share}% do total</Text>

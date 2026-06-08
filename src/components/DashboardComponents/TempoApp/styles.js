@@ -127,6 +127,7 @@ export const styles = StyleSheet.create({
   rankFill: {
     height: '100%',
     borderRadius: 999,
+    transformOrigin: 'left',
   },
 
   rankShare: {

@@ -101,7 +101,6 @@ export default function FormaPagamento({ gastosFormaPagamento = [] }) {
                 strokeWidth={DONUT_STROKE}
                 strokeDasharray={DONUT_CIRCUMFERENCE}
                 strokeDashoffset={segment.strokeDashoffset}
-                strokeLinecap="round"
                 rotation={-90 + (360 * segment.offsetPosition) / DONUT_CIRCUMFERENCE}
                 originX={DONUT_SIZE / 2}
                 originY={DONUT_SIZE / 2}
