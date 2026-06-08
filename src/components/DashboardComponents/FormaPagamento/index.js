@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const DONUT_SIZE = 160;
 const DONUT_STROKE = 32;
 const DONUT_RADIUS = (DONUT_SIZE - DONUT_STROKE) / 2;
@@ -34,12 +35,23 @@ function normalizePaymentData(gastosFormaPagamento = []) {
 
 export default function FormaPagamento({ gastosFormaPagamento = [] }) {
   const [expanded, setExpanded] = useState(false);
+  const donutAnim = useRef(new Animated.Value(0)).current;
   const items = normalizePaymentData(gastosFormaPagamento);
   const total = items.reduce((acc, item) => acc + item.value, 0);
 
   const colors = [COLORS.dadoDois, COLORS.dadoTres, COLORS.dadoUm, COLORS.customButtonFundo];
 
   const dominantMethod = items[0];
+  useEffect(() => {
+    donutAnim.setValue(0);
+
+    Animated.timing(donutAnim, {
+      toValue: 1,
+      duration: 1000,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [items.length]);
 
   if (items.length === 0) {
     return (
@@ -91,7 +103,7 @@ export default function FormaPagamento({ gastosFormaPagamento = [] }) {
         <View style={styles.chartWrapper}>
           <Svg width={DONUT_SIZE} height={DONUT_SIZE} style={styles.donutSvg}>
             {segments.map((segment, index) => (
-              <Circle
+              <AnimatedCircle
                 key={segment.label}
                 cx={DONUT_SIZE / 2}
                 cy={DONUT_SIZE / 2}
@@ -100,7 +112,10 @@ export default function FormaPagamento({ gastosFormaPagamento = [] }) {
                 stroke={segment.color}
                 strokeWidth={DONUT_STROKE}
                 strokeDasharray={DONUT_CIRCUMFERENCE}
-                strokeDashoffset={segment.strokeDashoffset}
+                strokeDashoffset={donutAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [DONUT_CIRCUMFERENCE, segment.strokeDashoffset],
+                })}
                 rotation={-90 + (360 * segment.offsetPosition) / DONUT_CIRCUMFERENCE}
                 originX={DONUT_SIZE / 2}
                 originY={DONUT_SIZE / 2}

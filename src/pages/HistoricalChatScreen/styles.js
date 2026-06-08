@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
   },
   search: {
     paddingTop: 54,
-    paddingBottom: 10,
+    paddingBottom: 5,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -26,12 +26,7 @@ export const styles = StyleSheet.create({
     color: COLORS.histChatTextInputTexto,
   },
   menuButton: {
-    width: 40,
     height: 40,
-    borderRadius: 10,
-    backgroundColor: COLORS.histChatBotao3PontosFundo,
-    borderWidth: 1,
-    borderColor: COLORS.histChatBotao3PontosBorda,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -13,6 +13,7 @@ import { COLORS } from '../../constants/colors';
 import { useDataRefresh } from '../../hooks/useDataRefresh';
 import Impulsividade from '../../components/DashboardComponents/Impulsividade';
 import FormaPagamento from '../../components/DashboardComponents/FormaPagamento';
+import AnimatedSection from '../../components/AnimatedSection';
 
 export default function DashboardScreen() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -95,26 +96,43 @@ export default function DashboardScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dashboardChipMesTexto} />}>
-        <GastosTotais compras={compras} meta={usuario?.usuario_meta_valor_mensal} />
-        <Categoria gastosCategoria={gastosCategoria} />
-        <Impulsividade data={impulsividade} />
-        <TempoApp tempoUso={tempoUso} />
-        <Impulsividade
-          data={limiteCompra}
-          title="Compras acima do limite"
-          emptyMessage="Nenhuma compra disponível para análise"
-          centerLabel="acima do limite"
-          centerValueMode="quantity"
-          infoTitle="Limite de compras"
-          highLabel="Acima do limite"
-          mediumLabel="Próximo do limite"
-          lowLabel="Dentro do limite"
-          highDescription="Existem compras acima do valor limite definido para o período."
-          mediumDescription="O volume de compras já está se aproximando do limite definido."
-          lowDescription="As compras estão dentro do limite definido para o período."
-          totalKey="acima_limite"
-        />
-        <FormaPagamento gastosFormaPagamento={gastosFormaPagamento} />
+        <AnimatedSection delay={0}>
+          <GastosTotais compras={compras} meta={usuario?.usuario_meta_valor_mensal} />
+        </AnimatedSection>
+
+        <AnimatedSection delay={100}>
+          <Categoria gastosCategoria={gastosCategoria} />
+        </AnimatedSection>
+
+        <AnimatedSection delay={200}>
+          <Impulsividade data={impulsividade} />
+        </AnimatedSection>
+
+        <AnimatedSection delay={300}>
+          <TempoApp tempoUso={tempoUso} />
+        </AnimatedSection>
+
+        <AnimatedSection delay={400}>
+          <Impulsividade
+            data={limiteCompra}
+            title="Compras acima do limite"
+            emptyMessage="Nenhuma compra disponível para análise"
+            centerLabel="acima do limite"
+            centerValueMode="quantity"
+            infoTitle="Limite de compras"
+            highLabel="Acima do limite"
+            mediumLabel="Próximo do limite"
+            lowLabel="Dentro do limite"
+            highDescription="Existem compras acima do valor limite definido para o período."
+            mediumDescription="O volume de compras já está se aproximando do limite definido."
+            lowDescription="As compras estão dentro do limite definido para o período."
+            totalKey="acima_limite"
+          />
+        </AnimatedSection>
+
+        <AnimatedSection delay={500}>
+          <FormaPagamento gastosFormaPagamento={gastosFormaPagamento} />
+        </AnimatedSection>
       </ScrollView>
     </SafeAreaView>
   );

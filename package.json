@@ -26,6 +26,7 @@
     "react-native": "0.83.6",
     "react-native-chart-kit": "^6.12.2",
     "react-native-gifted-charts": "^1.4.76",
+    "react-native-inview": "^1.1.2",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",

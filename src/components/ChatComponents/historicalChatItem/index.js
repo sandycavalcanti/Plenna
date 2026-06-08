@@ -23,7 +23,7 @@ export default function ChatItem({ title, lastMessage, onPress }) {
         onPress={() => {
           console.log('Abrir menu');
         }}>
-        <MaterialIcons name="more-vert" size={22} color={COLORS.histChatItemBotao3Pontos} />
+        <MaterialIcons name="more-vert" size={25} color={COLORS.histChatItemBotao3Pontos} />
       </TouchableOpacity>
     </View>
   );
