@@ -14,6 +14,7 @@ import { CatchError, URL_API } from '../../api/constants';
 import { COLORS } from '../../constants';
 import styles from './styles';
 import axios from 'axios';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 /**
  * Componente: PreferencesForm
@@ -58,8 +59,16 @@ export default function PreferencesForm({
   const [stepTwoTouched, setStepTwoTouched] = useState(false);
   const [stepTwoAttempted, setStepTwoAttempted] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [metaBloqueada, setMetaBloqueada] = useState(true);
 
   const somaCategoriasSelecionadas = obterSomaLimitesCategorias(selectedCategories);
+
+  const valorDistribuido = somaCategoriasSelecionadas;
+
+  const valorRestante = Math.max(0, limiteMensalAtual - valorDistribuido);
+
+  const percentualDistribuido = limiteMensalAtual > 0 ? (valorDistribuido / limiteMensalAtual) * 100 : 0;
+
   const limiteMensalAtual = Number(limiteGastoValor) || 0;
   const excessoCategorias = Math.max(0, somaCategoriasSelecionadas - limiteMensalAtual);
   const stepTwoInvalido = excessoCategorias > 0;
@@ -160,6 +169,27 @@ export default function PreferencesForm({
 
         {/* Sliders de limite */}
         <LimitSlider title="Limite mensal de gasto" min={0} max={3000} step={10} valor compact value={limiteGastoValor} onValueChange={atualizarLimiteMensal} />
+        <View style={styles.lockContainer}>
+          <TouchableOpacity onPress={() => setMetaBloqueada(!metaBloqueada)}>
+            <MaterialCommunityIcons name={metaBloqueada ? 'lock' : 'lock-open-variant'} size={28} color={metaBloqueada ? COLORS.dadoDois : COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.budgetSummary}>
+          <Text style={styles.summaryValue}>
+            R$ {valorDistribuido.toFixed(2)} / R$ {limiteMensalAtual.toFixed(2)}
+          </Text>
+
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${Math.min(percentualDistribuido, 100)}%`,
+                },
+              ]}
+            />
+          </View>
+        </View>
         <Text style={styles.stepTwoHelperText}>Escolha um teto mensal confortável para comprar sem pesar no bolso.</Text>
         <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={limiteTempo} horas compact onValueChange={onLimiteTempoChange} />
         <Text style={styles.stepTwoHelperText}>Defina um tempo diário saudável para navegar em sites de compras.</Text>
@@ -215,7 +245,20 @@ export default function PreferencesForm({
             valor
             compact
             value={category.limite}
-            onValueChange={(novoValor) => onAtualizarLimiteCategoria(category.categoria_id, novoValor)}
+            onValueChange={(novoValor) => {
+              if (!metaBloqueada) {
+                onAtualizarLimiteCategoria(category.categoria_id, novoValor);
+                return;
+              }
+
+              const somaOutrasCategorias = selectedCategories.filter((c) => c.categoria_id !== category.categoria_id).reduce((acc, c) => acc + Number(c.limite || 0), 0);
+
+              const totalNovo = somaOutrasCategorias + novoValor;
+
+              if (totalNovo <= limiteMensalAtual) {
+                onAtualizarLimiteCategoria(category.categoria_id, novoValor);
+              }
+            }}
           />
         </ProfileCard>
       ))}
