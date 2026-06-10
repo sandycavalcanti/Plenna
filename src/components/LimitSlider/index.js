@@ -42,7 +42,6 @@ export default function LimitSlider({
   const [internalValue, setInternalValue] = useState(normalizeValue(initialValue ?? safeMin));
   const [inputText, setInputText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [dynamicMax, setDynamicMax] = useState(safeMax);
 
   useEffect(() => {
     if (!isControlled) {
@@ -162,40 +161,30 @@ export default function LimitSlider({
   );
 
   // Atualiza valor quando o usuário digita
-  const handleTextInputChange = useCallback(
-    (text) => {
-      if (text.trim() === '') {
-        setInputText('');
-        return;
-      }
+const handleSliderChange = useCallback(
+  (nextValue) => {
+    let parsed = nextValue;
 
-      const formatted = formatInputText(text);
-      setInputText(formatted);
+    if (!Number.isFinite(parsed)) {
+      parsed = safeMin;
+    }
 
-      const numericValue = parseFormattedInput(formatted);
+    parsed = Math.max(safeMin, Math.min(parsed, safeMax));
 
-      // Se o valor exceder o max, aumenta o max e usa no mesmo ciclo.
-      const nextMax = Math.max(dynamicMax, numericValue);
-      if (nextMax !== dynamicMax) {
-        setDynamicMax(nextMax);
-      }
+    if (textValue && typeof textValue === 'object') {
+      textValue.current = parsed;
+    }
 
-      const boundedValue = Math.min(Math.max(numericValue, safeMin), nextMax);
+    if (!isControlled) {
+      setInternalValue(parsed);
+    }
 
-      if (textValue && typeof textValue === 'object') {
-        textValue.current = boundedValue;
-      }
-
-      if (!isControlled) {
-        setInternalValue(boundedValue);
-      }
-
-      if (typeof onValueChange === 'function') {
-        onValueChange(boundedValue);
-      }
-    },
-    [formatInputText, parseFormattedInput, dynamicMax, textValue, isControlled, onValueChange, safeMin],
-  );
+    if (typeof onValueChange === 'function') {
+      onValueChange(parsed);
+    }
+  },
+  [safeMin, safeMax, textValue, isControlled, onValueChange],
+);
 
   const handleTextInputFocus = useCallback(() => {
     setIsEditing(true);
@@ -222,32 +211,29 @@ export default function LimitSlider({
   }, []);
 
   const handleSliderChange = useCallback(
-    (nextValue) => {
-      // Normaliza o valor do slider
-      let parsed = nextValue;
-      if (!Number.isFinite(parsed)) {
-        parsed = safeMin;
-      } else if (parsed < safeMin) {
-        parsed = safeMin;
-      } else if (parsed > dynamicMax) {
-        parsed = dynamicMax;
-      }
+  (nextValue) => {
+    let parsed = nextValue;
 
-      if (textValue && typeof textValue === 'object') {
-        textValue.current = parsed;
-      }
+    if (!Number.isFinite(parsed)) {
+      parsed = safeMin;
+    }
 
-      if (!isControlled) {
-        setInternalValue(parsed);
-      }
+    parsed = Math.max(safeMin, Math.min(parsed, safeMax));
 
-      if (typeof onValueChange === 'function') {
-        onValueChange(parsed);
-      }
-    },
-    [safeMin, dynamicMax, textValue, isControlled, onValueChange],
-  );
+    if (textValue && typeof textValue === 'object') {
+      textValue.current = parsed;
+    }
 
+    if (!isControlled) {
+      setInternalValue(parsed);
+    }
+
+    if (typeof onValueChange === 'function') {
+      onValueChange(parsed);
+    }
+  },
+  [safeMin, safeMax, textValue, isControlled, onValueChange],
+);
   return (
     <View style={[styles.container, compact && styles.containerCompact]}>
       <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
@@ -256,7 +242,7 @@ export default function LimitSlider({
         <Slider
           style={[styles.slider, compact && styles.sliderCompact]}
           minimumValue={safeMin}
-          maximumValue={dynamicMax}
+          maximumValue={safeMax}
           step={safeStep}
           value={currentValue}
           onValueChange={handleSliderChange}
