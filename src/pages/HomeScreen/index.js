@@ -58,9 +58,9 @@ export default function HomeScreen({ navigation }) {
 
         <AlertasHabito />
 
-        <Text style={{ marginVertical: 20, color: COLORS.cadTitulo, fontSize: 18, textAlign: 'center' }} onPress={() => navigation.navigate('Login')}>
+        {/* <Text style={{ marginVertical: 20, color: COLORS.cadTitulo, fontSize: 18, textAlign: 'center' }} onPress={() => navigation.navigate('Login')}>
           Voltar para Login
-        </Text>
+        </Text> */}
       </ScrollView>
     </SafeAreaView>
   );

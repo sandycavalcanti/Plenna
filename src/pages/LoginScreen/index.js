@@ -73,9 +73,9 @@ export default function LoginScreen({ navigation }) {
         <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={handleSignUp}>
           Criar conta
         </Text>
-        <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={irDireto}>
+        {/* <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={irDireto}>
           Ir direto
-        </Text>
+        </Text> */}
       </View>
     </KeyboardAvoidingView>
   );

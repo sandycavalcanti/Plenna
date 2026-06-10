@@ -147,9 +147,9 @@ export default function Categoria({ gastosCategoria = [] }) {
           })}
         </View>
 
-        {categories.length > 2 && (
+        {categories.length >= 1 && (
           <TouchableOpacity style={styles.expandButton} onPress={() => setExpanded(!expanded)}>
-            <Text style={styles.expandButtonText}>{expanded ? 'Recolher' : `Ver mais (${categories.length - 2})`}</Text>
+            <Text style={styles.expandButtonText}>{expanded ? 'Recolher' : `Ver mais (${categories.length})`}</Text>
             <MaterialCommunityIcons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.dadoDois} />
           </TouchableOpacity>
         )}
