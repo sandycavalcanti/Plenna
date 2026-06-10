@@ -59,7 +59,7 @@ export default function PreferencesForm({
   const [stepTwoTouched, setStepTwoTouched] = useState(false);
   const [stepTwoAttempted, setStepTwoAttempted] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [metaBloqueada, setMetaBloqueada] = useState(true);
+  const [metaBloqueada, setMetaBloqueada] = useState(false);
 
   const somaCategoriasSelecionadas = obterSomaLimitesCategorias(selectedCategories);
   const limiteMensalAtual = Number(limiteGastoValor) || 0;

@@ -161,30 +161,34 @@ export default function LimitSlider({
   );
 
   // Atualiza valor quando o usuário digita
-const handleSliderChange = useCallback(
-  (nextValue) => {
-    let parsed = nextValue;
+  const handleTextInputChange = useCallback(
+    (text) => {
+      if (text.trim() === '') {
+        setInputText('');
+        return;
+      }
 
-    if (!Number.isFinite(parsed)) {
-      parsed = safeMin;
-    }
+      const formatted = formatInputText(text);
+      setInputText(formatted);
 
-    parsed = Math.max(safeMin, Math.min(parsed, safeMax));
+      const numericValue = parseFormattedInput(formatted);
 
-    if (textValue && typeof textValue === 'object') {
-      textValue.current = parsed;
-    }
+      const boundedValue = Math.min(Math.max(numericValue, safeMin), nextMax);
 
-    if (!isControlled) {
-      setInternalValue(parsed);
-    }
+      if (textValue && typeof textValue === 'object') {
+        textValue.current = boundedValue;
+      }
 
-    if (typeof onValueChange === 'function') {
-      onValueChange(parsed);
-    }
-  },
-  [safeMin, safeMax, textValue, isControlled, onValueChange],
-);
+      if (!isControlled) {
+        setInternalValue(boundedValue);
+      }
+
+      if (typeof onValueChange === 'function') {
+        onValueChange(boundedValue);
+      }
+    },
+    [formatInputText, parseFormattedInput, textValue, isControlled, onValueChange, safeMin],
+  );
 
   const handleTextInputFocus = useCallback(() => {
     setIsEditing(true);
