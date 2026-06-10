@@ -9,12 +9,12 @@ import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, T
 import LimitSlider from '../LimitSlider';
 import ProfileCard from '../ProfileComponents/ProfileCard';
 import CustomButton from '../CustomButton';
-import { formatarValorMonetarioParaTela, normalizarValorMonetarioParaEntrada } from '../CustomTextInput/currency';
 import { CatchError, URL_API } from '../../api/constants';
 import { COLORS } from '../../constants';
 import styles from './styles';
 import axios from 'axios';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import CustomTextInput from '../CustomTextInput';
 
 /**
  * Componente: PreferencesForm
@@ -62,14 +62,10 @@ export default function PreferencesForm({
   const [metaBloqueada, setMetaBloqueada] = useState(true);
 
   const somaCategoriasSelecionadas = obterSomaLimitesCategorias(selectedCategories);
-
-  const valorDistribuido = somaCategoriasSelecionadas;
-
-  const valorRestante = Math.max(0, limiteMensalAtual - valorDistribuido);
-
-  const percentualDistribuido = limiteMensalAtual > 0 ? (valorDistribuido / limiteMensalAtual) * 100 : 0;
-
   const limiteMensalAtual = Number(limiteGastoValor) || 0;
+  const valorDistribuido = somaCategoriasSelecionadas;
+  const valorRestante = Math.max(0, limiteMensalAtual - valorDistribuido);
+  const percentualDistribuido = limiteMensalAtual > 0 ? (valorDistribuido / limiteMensalAtual) * 100 : 0;
   const excessoCategorias = Math.max(0, somaCategoriasSelecionadas - limiteMensalAtual);
   const stepTwoInvalido = excessoCategorias > 0;
   const mostrarErroStepTwo = (stepTwoTouched || stepTwoAttempted) && stepTwoInvalido;
@@ -108,13 +104,10 @@ export default function PreferencesForm({
     onQuantidadeComprasChange(somenteDigitos);
   }
 
-  function atualizarValorMaximoCompra(valor) {
-    onValorMaximoCompraChange(normalizarValorMonetarioParaEntrada(valor));
-  }
-
   function atualizarLimiteMensal(valor) {
     setStepTwoTouched(true);
-    onLimiteGastoChange(valor);
+    const numero = Number(valor || 0) / 100;
+    onLimiteGastoChange(numero);
   }
 
   async function handleSalvar() {
@@ -131,6 +124,19 @@ export default function PreferencesForm({
       CatchError(error);
       setSaving(false);
     }
+  }
+
+  function formatarReaisParaTela(valor) {
+    const numero = Number(valor);
+
+    if (!Number.isFinite(numero)) {
+      return '';
+    }
+
+    return `R$ ${numero.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   }
 
   return (
@@ -156,23 +162,37 @@ export default function PreferencesForm({
 
           <View style={styles.stepTwoFieldCard}>
             <Text style={styles.stepTwoFieldLabel}>Maior valor em uma única compra</Text>
-            <TextInput
-              style={styles.stepTwoFieldInput}
-              value={formatarValorMonetarioParaTela(valorMaximoCompra)}
-              onChangeText={atualizarValorMaximoCompra}
+            <CustomTextInput
               placeholder="R$ 0,00"
+              value={String((Number(valorMaximoCompra) || 0) * 100)}
+              onChangeText={(texto) => {
+                const numero = Number(texto || 0) / 100;
+                onValorMaximoCompraChange(numero);
+              }}
               keyboardType="numeric"
-              maxLength={15}
+              mask="currency"
             />
           </View>
-        </View>
 
-        {/* Sliders de limite */}
-        <LimitSlider title="Limite mensal de gasto" min={0} max={3000} step={10} valor compact value={limiteGastoValor} onValueChange={atualizarLimiteMensal} />
-        <View style={styles.lockContainer}>
-          <TouchableOpacity onPress={() => setMetaBloqueada(!metaBloqueada)}>
-            <MaterialCommunityIcons name={metaBloqueada ? 'lock' : 'lock-open-variant'} size={28} color={metaBloqueada ? COLORS.dadoDois : COLORS.textSecondary} />
-          </TouchableOpacity>
+          <View style={styles.stepTwoFieldCard}>
+            <View style={styles.fieldHeader}>
+              <Text style={styles.stepTwoFieldLabel}>Limite mensal de gasto</Text>
+
+              <TouchableOpacity onPress={() => setMetaBloqueada(!metaBloqueada)}>
+                <MaterialCommunityIcons name={metaBloqueada ? 'lock' : 'lock-open-variant'} size={22} color={metaBloqueada ? COLORS.dadoDois : COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <CustomTextInput
+              placeholder="R$ 0,00"
+              value={formatarReaisParaTela(limiteGastoValor)}
+              onChangeText={(texto) => {
+                const numero = Number(texto.replace(/\D/g, ''));
+                atualizarLimiteMensal(numero);
+              }}
+              keyboardType="numeric"
+              mask="currency"
+            />
+          </View>
         </View>
         <View style={styles.budgetSummary}>
           <Text style={styles.summaryValue}>

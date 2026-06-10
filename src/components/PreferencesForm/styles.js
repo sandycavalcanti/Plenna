@@ -51,6 +51,12 @@ export default StyleSheet.create({
     backgroundColor: 'transparent',
     marginBottom: 8,
   },
+  fieldHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 8,
+},
   stepTwoExtraFields: {
     marginBottom: 8,
   },

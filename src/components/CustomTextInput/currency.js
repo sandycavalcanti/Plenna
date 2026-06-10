@@ -17,6 +17,19 @@ export function formatarValorMoedaParaTela(valor) {
   }).format(numero)}`;
 }
 
+export function formatarValorRealParaTela(valor) {
+  const numero = Number(valor);
+
+  if (!Number.isFinite(numero)) {
+    return '';
+  }
+
+  return `R$ ${new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numero)}`;
+}
+
 export function normalizarValorMoedaParaEntrada(valor) {
   return String(valor ?? '').replace(/\D/g, '');
 }
