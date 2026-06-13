@@ -14,7 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import ProfileCard from '../ProfileCard';
 import styles from './styles';
 import { apiClient } from '../../../api/client';
-import { handleApiError } from '../../../utils/error';
+import { logApiErrors } from '../../../utils/error';
 import { COLORS } from '../../../constants';
 import { formatarValorMoedaParaTela } from '../../CustomTextInput/currency';
 
@@ -39,7 +39,7 @@ export default function Goals({ metas }) {
       .then((response) => {
         setGoals((prevGoals) => prevGoals.map((goal) => (goal.meta_id === goalId ? { ...goal, meta_completado: !goal.meta_completado } : goal)));
       })
-      .catch((error) => handleApiError(error, 'Erro ao atualizar meta'));
+      .catch((error) => logApiErrors(error, 'Erro ao atualizar meta'));
   }
 
   return (

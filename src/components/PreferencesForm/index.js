@@ -9,7 +9,7 @@ import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, T
 import LimitSlider from '../LimitSlider';
 import ProfileCard from '../ProfileComponents/ProfileCard';
 import CustomButton from '../CustomButton';
-import { handleApiError } from '../../utils/error';
+import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants';
 import styles from './styles';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -87,7 +87,7 @@ export default function PreferencesForm({
       .then((response) => {
         setCategories(response.data);
       })
-      .catch((error) => handleApiError(error, 'Erro ao listar categorias'))
+      .catch((error) => logApiErrors(error, 'Erro ao listar categorias'))
       .finally(() => {
         setCategoriesLoading(false);
       });
@@ -121,7 +121,7 @@ export default function PreferencesForm({
       }
       await onSalvar();
     } catch (error) {
-      handleApiError(error, 'Erro ao salvar preferências');
+      logApiErrors(error, 'Erro ao salvar preferências');
       setSaving(false);
     }
   }

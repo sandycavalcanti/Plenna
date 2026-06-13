@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import { styles } from './styles';
-import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
+import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ToastAndroid } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
-import { handleApiError } from '../../utils/error';
+import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants/colors';
 import { devMode } from '../../constants/config';
 
@@ -39,7 +39,14 @@ export default function LoginScreen({ navigation }) {
         await tokenStorage.setToken(token);
         handleLogin();
       })
-      .catch((error) => handleApiError(error, 'Erro ao fazer login'));
+      .catch((error) => {
+        logApiErrors(error, 'Erro ao fazer login');
+        falhaLogin(error);
+      });
+  }
+
+  function falhaLogin(error) {
+    ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
   }
 
   async function irDireto() {
@@ -54,7 +61,7 @@ export default function LoginScreen({ navigation }) {
         await tokenStorage.setToken(token);
         handleLogin();
       })
-      .catch((error) => handleApiError(error, 'Erro ao fazer login'));
+      .catch((error) => logApiErrors(error, 'Erro ao fazer login'));
   }
 
   return (

@@ -87,15 +87,24 @@ export default function ProfileScreen() {
     setAccountMenuVisible(false);
     setAccountActionLoading(true);
 
-    try {
-      await apiClient.delete('/users');
-      await tokenStorage.clearToken();
-      goToLogin();
-    } catch {
-      Alert.alert('Não foi possível apagar a conta', 'Tente novamente em alguns instantes.');
-    } finally {
-      setAccountActionLoading(false);
-    }
+    Alert.alert('Confirmação', 'Tem certeza que deseja apagar sua conta?', [
+      { text: 'Cancelar', style: 'cancel', onPress: () => setAccountActionLoading(false) },
+      {
+        text: 'Apagar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await apiClient.delete('/users');
+            await tokenStorage.clearToken();
+            goToLogin();
+          } catch {
+            Alert.alert('Não foi possível apagar a conta', 'Tente novamente em alguns instantes.');
+          } finally {
+            setAccountActionLoading(false);
+          }
+        },
+      },
+    ]);
   }, [accountActionLoading, goToLogin]);
 
   const handleAccountMenu = useCallback(() => {

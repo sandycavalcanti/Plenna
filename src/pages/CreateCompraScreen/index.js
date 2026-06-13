@@ -3,7 +3,7 @@ import { ScrollView, View, Text, Alert, ActivityIndicator, TouchableOpacity, Fla
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
 import { apiClient } from '../../api/client';
-import { handleApiError } from '../../utils/error';
+import { logApiErrors } from '../../utils/error';
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
@@ -44,7 +44,7 @@ export default function CreateCompraScreen() {
       setFormasPagamento(formasCarregadas);
       setSelectedFormaPagamentoId((current) => current ?? formasCarregadas[0]?.forma_pagamento_id ?? null);
     } catch (error) {
-      handleApiError(error, 'Erro ao carregar dados iniciais para criação de compra');
+      logApiErrors(error, 'Erro ao carregar dados iniciais para criação de compra');
     } finally {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export default function CreateCompraScreen() {
       await apiClient.post('/compras', payload);
       navigation.goBack();
     } catch (error) {
-      handleApiError(error, 'Erro ao salvar compra');
+      logApiErrors(error, 'Erro ao salvar compra');
     } finally {
       setSaving(false);
     }

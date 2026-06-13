@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PreferencesForm from '../../components/PreferencesForm';
 import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
 import { apiClient } from '../../api/client';
-import { handleApiError } from '../../utils/error';
+import { logApiErrors } from '../../utils/error';
 import styles from './styles';
 
 export default function EditPreferencesScreen() {
@@ -50,7 +50,7 @@ export default function EditPreferencesScreen() {
           : [],
       );
     } catch (error) {
-      handleApiError(error, 'Erro ao carregar preferências do usuário');
+      logApiErrors(error, 'Erro ao carregar preferências do usuário');
     } finally {
       setLoading(false);
     }
@@ -180,7 +180,7 @@ export default function EditPreferencesScreen() {
       Alert.alert('Sucesso', 'Preferências atualizadas com sucesso!');
       navigation.goBack();
     } catch (error) {
-      handleApiError(error, 'Erro ao salvar preferências');
+      logApiErrors(error, 'Erro ao salvar preferências');
     }
   }
 

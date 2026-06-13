@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { apiClient } from '../api/client';
-import { handleApiError } from '../utils/error';
+import { logApiErrors } from '../utils/error';
 
 /**
  * Custom hook para gerenciar requisições de dados com refetch
@@ -15,7 +15,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/users/user');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar dados do usuário');
+      logApiErrors(error, 'Erro ao buscar dados do usuário');
       return null;
     }
   }, []);
@@ -28,7 +28,7 @@ export function useDataRefresh() {
       const items = data.flatMap((c) => (Array.isArray(c.tb_compra_item) ? c.tb_compra_item.map((item) => ({ ...item, compra_id: c.compra_id })) : []));
       return { compras: data, itens: items };
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar compras');
+      logApiErrors(error, 'Erro ao buscar compras');
       return { compras: [], itens: [] };
     }
   }, []);
@@ -39,7 +39,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/tempo-uso');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar tempo de uso');
+      logApiErrors(error, 'Erro ao buscar tempo de uso');
       return [];
     }
   }, []);
@@ -50,7 +50,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/dashboard/gastos-categoria');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar gastos por categoria');
+      logApiErrors(error, 'Erro ao buscar gastos por categoria');
       return [];
     }
   }, []);
@@ -61,7 +61,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/dashboard/impulsividade');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar impulsividade');
+      logApiErrors(error, 'Erro ao buscar impulsividade');
       return null;
     }
   }, []);
@@ -72,7 +72,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/dashboard/gastos-forma-pagamento');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar gastos por forma de pagamento');
+      logApiErrors(error, 'Erro ao buscar gastos por forma de pagamento');
       return null;
     }
   }, []);
@@ -83,7 +83,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/dashboard/limite-compras');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar limite de compras');
+      logApiErrors(error, 'Erro ao buscar limite de compras');
       return null;
     }
   }, []);
@@ -94,7 +94,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/goals');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar metas');
+      logApiErrors(error, 'Erro ao buscar metas');
       return [];
     }
   }, []);
@@ -105,7 +105,7 @@ export function useDataRefresh() {
       const response = await apiClient.get('/preferencia');
       return response.data;
     } catch (error) {
-      handleApiError(error, 'Erro ao buscar preferências');
+      logApiErrors(error, 'Erro ao buscar preferências');
       return [];
     }
   }, []);

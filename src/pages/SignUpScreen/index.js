@@ -7,7 +7,7 @@ import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import PreferencesForm from '../../components/PreferencesForm';
 import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
-import handleApiError from '../../utils/error';
+import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
@@ -203,7 +203,7 @@ export default function SignUpScreen({ navigation }) {
       Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
       return;
     } catch (error) {
-      handleApiError(error, 'Erro ao verificar e-mail');
+      logApiErrors(error, 'Erro ao verificar email');
     }
 
     try {
@@ -224,7 +224,7 @@ export default function SignUpScreen({ navigation }) {
         setStep(2);
       }
     } catch (error) {
-      handleApiError(error, 'Erro ao cadastrar usuário');
+      logApiErrors(error, 'Erro ao cadastrar usuário');
     }
   }
 
@@ -235,7 +235,7 @@ export default function SignUpScreen({ navigation }) {
       .then((response) => {
         setCategories(response.data);
       })
-      .catch((error) => handleApiError(error, 'Erro ao listar categorias'))
+      .catch((error) => logApiErrors(error, 'Erro ao listar categorias'))
       .finally(() => {
         setCategoriesLoading(false);
       });
@@ -300,7 +300,7 @@ export default function SignUpScreen({ navigation }) {
         }
       } catch (error) {
         // Não bloquear o fluxo principal por erro aqui, mas logar o erro
-        handleApiError(error, 'Erro ao atualizar dados do usuário');
+        logApiErrors(error, 'Erro ao atualizar dados do usuário');
       }
 
       // Em seguida, persistir preferências por categoria (substitui existentes para evitar duplicação)
@@ -320,7 +320,7 @@ export default function SignUpScreen({ navigation }) {
         },
       ]);
     } catch (error) {
-      handleApiError(error, 'Erro ao salvar metas');
+      logApiErrors(error, 'Erro ao salvar metas');
     }
   }
 
@@ -331,7 +331,7 @@ export default function SignUpScreen({ navigation }) {
 
       await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
     } catch (error) {
-      handleApiError(error, 'Erro ao vincular e-mail ao Google');
+      logApiErrors(error, 'Erro ao vincular e-mail ao Google');
     }
   }
 

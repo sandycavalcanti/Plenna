@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from './styles';
 import { apiClient } from '../../api/client';
-import { handleApiError } from '../../utils/error';
+import { logApiErrors } from '../../utils/error';
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
@@ -170,7 +170,7 @@ export default function EditProfileScreen() {
       setRemovedGoalIds([]);
       setCollapsedGoalKeys(goalsComChave.map((goal) => goal.localKey));
     } catch (error) {
-      handleApiError(error, 'Erro ao carregar dados do perfil');
+      logApiErrors(error, 'Erro ao carregar dados do perfil');
     } finally {
       setLoading(false);
     }
@@ -205,7 +205,7 @@ export default function EditProfileScreen() {
       Alert.alert('Sucesso', 'Informações atualizadas.');
       navigation.goBack();
     } catch (error) {
-      handleApiError(error, 'Erro ao salvar informações do perfil');
+      logApiErrors(error, 'Erro ao salvar informações do perfil');
     } finally {
       setSaving(false);
     }
@@ -255,7 +255,7 @@ export default function EditProfileScreen() {
       Alert.alert('Sucesso', 'Metas atualizadas.');
       navigation.goBack();
     } catch (error) {
-      handleApiError(error, 'Erro ao salvar metas');
+      logApiErrors(error, 'Erro ao salvar metas');
     } finally {
       setSaving(false);
     }
