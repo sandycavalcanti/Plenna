@@ -7,12 +7,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Image, Text, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PreferencesForm from '../../components/PreferencesForm';
 import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
 import { apiClient } from '../../api/client';
-import { CatchError, URL_API } from '../../api/constants';
+import { handleApiError } from '../../utils/error';
 import styles from './styles';
-import axios from 'axios';
 
 export default function EditPreferencesScreen() {
   const navigation = useNavigation();
@@ -50,7 +50,7 @@ export default function EditPreferencesScreen() {
           : [],
       );
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao carregar preferências do usuário');
     } finally {
       setLoading(false);
     }
@@ -180,7 +180,7 @@ export default function EditPreferencesScreen() {
       Alert.alert('Sucesso', 'Preferências atualizadas com sucesso!');
       navigation.goBack();
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao salvar preferências');
     }
   }
 
@@ -193,7 +193,7 @@ export default function EditPreferencesScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <PreferencesForm
         quantidadeComprasMes={quantidadeComprasMes}
         onQuantidadeComprasChange={setQuantidadeComprasMes}
@@ -214,6 +214,6 @@ export default function EditPreferencesScreen() {
         isEditing={true}
         obterSomaLimitesCategorias={obterSomaLimitesCategorias}
       />
-    </View>
+    </SafeAreaView>
   );
 }

@@ -5,8 +5,9 @@ import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
-import { CatchError } from '../../api/constants';
+import { handleApiError } from '../../utils/error';
 import { COLORS } from '../../constants/colors';
+import { devMode } from '../../constants/config';
 
 // Tela de Login
 // Após clicar em "Login", o usuário é direcionado para a área principal (Tabs)
@@ -36,10 +37,9 @@ export default function LoginScreen({ navigation }) {
         const dados = response.data;
         const token = dados.token;
         await tokenStorage.setToken(token);
-        console.log(token);
         handleLogin();
       })
-      .catch(CatchError);
+      .catch((error) => handleApiError(error, 'Erro ao fazer login'));
   }
 
   async function irDireto() {
@@ -52,10 +52,9 @@ export default function LoginScreen({ navigation }) {
         const dados = response.data;
         const token = dados.token;
         await tokenStorage.setToken(token);
-        console.log('token: ', token);
         handleLogin();
       })
-      .catch(CatchError);
+      .catch((error) => handleApiError(error, 'Erro ao fazer login'));
   }
 
   return (
@@ -63,8 +62,8 @@ export default function LoginScreen({ navigation }) {
       <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
       <Text style={styles.titulo}> Bem-vindo! </Text>
       <View style={styles.overlay}>
-        <CustomTextInput placeholder="Email" textValue={email} />
-        <CustomTextInput placeholder="Senha" secureTextEntry textValue={senha} />
+        <CustomTextInput placeholder="Email" textValue={email} autoCapitalize="none" />
+        <CustomTextInput placeholder="Senha" secureTextEntry textValue={senha} autoCapitalize="none" />
         <Text style={[styles.texto, { color: COLORS.loginEsqueciSenha, alignSelf: 'flex-end', marginBottom: 30, paddingRight: 10, marginTop: -10 }]} onPress={handleForgotPassword}>
           Esqueci minha senha
         </Text>
@@ -73,9 +72,11 @@ export default function LoginScreen({ navigation }) {
         <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={handleSignUp}>
           Criar conta
         </Text>
-        {/* <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={irDireto}>
-          Ir direto
-        </Text> */}
+        {devMode && (
+          <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={irDireto}>
+            Ir direto
+          </Text>
+        )}
       </View>
     </KeyboardAvoidingView>
   );

@@ -9,12 +9,12 @@ import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, T
 import LimitSlider from '../LimitSlider';
 import ProfileCard from '../ProfileComponents/ProfileCard';
 import CustomButton from '../CustomButton';
-import { CatchError, URL_API } from '../../api/constants';
+import { handleApiError } from '../../utils/error';
 import { COLORS } from '../../constants';
 import styles from './styles';
-import axios from 'axios';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomTextInput from '../CustomTextInput';
+import { apiClient } from '../../api/client';
 
 /**
  * Componente: PreferencesForm
@@ -82,12 +82,12 @@ export default function PreferencesForm({
 
   function listarCategorias() {
     setCategoriesLoading(true);
-    axios
-      .get(URL_API + '/categories')
+    apiClient
+      .get('/categories')
       .then((response) => {
         setCategories(response.data);
       })
-      .catch(CatchError)
+      .catch((error) => handleApiError(error, 'Erro ao listar categorias'))
       .finally(() => {
         setCategoriesLoading(false);
       });
@@ -121,7 +121,7 @@ export default function PreferencesForm({
       }
       await onSalvar();
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao salvar preferências');
       setSaving(false);
     }
   }

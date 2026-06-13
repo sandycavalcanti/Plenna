@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
 import { styles } from './styles';
 import { ActivityIndicator, Alert, BackHandler, FlatList, Modal, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
@@ -8,7 +7,7 @@ import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import PreferencesForm from '../../components/PreferencesForm';
 import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
-import { CatchError, URL_API } from '../../api/constants';
+import handleApiError from '../../utils/error';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
@@ -200,11 +199,11 @@ export default function SignUpScreen({ navigation }) {
         Alert.alert('Campos inválidos', 'Confira os campos em vermelho.');
         return;
       }
-      await axios.get(URL_API + '/users/email/' + email.trim());
+      await apiClient.get('/users/email/' + email.trim());
       Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
       return;
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao verificar e-mail');
     }
 
     try {
@@ -213,7 +212,7 @@ export default function SignUpScreen({ navigation }) {
         email: email.trim(),
         senha,
       };
-      await axios.post(URL_API + '/auth/register', registerPayload);
+      await apiClient.post('/auth/register', registerPayload);
       const loginResponse = await apiClient.post('/auth/login', {
         email: email.trim(),
         senha,
@@ -225,18 +224,18 @@ export default function SignUpScreen({ navigation }) {
         setStep(2);
       }
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao cadastrar usuário');
     }
   }
 
   function listarCategorias() {
     setCategoriesLoading(true);
-    axios
-      .get(URL_API + '/categories')
+    apiClient
+      .get('/categories')
       .then((response) => {
         setCategories(response.data);
       })
-      .catch(CatchError)
+      .catch((error) => handleApiError(error, 'Erro ao listar categorias'))
       .finally(() => {
         setCategoriesLoading(false);
       });
@@ -301,7 +300,7 @@ export default function SignUpScreen({ navigation }) {
         }
       } catch (error) {
         // Não bloquear o fluxo principal por erro aqui, mas logar o erro
-        CatchError(error);
+        handleApiError(error, 'Erro ao atualizar dados do usuário');
       }
 
       // Em seguida, persistir preferências por categoria (substitui existentes para evitar duplicação)
@@ -321,7 +320,7 @@ export default function SignUpScreen({ navigation }) {
         },
       ]);
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao salvar metas');
     }
   }
 
@@ -332,7 +331,7 @@ export default function SignUpScreen({ navigation }) {
 
       await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao vincular e-mail ao Google');
     }
   }
 

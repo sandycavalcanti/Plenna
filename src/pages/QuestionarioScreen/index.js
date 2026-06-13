@@ -4,7 +4,7 @@ import { styles } from './styles';
 import CustomButton from '../../components/CustomButton';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
-import { CatchError } from '../../api/constants';
+import { handleApiError } from '../../utils/error';
 
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
@@ -135,8 +135,7 @@ export default function QuestionarioScreen({ navigation }) {
       setConsumptionTrigger(u.usuario_gatilho_consumo || '');
       setIsEditing(true);
     } catch (error) {
-      // Pode não estar autenticado (fluxo de cadastro) — apenas logar
-      CatchError(error);
+      handleApiError(error, 'Erro ao carregar dados do usuário');
     } finally {
       setLoading(false);
     }
@@ -172,7 +171,7 @@ export default function QuestionarioScreen({ navigation }) {
       Alert.alert('Sucesso', 'Cadastro atualizado com sucesso!');
       navigation.replace('App');
     } catch (error) {
-      CatchError(error);
+      handleApiError(error, 'Erro ao atualizar cadastro');
     } finally {
       setSaving(false);
     }

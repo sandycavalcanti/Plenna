@@ -11,12 +11,6 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
-  composerShell: {
-    backgroundColor: COLORS.chatContainerEnviarFundo,
-    paddingHorizontal: 14,
-    paddingTop: 8,
-  },
-
   header: {
     paddingTop: 10,
     paddingBottom: 12,
@@ -122,11 +116,16 @@ export const styles = StyleSheet.create({
     color: COLORS.chatRemetenteMensagemTexto,
   },
 
+  composerShell: {
+    backgroundColor: COLORS.chatContainerEnviarFundo,
+    paddingHorizontal: 14,
+    paddingTop: 8,
+  },
+
   inputArea: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 0,
-    marginTop: 4,
     marginBottom: 0,
     paddingVertical: 8,
     gap: 8,
