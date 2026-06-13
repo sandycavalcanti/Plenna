@@ -8,7 +8,7 @@
 
 //Importações necessárias para o componente
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import styles from './styles';
 
@@ -22,7 +22,9 @@ export default function ProfileHeader({ nome }) {
     <View style={styles.container}>
       {/* Avatar do usuário (placeholder visual) */}
       <View style={styles.avatarWrapper}>
-        <View style={styles.avatar} />
+        <View style={styles.avatar}>
+          <Image source={require('../../../../assets/img/userIcon.png')} style={styles.userIcon} />
+        </View>
 
         {/* Ação de editar imagem de perfil */}
         <TouchableOpacity style={styles.editAvatarButton} onPress={() => {}}>

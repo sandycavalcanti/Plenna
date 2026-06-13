@@ -11,6 +11,7 @@ export const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
+    minWidth: 0,
     height: 40,
     backgroundColor: COLORS.customTextInputFundo,
     borderRadius: 15,

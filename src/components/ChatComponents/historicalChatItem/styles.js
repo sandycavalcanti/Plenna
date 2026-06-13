@@ -32,12 +32,9 @@ export const styles = StyleSheet.create({
     marginTop: 4,
   },
   menuButton: {
-    width: 34,
     height: 34,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.histChatItemBotao3PontosFundo,
-    marginLeft: 10,
   },
 });

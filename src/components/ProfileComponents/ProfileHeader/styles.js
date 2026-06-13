@@ -32,6 +32,14 @@ export default StyleSheet.create({
     height: 200,
     borderRadius: 100,
     backgroundColor: COLORS.perfilFotoPlaceholder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  
+  },
+
+  userIcon: {
+    width:120,
+    height:120,
   },
 
   // Botão com ícone para editar imagem de perfil

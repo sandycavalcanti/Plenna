@@ -26,7 +26,7 @@ export default function HistoricalChatScreen({ navigation }) {
           onPress={() => {
             console.log('Abrir menu');
           }}>
-          <MaterialIcons name="more-vert" size={20} color={COLORS.histChatBotao3Pontos} />
+          <MaterialIcons name="more-vert" size={30} color={COLORS.histChatBotao3Pontos} />
         </TouchableOpacity>
       </View>
       <FlatList

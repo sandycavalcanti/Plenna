@@ -120,6 +120,7 @@ export default function QuestionarioScreen({ navigation }) {
   const birthDateDigits = extrairDigitosDaData(birthDate);
   const phoneValido = telefoneEhValido(phoneDigits);
   const birthDateValida = dataBRParaBanco(birthDateDigits) !== null;
+  const podeSalvar = !loading;
 
   // Carrega dados do usuário se estiver autenticado
   async function carregarUsuario() {
@@ -168,8 +169,8 @@ export default function QuestionarioScreen({ navigation }) {
         tempoTela: screenTime,
         gatilhoConsumo: consumptionTrigger,
       });
-      Alert.alert('Sucesso', 'Informações atualizadas.');
-      navigation.goBack();
+      Alert.alert('Sucesso', 'Cadastro atualizado com sucesso!');
+      navigation.replace('App');
     } catch (error) {
       CatchError(error);
     } finally {
@@ -201,11 +202,17 @@ export default function QuestionarioScreen({ navigation }) {
 
   return (
     <ScrollView style={{ backgroundColor: COLORS.cadFundo }} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-      <TouchableOpacity style={styles.closeButton} onPress={() => navigation.replace('App')}>
-        <Text style={styles.closeText}>✕</Text>
+      <TouchableOpacity style={styles.skipButton} onPress={() => navigation.replace('App')} activeOpacity={0.85}>
+        <Text style={styles.skipButtonText}>Pular</Text>
       </TouchableOpacity>
-      <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-      <Text style={styles.titulo}>Finalize seu Cadastro!</Text>
+      <View style={styles.heroCard}>
+        <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
+        <View style={styles.titleRow}>
+          <Text style={styles.badge}>Opcional</Text>
+        </View>
+        <Text style={styles.titulo}>Finalize seu perfil</Text>
+        <Text style={styles.subtitle}>Essas respostas ajudam a personalizar sua experiência, mas você pode continuar sem preencher agora.</Text>
+      </View>
 
       <View style={styles.questionBlock}>
         <Text style={styles.questionTitle}>Telefone</Text>
@@ -213,6 +220,7 @@ export default function QuestionarioScreen({ navigation }) {
           value={phoneVisual}
           onChangeText={(texto) => setPhone(manterSomenteDigitos(texto).slice(0, 11))}
           placeholder="(00) 00000-0000"
+          placeholderTextColor={COLORS.questionarioPlaceholder}
           keyboardType="phone-pad"
           style={styles.stepThreeInput}
           maxLength={15}
@@ -225,6 +233,7 @@ export default function QuestionarioScreen({ navigation }) {
           value={birthDateVisual}
           onChangeText={(texto) => setBirthDate(extrairDigitosDaData(texto))}
           placeholder="DD/MM/AAAA"
+          placeholderTextColor={COLORS.questionarioPlaceholder}
           keyboardType="numeric"
           style={styles.stepThreeInput}
           maxLength={10}
@@ -240,9 +249,19 @@ export default function QuestionarioScreen({ navigation }) {
       {loading ? (
         <ActivityIndicator size="small" color={COLORS.cadTitulo} />
       ) : isEditing ? (
-        <CustomButton title={saving ? 'Salvando...' : 'Alterar'} style={styles.stepThreeButton} onPress={atualizarUsuario} />
+        <View style={styles.actionsArea}>
+          <CustomButton title={saving ? 'Salvando...' : 'Salvar respostas'} style={styles.stepThreeButton} onPress={atualizarUsuario} disabled={!podeSalvar || saving} />
+          <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
+            <Text style={styles.secondaryActionText}>Deixar para depois</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
-        <CustomButton title="Concluir cadastro" style={styles.stepThreeButton} onPress={() => navigation.navigate('Home')} />
+        <View style={styles.actionsArea}>
+          <CustomButton title="Concluir cadastro" onPress={() => navigation.replace('App')} />
+          <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
+            <Text style={styles.secondaryActionText}>Agora não</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </ScrollView>
   );

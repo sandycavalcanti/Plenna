@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build": "eas build -p android --profile preview"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -18,10 +19,14 @@
     "axios": "^1.15.2",
     "expo": "~55.0.17",
     "expo-font": "~55.0.6",
+    "expo-linking": "~55.0.15",
     "expo-status-bar": "~55.0.5",
+    "expo-web-browser": "~55.0.15",
     "react": "19.2.0",
     "react-native": "0.83.6",
+    "react-native-chart-kit": "^6.12.2",
     "react-native-gifted-charts": "^1.4.76",
+    "react-native-inview": "^1.1.2",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",

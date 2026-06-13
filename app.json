@@ -20,6 +20,7 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/img/adaptive-icon.png"
       },
+      "softwareKeyboardLayoutMode": "pan",
       "package": "com.Plenna",
       "icon": "./assets/img/icon.png",
       "iconBackgroundColor": "#E6F4FE"
@@ -31,7 +32,8 @@
     "web": {
       "favicon": "./assets/img/icon.png"
     },
-    "plugins": ["expo-font"],
+    "plugins": ["expo-font", "expo-web-browser"],
+    "scheme": "plenna",
     "extra": {
       "eas": {
         "projectId": "a4c9bb3f-30b5-42ad-82b2-2919c555f0f0"

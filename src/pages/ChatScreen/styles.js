@@ -11,6 +11,12 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
+  composerShell: {
+    backgroundColor: COLORS.chatContainerEnviarFundo,
+    paddingHorizontal: 14,
+    paddingTop: 8,
+  },
+
   header: {
     paddingTop: 10,
     paddingBottom: 12,
@@ -55,8 +61,6 @@ export const styles = StyleSheet.create({
   headerAction: {
     width: 34,
     height: 34,
-    borderRadius: 10,
-    backgroundColor: COLORS.chatBotao3PontosFundo,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -122,40 +126,36 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 0,
-    marginTop: 8,
+    marginTop: 4,
     marginBottom: 0,
-    paddingTop: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
     gap: 8,
-    backgroundColor: COLORS.chatContainerEnviarFundo,
-    borderWidth: 1,
-    borderColor: COLORS.chatContainerEnviarBorda,
-    borderRadius: 0,
-    shadowColor: COLORS.chatContainerEnviarSombra,
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
 
   iconButton: {
     width: 32,
     height: 32,
-    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.chatBotoesAdicionaisEnviarFundo,
+  },
+
+  chatInputWrap: {
+    flex: 1,
+    minWidth: 0,
   },
 
   chatInput: {
-    flex: 1,
+    width: '100%',
     marginBottom: 0,
-    height: 38,
-    borderRadius: 12,
+    height: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 0,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.chatTextInputBorda,
     backgroundColor: COLORS.chatTextInputFundo,
     color: COLORS.chatTextInputTexto,
+    textAlignVertical: 'center',
   },
 
   sendButton: {
@@ -164,6 +164,5 @@ export const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.chatBotaoEnviarFundo,
   },
 });

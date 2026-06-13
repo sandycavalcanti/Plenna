@@ -17,42 +17,57 @@ import { COLORS } from '../../constants';
 export default StyleSheet.create({
   // Caixa principal que exibe o valor total de gasto
   mainBox: {
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
     borderWidth: 1.5,
-    borderColor: COLORS.perfilLimiteCategoriaBorda,
-    borderRadius: 10,
+    borderRadius: 14,
+    padding: 12,
+    borderColor: COLORS.perfilMetaBorda,
     backgroundColor: COLORS.perfilLimiteCategoriaFundo,
   },
 
   // Texto descritivo (rótulo)
   label: {
-    fontSize: 15,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.perfilLimiteCategoriaTexto,
+    lineHeight: 20,
   },
 
   // Texto do valor principal (destaque)
   value: {
-    fontSize: 12,
-    marginTop: 4,
-    color: COLORS.perfilLimiteCategoriaValor,
+    fontSize: 14,
+    fontWeight: '800',
+    marginTop: 6,
+    color: COLORS.perfilMetaValor,
   },
 
   // Container em linha para categorias
   row: {
     flexDirection: 'row',
     gap: 10,
+    marginBottom: 10,
   },
 
   // Caixa menor para cada categoria de gasto
   smallBox: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: COLORS.perfilLimiteCategoriaBorda,
-    borderRadius: 10,
+    borderColor: COLORS.perfilMetaBorda,
+    borderRadius: 14,
     backgroundColor: COLORS.perfilLimiteCategoriaFundo,
-    padding: 10,
+    padding: 12,
+  },
+
+  // Seção de categorias com título
+  categoriesSection: {
+    marginTop: 4,
+  },
+
+  // Título da seção de categorias
+  categoriesTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.perfilLimiteCategoriaTexto,
+    marginBottom: 10,
+    paddingHorizontal: 2,
   },
 });

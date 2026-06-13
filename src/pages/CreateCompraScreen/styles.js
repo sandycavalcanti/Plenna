@@ -1,0 +1,120 @@
+import { StyleSheet } from 'react-native';
+import { COLORS } from '../../constants';
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.cadFundo,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 32,
+    flexGrow: 1,
+  },
+  heroCard: {
+    alignItems: 'center',
+    backgroundColor: COLORS.fundoPrincipal,
+    borderRadius: 22,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+  },
+  heroLogo: {
+    width: 120,
+    height: 120,
+    marginBottom: 8,
+  },
+  heroTitle: {
+    fontFamily: 'SugoDisplay',
+    fontSize: 38,
+    color: COLORS.cadTitulo,
+    textAlign: 'center',
+    lineHeight: 42,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: COLORS.dadoUm,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  sectionsWrap: {
+    gap: 20,
+    marginTop: 20,
+  },
+  sectionCard: {
+    width: '100%',
+    marginBottom: 0,
+  },
+  loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  paymentLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.cadCaixaPreferenciasTitulo,
+    marginBottom: 8,
+    marginTop: 2,
+  },
+  itemRow: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(104, 114, 167, 0.14)',
+    gap: 10,
+  },
+  itemInput: { marginBottom: 0 },
+  selectCategoria: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: COLORS.customTextInputFundo,
+    borderRadius: 14,
+  },
+  selectCategoriaText: {
+    color: COLORS.cadCaixaPreferenciasTitulo,
+    fontWeight: '600',
+  },
+  removeItemButton: {
+    alignSelf: 'flex-end',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  removeItemText: {
+    color: COLORS.cadTextoAdicionarLimites,
+    fontWeight: '700',
+  },
+  addItemButton: {
+    marginTop: 2,
+    marginBottom: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+  },
+  addItemText: {
+    color: COLORS.cadTextoAdicionarLimites,
+    fontSize: 15,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  actionsRow: { marginTop: 6 },
+  saveButton: { width: '100%' },
+  pressableFecharModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 16,
+  },
+  questionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8, color: COLORS.cadTitulo },
+  categoriaNomeTouchable: { paddingVertical: 10 },
+  categoriaNome: { fontSize: 15, color: COLORS.cadCaixaPreferenciasTitulo },
+  textoFecharModalTouchable: { marginTop: 12, alignItems: 'center' },
+  textoFecharModal: { color: COLORS.cadTextoAdicionarLimites, fontWeight: '700' },
+});

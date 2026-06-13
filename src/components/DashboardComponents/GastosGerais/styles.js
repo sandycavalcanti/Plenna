@@ -3,36 +3,76 @@ import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   section: {
-    marginHorizontal: 20,
+    marginHorizontal: 18,
     marginVertical: 10,
+    overflow: 'visible',
   },
 
-  valor: {
-    fontSize: 36,
-    color: COLORS.dashboardGastosGeraisValor,
-    fontWeight: '600',
+  statsScroll: {
+    flexGrow: 0,
   },
 
-  meta: {
-    fontSize: 18,
-  },
-
-  metaValor: {
-    color: COLORS.dashboardMetaValor,
-  },
-
-  excedente: {
-    color: COLORS.dashboardGastosGeraisAviso,
-    fontSize: 18,
-    fontWeight: '600',
+  statCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    marginLeft: 5,
+    marginRight: 5,
     marginBottom: 10,
-    marginLeft: 20,
+    borderTopWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 6,
+    overflow: 'visible',
+    minWidth: 220,
   },
 
-  chartContainer: {
-    borderRadius: 16,
-    padding: 10,
-    marginTop: -60,
-    marginBottom: -60,
+  statIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+
+  statContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  statLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#999999',
+    marginBottom: 5,
+    letterSpacing: 0.3,
+  },
+
+  statValue: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: '#2F356B',
+    marginBottom: 5,
+    letterSpacing: -0.5,
+  },
+
+  statSubtitle: {
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '600',
+    color: '#C02C7A',
+  },
+
+  monthTitle: {
+    fontSize: 17,
+    fontWeight: '500',
+    color: COLORS.perfilProfileCardTitulo,
+    marginBottom: 8,
   },
 });

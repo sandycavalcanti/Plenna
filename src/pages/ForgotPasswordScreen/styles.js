@@ -9,8 +9,8 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.cadFundo,
   },
   logo: {
-    width: 180,
-    height: 180,
+    width: 150,
+    height: 150,
   },
   overlay: {
     width: '85%',
@@ -18,10 +18,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderRadius: 30,
-    paddingVertical: 15,
     paddingHorizontal: 15,
-    borderColor: COLORS.recuperarSenhaBordaCaixa,
-    borderWidth: 2,
   },
 
   titulo: {

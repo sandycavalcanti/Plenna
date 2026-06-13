@@ -1,16 +1,21 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { styles } from './styles';
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, FlatList, Modal, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
+import PreferencesForm from '../../components/PreferencesForm';
+import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
 import { CatchError, URL_API } from '../../api/constants';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 
+WebBrowser.maybeCompleteAuthSession();
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 
 const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
@@ -46,10 +51,43 @@ export default function SignUpScreen({ navigation }) {
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [limiteGastoValor, setLimiteGastoValor] = useState(290);
+  const [quantidadeComprasMes, setQuantidadeComprasMes] = useState('');
+  const [valorMaximoCompra, setValorMaximoCompra] = useState('');
+  const [stepTwoTouched, setStepTwoTouched] = useState(false);
+  const [stepTwoAttempted, setStepTwoAttempted] = useState(false);
+  const [checkboxAutorizacao, setCheckboxAutorizacao] = useState(false);
+  const [checkboxTermos, setCheckboxTermos] = useState(false);
 
   useEffect(() => {
-    limiteGasto.current = limiteGastoValor;
-  }, [limiteGastoValor]);
+    const sub = Linking.addEventListener('url', (event) => {
+      const url = event.url;
+
+      if (url.includes('oauth-success')) {
+        WebBrowser.dismissBrowser();
+        setStep(2);
+      }
+
+      if (url.includes('oauth-error')) {
+        WebBrowser.dismissBrowser();
+        Alert.alert('Erro ao conectar email');
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    if (step !== 2) {
+      return undefined;
+    }
+
+    const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setStep(1);
+      return true;
+    });
+
+    return () => backSubscription.remove();
+  }, [step]);
 
   const nomeValido = nome.trim().length >= 2;
   const emailValido = EMAIL_REGEX.test(email.trim());
@@ -67,6 +105,12 @@ export default function SignUpScreen({ navigation }) {
   const confirmacaoSenhaErro = mostrarErroConfirmacao && !confirmacaoSenhaValida ? 'A confirmação precisa ser igual à senha.' : '';
 
   const stepOneInvalido = !nomeValido || !emailValido || !senhaValida || !confirmacaoSenhaValida;
+  const somaCategoriasSelecionadas = obterSomaLimitesCategorias(selectedCategories);
+  const limiteMensalAtual = Number(limiteGastoValor) || 0;
+  const excessoCategorias = Math.max(0, somaCategoriasSelecionadas - limiteMensalAtual);
+  const stepTwoInvalido = excessoCategorias > 0;
+  const mostrarErroStepTwo = (stepTwoTouched || stepTwoAttempted) && stepTwoInvalido;
+  const stepTwoErro = mostrarErroStepTwo ? `A soma dos limites por categoria não pode exceder o limite mensal.` : '';
 
   function atualizarCampo(setter, campo, valor) {
     setter(valor);
@@ -74,11 +118,6 @@ export default function SignUpScreen({ navigation }) {
       ...prev,
       [campo]: true,
     }));
-  }
-
-  function abrirTelinhaCategorias() {
-    setCategoryModalVisible(true);
-    listarCategorias();
   }
 
   function fecharTelinhaCategorias() {
@@ -98,6 +137,8 @@ export default function SignUpScreen({ navigation }) {
   }
 
   function selecionarCategoria(category) {
+    setStepTwoTouched(true);
+
     setSelectedCategories((prevCategories) => {
       const exists = prevCategories.some((item) => item.categoria_id === category.categoria_id);
 
@@ -122,6 +163,8 @@ export default function SignUpScreen({ navigation }) {
   }
 
   function atualizarLimiteCategoria(categoriaId, novoValor) {
+    setStepTwoTouched(true);
+
     setSelectedCategories((prevCategories) => {
       const nextCategories = prevCategories.map((item) =>
         item.categoria_id === categoriaId
@@ -138,50 +181,52 @@ export default function SignUpScreen({ navigation }) {
     });
   }
 
+  function removerCategoria(categoriaId) {
+    setStepTwoTouched(true);
+
+    setSelectedCategories((prevCategories) => {
+      const nextCategories = prevCategories.filter((item) => item.categoria_id !== categoriaId);
+
+      ajustarLimiteGastoParaCategorias(nextCategories);
+
+      return nextCategories;
+    });
+  }
+
   async function CadastrarUsuario() {
     try {
-      await axios.post(URL_API + '/auth/register', {
+      setStepOneAttempted(true);
+      if (stepOneInvalido) {
+        Alert.alert('Campos inválidos', 'Confira os campos em vermelho.');
+        return;
+      }
+      await axios.get(URL_API + '/users/email/' + email.trim());
+      Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
+      return;
+    } catch (error) {
+      CatchError(error);
+    }
+
+    try {
+      const registerPayload = {
         nome: nome.trim(),
         email: email.trim(),
         senha,
-        preferenciasMetaValor: limiteGastoValor,
-        preferenciasMetaTempo: limiteTempo.current,
-      });
-
+      };
+      await axios.post(URL_API + '/auth/register', registerPayload);
       const loginResponse = await apiClient.post('/auth/login', {
         email: email.trim(),
         senha,
       });
       await tokenStorage.setToken(loginResponse.data.token);
-      await apiClient.post('/preferencias-categoria/bulk', {
-        preferencias: selectedCategories.map((category) => ({
-          categoriaId: category.categoria_id,
-          metaMensal: category.limite,
-        })),
-      });
-      navigation.navigate('Questionario');
+      if (checkboxAutorizacao) {
+        await vincularEmailGoogle();
+      } else {
+        setStep(2);
+      }
     } catch (error) {
       CatchError(error);
     }
-  }
-
-  function Verificar() {
-    setStepOneAttempted(true);
-    if (stepOneInvalido) {
-      Alert.alert('Campos inválidos', 'Confira os campos em vermelho antes de continuar.');
-      return;
-    }
-    axios
-      .get(URL_API + '/users/email/' + email.trim())
-      .then(async (response) => {
-        Alert.alert('E-mail já cadastrado', 'Use outro e-mail para continuar.');
-      })
-      .catch((error) =>
-        CatchError(error, 'Erro ao verificar email: ', () => {
-          // Se o erro for 404, significa que o email nao existe e podemos prosseguir com o cadastro
-          setStep(2);
-        }),
-      );
   }
 
   function listarCategorias() {
@@ -195,6 +240,100 @@ export default function SignUpScreen({ navigation }) {
       .finally(() => {
         setCategoriesLoading(false);
       });
+  }
+
+  async function AtualizarUsuario() {
+    try {
+      setStepTwoAttempted(true);
+      if (stepTwoInvalido) {
+        Alert.alert('Limites inválidos', 'A soma dos limites por categoria não pode ultrapassar o limite mensal de gasto.');
+        return;
+      }
+      const limiteMensal = Number(limiteGastoValor) || 0;
+      const categoriasBase = [...selectedCategories];
+      const somaCategorias = obterSomaLimitesCategorias(categoriasBase);
+      if (limiteMensal > somaCategorias) {
+        const sobra = limiteMensal - somaCategorias;
+        const indiceOutros = categoriasBase.findIndex((category) => category.categoria_id === 14);
+        if (indiceOutros >= 0) {
+          const limiteAtualOutros = Number(categoriasBase[indiceOutros].limite) || 0;
+          categoriasBase[indiceOutros] = {
+            ...categoriasBase[indiceOutros],
+            limite: limiteAtualOutros + sobra,
+          };
+        } else {
+          const categoriaOutros = categories.find((category) => category.categoria_id === 14);
+          categoriasBase.push({
+            categoria_id: 14,
+            categoria_nome: categoriaOutros?.categoria_nome || 'Outros',
+            limite: sobra,
+          });
+        }
+      }
+
+      // Primeiro, atualizar dados do usuário (quantidade de compras, meta mensal e maior valor por compra)
+      try {
+        const payload = {};
+
+        if (quantidadeComprasMes) {
+          const num = Number(quantidadeComprasMes.replace(/\D/g, ''));
+          if (!Number.isNaN(num)) payload.limiteCompra = num;
+        }
+
+        if (limiteMensal) {
+          payload.metaValorMensal = limiteMensal;
+        }
+
+        if (valorMaximoCompra) {
+          const valorMaximoCompraNumerico = valorMonetarioParaNumero(valorMaximoCompra);
+          if (!Number.isNaN(valorMaximoCompraNumerico)) {
+            payload.metaValorCompra = valorMaximoCompraNumerico;
+          }
+        }
+
+        if (limiteTempo.current !== undefined && limiteTempo.current !== null) {
+          payload.metaTempo = Number(limiteTempo.current);
+        }
+
+        // Enviar apenas se houver algo para atualizar
+        if (Object.keys(payload).length > 0) {
+          await apiClient.put('/users', payload);
+        }
+      } catch (error) {
+        // Não bloquear o fluxo principal por erro aqui, mas logar o erro
+        CatchError(error);
+      }
+
+      // Em seguida, persistir preferências por categoria (substitui existentes para evitar duplicação)
+      await apiClient.put('/preferencia/bulk', {
+        preferencias: categoriasBase.map((category) => ({
+          categoriaId: category.categoria_id,
+          metaMensal: category.limite,
+        })),
+      });
+
+      setSelectedCategories(categoriasBase);
+
+      Alert.alert('Sucesso', 'Usuário cadastrado com sucesso!', [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Questionario'),
+        },
+      ]);
+    } catch (error) {
+      CatchError(error);
+    }
+  }
+
+  async function vincularEmailGoogle() {
+    try {
+      const response = await apiClient.get('/email/connect');
+      const authUrl = response.data.url;
+
+      await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
+    } catch (error) {
+      CatchError(error);
+    }
   }
 
   return (
@@ -237,74 +376,41 @@ export default function SignUpScreen({ navigation }) {
             isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
             autoCapitalize="none"
           />
-          <CustomButton title="Cadastrar" style={styles.button} onPress={Verificar} />
+          <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)} activeOpacity={0.7}>
+            <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>{checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}</View>
+            <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxTermos(!checkboxTermos)} activeOpacity={0.7}>
+            <View style={[styles.checkbox, checkboxTermos && styles.checkboxChecked]}>{checkboxTermos && <Text style={styles.checkboxMark}>✓</Text>}</View>
+            <Text style={styles.checkboxText}>
+              Li e concordo com os <Text style={styles.checkboxLink}>termos</Text>{' '}
+            </Text>
+          </TouchableOpacity>
+          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
         </KeyboardAvoidingView>
       )}
       {step === 2 && (
-        <ScrollView style={{ width: '95%' }} contentContainerStyle={styles.stepTwoContainer}>
-          <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-          <Text style={styles.titulo}>Preferências</Text>
-          <View style={styles.borderOverlay}>
-            <LimitSlider title="Limite mensal de gasto" min={0} max={3000} step={10} valor compact value={limiteGastoValor} onValueChange={setLimiteGastoValor} textValue={limiteGasto} />
-            <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={90} horas compact textValue={limiteTempo} />
-          </View>
-          <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction} onPress={abrirTelinhaCategorias}>
-            <Text style={styles.segmentActionText}>Adicionar limites por segmento +</Text>
-          </TouchableOpacity>
-          <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={fecharTelinhaCategorias}>
-            <Pressable style={styles.pressableFecharModal} onPress={fecharTelinhaCategorias}>
-              <Pressable style={styles.modalContainer} onPress={(event) => event.stopPropagation()}>
-                <Text style={styles.questionTitle}>Selecione uma categoria</Text>
-
-                {categoriesLoading ? (
-                  <View style={styles.viewModalCarregando}>
-                    <ActivityIndicator size="small" color={COLORS.cadModalCarregando} />
-                  </View>
-                ) : (
-                  <FlatList
-                    data={categories}
-                    keyExtractor={(item) => String(item.categoria_id)}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity activeOpacity={0.85} onPress={() => selecionarCategoria(item)} style={styles.categoriaNomeTouchable}>
-                        <Text style={styles.categoriaNome}>{item.categoria_nome}</Text>
-                      </TouchableOpacity>
-                    )}
-                    ListEmptyComponent={<Text style={styles.avisoNenhumaCategoria}>Nenhuma categoria encontrada.</Text>}
-                  />
-                )}
-
-                <TouchableOpacity activeOpacity={0.85} onPress={fecharTelinhaCategorias} style={styles.textoFecharModalTouchable}>
-                  <Text style={styles.textoFecharModal}>Fechar</Text>
-                </TouchableOpacity>
-              </Pressable>
-            </Pressable>
-          </Modal>
-          {selectedCategories.map((category) => (
-            <ProfileCard key={category.categoria_id} title={category.categoria_nome} style={{ width: '95%' }}>
-              <LimitSlider
-                title="Limite mensal"
-                min={0}
-                max={1000}
-                step={10}
-                valor
-                compact
-                value={category.limite}
-                onValueChange={(novoValor) => atualizarLimiteCategoria(category.categoria_id, novoValor)}
-              />
-            </ProfileCard>
-          ))}
-          <View style={styles.checkboxRow}>
-            <View style={styles.checkbox} />
-            <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
-          </View>
-          <View style={styles.checkboxRow}>
-            <View style={styles.checkbox} />
-            <Text style={styles.checkboxText}>
-              Li e concordo com os <Text style={styles.checkboxLink}>termos</Text>
-            </Text>
-          </View>
-          <CustomButton title="Finalizar" style={styles.button} onPress={CadastrarUsuario} />
-        </ScrollView>
+        <View style={{ width: '100%', flex: 1 }}>
+          <PreferencesForm
+            quantidadeComprasMes={quantidadeComprasMes}
+            onQuantidadeComprasChange={setQuantidadeComprasMes}
+            valorMaximoCompra={valorMaximoCompra}
+            onValorMaximoCompraChange={setValorMaximoCompra}
+            limiteGastoValor={limiteGastoValor}
+            onLimiteGastoChange={setLimiteGastoValor}
+            limiteTempo={limiteTempo.current}
+            onLimiteTempoChange={(valor) => {
+              limiteTempo.current = valor;
+            }}
+            selectedCategories={selectedCategories}
+            onRemoverCategoria={removerCategoria}
+            onAdicionarCategoria={selecionarCategoria}
+            onAtualizarLimiteCategoria={atualizarLimiteCategoria}
+            onSalvar={AtualizarUsuario}
+            isEditing={false}
+            obterSomaLimitesCategorias={obterSomaLimitesCategorias}
+          />
+        </View>
       )}
     </View>
   );

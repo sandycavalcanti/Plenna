@@ -18,7 +18,7 @@ import { COLORS } from '../../../constants';
  * Responsabilidade: Estruturar visualmente seções com título, ação de edição
  * e renderização de conteúdo filho (children)
  */
-export default function ProfileCard({ title, children, onEdit, style }) {
+export default function ProfileCard({ title, children, onEdit, onRemove, onToggleCollapse, isCollapsed = false, style }) {
   return (
     // Container principal do card
     <View style={[styles.container, style]}>
@@ -29,12 +29,26 @@ export default function ProfileCard({ title, children, onEdit, style }) {
           <Text style={styles.title}>{title}</Text>
         </View>
 
-        {/* Botão de edição */}
-        {onEdit ? (
-          <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-            <Feather name="edit-2" size={18} color={COLORS.perfilIconeEditar} />
-          </TouchableOpacity>
-        ) : null}
+        {/* Botões de ação */}
+        <View style={styles.actionsWrapper}>
+          {onToggleCollapse ? (
+            <TouchableOpacity style={styles.editButton} onPress={onToggleCollapse}>
+              <Feather name={isCollapsed ? 'plus' : 'minus'} size={18} color={COLORS.perfilIconeEditar} />
+            </TouchableOpacity>
+          ) : null}
+
+          {onEdit ? (
+            <TouchableOpacity style={styles.editButton} onPress={onEdit}>
+              <Feather name="edit-2" size={18} color={COLORS.perfilIconeEditar} />
+            </TouchableOpacity>
+          ) : null}
+
+          {onRemove ? (
+            <TouchableOpacity style={styles.editButton} onPress={onRemove}>
+              <Feather name="x" size={18} color={COLORS.perfilIconeEditar} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
 
       {/* Conteúdo dinâmico do card */}

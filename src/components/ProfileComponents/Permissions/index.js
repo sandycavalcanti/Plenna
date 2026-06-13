@@ -57,7 +57,7 @@ export default function Permissions({ data }) {
 
   return (
     // Card principal de permissões
-    <ProfileCard title="Permissões" onEdit={() => {}}>
+    <ProfileCard title="Permissões" >
       {/* Permissão: Captura via e-mail */}
       <View style={styles.row}>
         <View style={styles.textContainer}>
