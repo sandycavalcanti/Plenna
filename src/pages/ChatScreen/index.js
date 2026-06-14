@@ -26,8 +26,8 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView style={styles.keyboardWrapper} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -62,7 +62,7 @@ export default function ChatScreen() {
         />
 
         {/* INPUT */}
-        <View style={[styles.composerShell]}>
+        <View style={[styles.composerShell, { paddingBottom: Math.max(insets.bottom, 8) }]}>
           <View style={styles.inputArea}>
             <TouchableOpacity style={styles.iconButton}>
               <MaterialIcons name="attach-file" size={24} color={COLORS.chatBotoesAdicionaisEnviar} />
@@ -90,7 +90,7 @@ export default function ChatScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

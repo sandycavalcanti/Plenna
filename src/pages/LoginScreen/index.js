@@ -49,22 +49,8 @@ export default function LoginScreen({ navigation }) {
   }
 
   function falhaLogin(error) {
-    ToastAndroid.show(error.response.data.message, ToastAndroid.LONG);
-  }
-
-  async function irDireto() {
-    apiClient
-      .post('/auth/login', {
-        email: 'sandy@email.com',
-        senha: 'senha123',
-      })
-      .then(async (response) => {
-        const dados = response.data;
-        const token = dados.token;
-        await tokenStorage.setToken(token);
-        handleLogin();
-      })
-      .catch((error) => logApiErrors(error, 'Erro ao fazer login'));
+    const mensagemErro = error.response?.data?.message || 'Houve um erro ao tentar fazer login';
+    ToastAndroid.show(mensagemErro, ToastAndroid.LONG);
   }
 
   return (
@@ -88,9 +74,26 @@ export default function LoginScreen({ navigation }) {
           Criar conta
         </Text>
         {devMode && (
-          <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={irDireto}>
-            Ir direto
-          </Text>
+          <>
+            <Text
+              style={[styles.texto, { color: COLORS.loginLinks }]}
+              onPress={() => {
+                email.current = 'sandy@email.com';
+                senha.current = 'senha123';
+                Login();
+              }}>
+              Ir direto
+            </Text>
+            <Text
+              style={[styles.texto, { color: COLORS.loginLinks }]}
+              onPress={() => {
+                email.current = 'semnada@email.com';
+                senha.current = 'senha123';
+                Login();
+              }}>
+              Conta com nada
+            </Text>
+          </>
         )}
       </View>
     </KeyboardAvoidingView>

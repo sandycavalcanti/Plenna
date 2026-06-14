@@ -408,6 +408,7 @@ export default function EditProfileScreen() {
                         <Text style={styles.fieldLabel}>Descrição</Text>
                         <TextInput
                           placeholder="Descrição"
+                          placeholderTextColor={'rgba(0,0,0,0.4)'}
                           value={m.meta_descricao || ''}
                           onChangeText={(t) => atualizarMeta(idx, 'meta_descricao', t)}
                           style={styles.goalDescriptionInput}
