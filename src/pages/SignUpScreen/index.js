@@ -10,6 +10,7 @@ import { valorMonetarioParaNumero } from '../../components/CustomTextInput/curre
 import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
+import { Ionicons } from '@expo/vector-icons';
 import { tokenStorage } from '../../api/tokenStorage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -29,6 +30,7 @@ export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmacaoSenha, setConfirmacaoSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const limiteGasto = useRef(0);
   const limiteTempo = useRef(0);
@@ -357,24 +359,36 @@ export default function SignUpScreen({ navigation }) {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <CustomTextInput
-            placeholder="Senha"
-            secureTextEntry
-            value={senha}
-            onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
-            errorMessage={senhaErro}
-            isValid={stepOneTouched.senha && senhaValida}
-            autoCapitalize="none"
-          />
-          <CustomTextInput
-            placeholder="Confirmação da senha"
-            secureTextEntry
-            value={confirmacaoSenha}
-            onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
-            errorMessage={confirmacaoSenhaErro}
-            isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
-            autoCapitalize="none"
-          />
+          <View style={{ width: '100%' }}>
+            <CustomTextInput
+              placeholder="Senha"
+              secureTextEntry={!mostrarSenha}
+              value={senha}
+              onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
+              errorMessage={senhaErro}
+              isValid={stepOneTouched.senha && senhaValida}
+              styleValidIcon={{ marginRight: 28 }}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
+              <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
+            </TouchableOpacity>
+          </View>
+          <View style={{ width: '100%' }}>
+            <CustomTextInput
+              placeholder="Confirmação da senha"
+              secureTextEntry={!mostrarSenha}
+              value={confirmacaoSenha}
+              onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
+              errorMessage={confirmacaoSenhaErro}
+              isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
+              styleValidIcon={{ marginRight: 28 }}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
+              <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)} activeOpacity={0.7}>
             <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>{checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}</View>
             <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
