@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { URL_API } from './constants';
+import { urlAPI } from '../constants/config';
 import { tokenStorage } from './tokenStorage';
 
 export const apiClient = axios.create({
-  baseURL: URL_API,
+  baseURL: urlAPI,
 });
 
 apiClient.interceptors.request.use(async (config) => {

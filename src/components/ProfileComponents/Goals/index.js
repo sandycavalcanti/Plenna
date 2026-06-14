@@ -14,7 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import ProfileCard from '../ProfileCard';
 import styles from './styles';
 import { apiClient } from '../../../api/client';
-import { CatchError, URL_API } from '../../../api/constants';
+import { logApiErrors } from '../../../utils/error';
 import { COLORS } from '../../../constants';
 import { formatarValorMoedaParaTela } from '../../CustomTextInput/currency';
 
@@ -39,7 +39,7 @@ export default function Goals({ metas }) {
       .then((response) => {
         setGoals((prevGoals) => prevGoals.map((goal) => (goal.meta_id === goalId ? { ...goal, meta_completado: !goal.meta_completado } : goal)));
       })
-      .catch(CatchError);
+      .catch((error) => logApiErrors(error, 'Erro ao atualizar meta'));
   }
 
   return (
@@ -47,8 +47,8 @@ export default function Goals({ metas }) {
     <ProfileCard title="Metas" onEdit={() => navigation.navigate('EditProfile', { mode: 'goals' })}>
       {goals.length === 0 ? (
         <Pressable style={styles.emptyStateContainer} onPress={() => navigation.navigate('EditProfile', { mode: 'goals' })}>
-          <Text style={styles.emptyStateTitle}>Ei, voce ainda nao tem metas!</Text>
-          <Text style={styles.emptyStateSubtitle}>Quer adicionar agora e comecar a acompanhar seus objetivos?</Text>
+          <Text style={styles.emptyStateTitle}>Ei, você ainda não tem metas!</Text>
+          <Text style={styles.emptyStateSubtitle}>Quer adicionar agora e começar a acompanhar seus objetivos?</Text>
           <Text style={styles.emptyStateAction}>Adicionar metas</Text>
         </Pressable>
       ) : (

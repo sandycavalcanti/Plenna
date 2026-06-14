@@ -5,16 +5,16 @@
  */
 
 import React, { useState } from 'react';
-import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Image } from 'react-native';
+import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import LimitSlider from '../LimitSlider';
 import ProfileCard from '../ProfileComponents/ProfileCard';
 import CustomButton from '../CustomButton';
-import { CatchError, URL_API } from '../../api/constants';
+import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants';
 import styles from './styles';
-import axios from 'axios';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomTextInput from '../CustomTextInput';
+import { apiClient } from '../../api/client';
 
 /**
  * Componente: PreferencesForm
@@ -82,12 +82,12 @@ export default function PreferencesForm({
 
   function listarCategorias() {
     setCategoriesLoading(true);
-    axios
-      .get(URL_API + '/categories')
+    apiClient
+      .get('/categories')
       .then((response) => {
         setCategories(response.data);
       })
-      .catch(CatchError)
+      .catch((error) => logApiErrors(error, 'Erro ao listar categorias'))
       .finally(() => {
         setCategoriesLoading(false);
       });
@@ -121,7 +121,7 @@ export default function PreferencesForm({
       }
       await onSalvar();
     } catch (error) {
-      CatchError(error);
+      logApiErrors(error, 'Erro ao salvar preferências');
       setSaving(false);
     }
   }
@@ -140,154 +140,164 @@ export default function PreferencesForm({
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-      <Text style={styles.titulo}>Preferências</Text>
+    <>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+        <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
+        <Text style={styles.titulo}>Preferências</Text>
 
-      {/* Cabeçalho (só aparece em modo edição) */}
-      {isEditing && (
-        <View style={styles.header}>
-          <Text style={styles.title}>Editar Preferências</Text>
-          <Text style={styles.subtitle}>Defina seus limites de gasto e preferências de compra.</Text>
-        </View>
-      )}
-
-      {/* Campos de entrada rápida */}
-      <View style={styles.borderOverlay}>
-        <View style={styles.stepTwoExtraFields}>
-          <View style={styles.stepTwoFieldCard}>
-            <Text style={styles.stepTwoFieldLabel}>Quantidade de compras por mês</Text>
-            <TextInput style={styles.stepTwoFieldInput} value={quantidadeComprasMes} onChangeText={atualizarQuantidadeComprasMes} placeholder="Ex.: 8" keyboardType="numeric" maxLength={3} />
+        {/* Cabeçalho (só aparece em modo edição) */}
+        {isEditing && (
+          <View style={styles.header}>
+            <Text style={styles.title}>Editar Preferências</Text>
+            <Text style={styles.subtitle}>Defina seus limites de gasto e preferências de compra.</Text>
           </View>
+        )}
 
-          <View style={styles.stepTwoFieldCard}>
-            <Text style={styles.stepTwoFieldLabel}>Maior valor em uma única compra</Text>
-            <CustomTextInput
-              placeholder="R$ 0,00"
-              value={String((Number(valorMaximoCompra) || 0) * 100)}
-              onChangeText={(texto) => {
-                const numero = Number(texto || 0) / 100;
-                onValorMaximoCompraChange(numero);
-              }}
-              keyboardType="numeric"
-              mask="currency"
-            />
-          </View>
-
-          <View style={styles.stepTwoFieldCard}>
-            <View style={styles.fieldHeader}>
-              <Text style={styles.stepTwoFieldLabel}>Limite mensal de gasto</Text>
-
-              <TouchableOpacity onPress={() => setMetaBloqueada(!metaBloqueada)}>
-                <MaterialCommunityIcons name={metaBloqueada ? 'lock' : 'lock-open-variant'} size={22} color={metaBloqueada ? COLORS.dadoDois : COLORS.textSecondary} />
-              </TouchableOpacity>
-            </View>
-            <CustomTextInput
-              placeholder="R$ 0,00"
-              value={formatarReaisParaTela(limiteGastoValor)}
-              onChangeText={(texto) => {
-                const numero = Number(texto.replace(/\D/g, ''));
-                atualizarLimiteMensal(numero);
-              }}
-              keyboardType="numeric"
-              mask="currency"
-            />
-          </View>
-        </View>
-        <View style={styles.budgetSummary}>
-          <Text style={styles.summaryValue}>
-            R$ {valorDistribuido.toFixed(2)} / R$ {limiteMensalAtual.toFixed(2)}
-          </Text>
-
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${Math.min(percentualDistribuido, 100)}%`,
-                },
-              ]}
-            />
-          </View>
-        </View>
-        <Text style={styles.stepTwoHelperText}>Escolha um teto mensal confortável para comprar sem pesar no bolso.</Text>
-        <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={limiteTempo} horas compact onValueChange={onLimiteTempoChange} />
-        <Text style={styles.stepTwoHelperText}>Defina um tempo diário saudável para navegar em sites de compras.</Text>
-      </View>
-
-      {/* Erro de validação */}
-      {mostrarErroStepTwo && <Text style={styles.stepTwoErrorText}>{stepTwoErro}</Text>}
-
-      {/* Botão para adicionar categorias */}
-      <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction} onPress={abrirTelinhaCategorias}>
-        <Text style={styles.segmentActionText}>Adicionar limites por segmento +</Text>
-      </TouchableOpacity>
-
-      {/* Modal de seleção de categorias */}
-      <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={fecharTelinhaCategorias}>
-        <Pressable style={styles.pressableFecharModal} onPress={fecharTelinhaCategorias}>
-          <Pressable style={styles.modalContainer} onPress={(event) => event.stopPropagation()}>
-            <Text style={styles.questionTitle}>Selecione a categoria que deseja adicionar</Text>
-            <Text style={styles.questionSubtitle}>Toque em uma categoria para definir um limite mensal específico para esse segmento.</Text>
-
-            {categoriesLoading ? (
-              <View style={styles.viewModalCarregando}>
-                <ActivityIndicator size="small" color={COLORS.cadModalCarregando} />
-              </View>
-            ) : (
-              <FlatList
-                data={categories}
-                keyExtractor={(item) => String(item.categoria_id)}
-                renderItem={({ item }) => (
-                  <TouchableOpacity activeOpacity={0.85} onPress={() => selecionarCategoria(item)} style={styles.categoriaNomeTouchable}>
-                    <Text style={styles.categoriaNome}>{item.categoria_nome}</Text>
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={<Text style={styles.avisoNenhumaCategoria}>Nenhuma categoria encontrada. Tente atualizar novamente mais tarde.</Text>}
+        {/* Campos de entrada rápida */}
+        <View style={styles.borderOverlay}>
+          <View style={styles.stepTwoExtraFields}>
+            <View style={styles.stepTwoFieldCard}>
+              <Text style={styles.stepTwoFieldLabel}>Quantidade de compras por mês</Text>
+              <TextInput
+                style={styles.stepTwoFieldInput}
+                value={quantidadeComprasMes}
+                onChangeText={atualizarQuantidadeComprasMes}
+                placeholder="Ex.: 8"
+                keyboardType="numeric"
+                maxLength={3}
+                placeholderTextColor={'rgba(0,0,0,0.4)'}
               />
-            )}
+            </View>
 
-            <TouchableOpacity activeOpacity={0.85} onPress={fecharTelinhaCategorias} style={styles.textoFecharModalTouchable}>
-              <Text style={styles.textoFecharModal}>Fechar</Text>
-            </TouchableOpacity>
+            <View style={styles.stepTwoFieldCard}>
+              <Text style={styles.stepTwoFieldLabel}>Maior valor em uma única compra</Text>
+              <CustomTextInput
+                placeholder="R$ 0,00"
+                value={String((Number(valorMaximoCompra) || 0) * 100)}
+                onChangeText={(texto) => {
+                  const numero = Number(texto || 0) / 100;
+                  onValorMaximoCompraChange(numero);
+                }}
+                keyboardType="numeric"
+                mask="currency"
+              />
+            </View>
+
+            <View style={styles.stepTwoFieldCard}>
+              <View style={styles.fieldHeader}>
+                <Text style={styles.stepTwoFieldLabel}>Limite mensal de gasto</Text>
+
+                <TouchableOpacity onPress={() => setMetaBloqueada(!metaBloqueada)}>
+                  <MaterialCommunityIcons name={metaBloqueada ? 'lock' : 'lock-open-variant'} size={22} color={metaBloqueada ? COLORS.dadoDois : COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              <CustomTextInput
+                placeholder="R$ 0,00"
+                value={formatarReaisParaTela(limiteGastoValor)}
+                onChangeText={(texto) => {
+                  const numero = Number(texto.replace(/\D/g, ''));
+                  atualizarLimiteMensal(numero);
+                }}
+                keyboardType="numeric"
+                mask="currency"
+              />
+            </View>
+          </View>
+          <View style={styles.budgetSummary}>
+            <Text style={styles.summaryValue}>
+              R$ {valorDistribuido.toFixed(2)} / R$ {limiteMensalAtual.toFixed(2)}
+            </Text>
+
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${Math.min(percentualDistribuido, 100)}%`,
+                  },
+                ]}
+              />
+            </View>
+          </View>
+          <Text style={styles.stepTwoHelperText}>Escolha um teto mensal confortável para comprar sem pesar no bolso.</Text>
+          <LimitSlider title="Limite de tempo em e-commerces" min={0} max={360} step={10} initialValue={limiteTempo} horas compact onValueChange={onLimiteTempoChange} />
+          <Text style={styles.stepTwoHelperText}>Defina um tempo diário saudável para navegar em sites de compras.</Text>
+        </View>
+
+        {/* Erro de validação */}
+        {mostrarErroStepTwo && <Text style={styles.stepTwoErrorText}>{stepTwoErro}</Text>}
+
+        {/* Botão para adicionar categorias */}
+        <TouchableOpacity activeOpacity={0.8} style={styles.segmentAction} onPress={abrirTelinhaCategorias}>
+          <Text style={styles.segmentActionText}>Adicionar limites por segmento +</Text>
+        </TouchableOpacity>
+
+        {/* Modal de seleção de categorias */}
+        <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={fecharTelinhaCategorias}>
+          <Pressable style={styles.pressableFecharModal} onPress={fecharTelinhaCategorias}>
+            <Pressable style={styles.modalContainer} onPress={(event) => event.stopPropagation()}>
+              <Text style={styles.questionTitle}>Selecione a categoria que deseja adicionar</Text>
+              <Text style={styles.questionSubtitle}>Toque em uma categoria para definir um limite mensal específico para esse segmento.</Text>
+
+              {categoriesLoading ? (
+                <View style={styles.viewModalCarregando}>
+                  <ActivityIndicator size="small" color={COLORS.cadModalCarregando} />
+                </View>
+              ) : (
+                <FlatList
+                  data={categories}
+                  keyExtractor={(item) => String(item.categoria_id)}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity activeOpacity={0.85} onPress={() => selecionarCategoria(item)} style={styles.categoriaNomeTouchable}>
+                      <Text style={styles.categoriaNome}>{item.categoria_nome}</Text>
+                    </TouchableOpacity>
+                  )}
+                  ListEmptyComponent={<Text style={styles.avisoNenhumaCategoria}>Nenhuma categoria encontrada. Tente atualizar novamente mais tarde.</Text>}
+                />
+              )}
+
+              <TouchableOpacity activeOpacity={0.85} onPress={fecharTelinhaCategorias} style={styles.textoFecharModalTouchable}>
+                <Text style={styles.textoFecharModal}>Fechar</Text>
+              </TouchableOpacity>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
 
-      {/* Categorias selecionadas */}
-      {selectedCategories.map((category) => (
-        <ProfileCard key={category.categoria_id} title={category.categoria_nome} onRemove={() => onRemoverCategoria(category.categoria_id)} style={{ width: '95%' }}>
-          <LimitSlider
-            title="Limite mensal"
-            min={0}
-            max={1000}
-            step={10}
-            valor
-            compact
-            value={category.limite}
-            onValueChange={(novoValor) => {
-              if (!metaBloqueada) {
-                onAtualizarLimiteCategoria(category.categoria_id, novoValor);
-                return;
-              }
+        {/* Categorias selecionadas */}
+        {selectedCategories.map((category) => (
+          <ProfileCard key={category.categoria_id} title={category.categoria_nome} onRemove={() => onRemoverCategoria(category.categoria_id)} style={{ width: '95%' }}>
+            <LimitSlider
+              title="Limite mensal"
+              min={0}
+              max={1000}
+              step={10}
+              valor
+              compact
+              value={category.limite}
+              onValueChange={(novoValor) => {
+                if (!metaBloqueada) {
+                  onAtualizarLimiteCategoria(category.categoria_id, novoValor);
+                  return;
+                }
 
-              const somaOutrasCategorias = selectedCategories.filter((c) => c.categoria_id !== category.categoria_id).reduce((acc, c) => acc + Number(c.limite || 0), 0);
+                const somaOutrasCategorias = selectedCategories.filter((c) => c.categoria_id !== category.categoria_id).reduce((acc, c) => acc + Number(c.limite || 0), 0);
 
-              const totalNovo = somaOutrasCategorias + novoValor;
+                const totalNovo = somaOutrasCategorias + novoValor;
 
-              if (totalNovo <= limiteMensalAtual) {
-                onAtualizarLimiteCategoria(category.categoria_id, novoValor);
-              }
-            }}
-          />
-        </ProfileCard>
-      ))}
+                if (totalNovo <= limiteMensalAtual) {
+                  onAtualizarLimiteCategoria(category.categoria_id, novoValor);
+                }
+              }}
+            />
+          </ProfileCard>
+        ))}
 
-      {/* Botões de ação */}
-      <View style={styles.actionsRow}>
-        {isEditing && onCancel && <CustomButton title="Cancelar" onPress={onCancel} style={styles.cancelButton} />}
-        <CustomButton title={saving ? 'Salvando...' : isEditing ? 'Salvar Preferências' : 'Finalizar'} onPress={handleSalvar} style={styles.submitButton} />
-      </View>
-    </ScrollView>
+        {/* Botões de ação */}
+        <View style={styles.actionsRow}>
+          {isEditing && onCancel && <CustomButton title="Cancelar" onPress={onCancel} style={styles.cancelButton} />}
+          <CustomButton title={saving ? 'Salvando...' : isEditing ? 'Salvar Preferências' : 'Finalizar'} onPress={handleSalvar} style={styles.submitButton} />
+        </View>
+      </ScrollView>
+    </>
   );
 }

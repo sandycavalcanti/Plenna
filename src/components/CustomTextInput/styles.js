@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
   validIcon: {
     position: 'absolute',
     right: 12,
-    top: 10,
+    top: 7,
     color: '#2F9E44',
     fontSize: 18,
     fontWeight: '700',

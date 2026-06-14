@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
 import { styles } from './styles';
 import { ActivityIndicator, Alert, BackHandler, FlatList, Modal, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
@@ -8,9 +7,10 @@ import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import PreferencesForm from '../../components/PreferencesForm';
 import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
-import { CatchError, URL_API } from '../../api/constants';
+import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
+import { Ionicons } from '@expo/vector-icons';
 import { tokenStorage } from '../../api/tokenStorage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -30,6 +30,7 @@ export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmacaoSenha, setConfirmacaoSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const limiteGasto = useRef(0);
   const limiteTempo = useRef(0);
@@ -200,11 +201,11 @@ export default function SignUpScreen({ navigation }) {
         Alert.alert('Campos inválidos', 'Confira os campos em vermelho.');
         return;
       }
-      await axios.get(URL_API + '/users/email/' + email.trim());
+      await apiClient.get('/users/email/' + email.trim());
       Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
       return;
     } catch (error) {
-      CatchError(error);
+      logApiErrors(error, 'Erro ao verificar email');
     }
 
     try {
@@ -213,7 +214,7 @@ export default function SignUpScreen({ navigation }) {
         email: email.trim(),
         senha,
       };
-      await axios.post(URL_API + '/auth/register', registerPayload);
+      await apiClient.post('/auth/register', registerPayload);
       const loginResponse = await apiClient.post('/auth/login', {
         email: email.trim(),
         senha,
@@ -225,18 +226,18 @@ export default function SignUpScreen({ navigation }) {
         setStep(2);
       }
     } catch (error) {
-      CatchError(error);
+      logApiErrors(error, 'Erro ao cadastrar usuário');
     }
   }
 
   function listarCategorias() {
     setCategoriesLoading(true);
-    axios
-      .get(URL_API + '/categories')
+    apiClient
+      .get('/categories')
       .then((response) => {
         setCategories(response.data);
       })
-      .catch(CatchError)
+      .catch((error) => logApiErrors(error, 'Erro ao listar categorias'))
       .finally(() => {
         setCategoriesLoading(false);
       });
@@ -301,7 +302,7 @@ export default function SignUpScreen({ navigation }) {
         }
       } catch (error) {
         // Não bloquear o fluxo principal por erro aqui, mas logar o erro
-        CatchError(error);
+        logApiErrors(error, 'Erro ao atualizar dados do usuário');
       }
 
       // Em seguida, persistir preferências por categoria (substitui existentes para evitar duplicação)
@@ -321,7 +322,7 @@ export default function SignUpScreen({ navigation }) {
         },
       ]);
     } catch (error) {
-      CatchError(error);
+      logApiErrors(error, 'Erro ao salvar metas');
     }
   }
 
@@ -332,7 +333,7 @@ export default function SignUpScreen({ navigation }) {
 
       await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
     } catch (error) {
-      CatchError(error);
+      logApiErrors(error, 'Erro ao vincular e-mail ao Google');
     }
   }
 
@@ -358,24 +359,36 @@ export default function SignUpScreen({ navigation }) {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <CustomTextInput
-            placeholder="Senha"
-            secureTextEntry
-            value={senha}
-            onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
-            errorMessage={senhaErro}
-            isValid={stepOneTouched.senha && senhaValida}
-            autoCapitalize="none"
-          />
-          <CustomTextInput
-            placeholder="Confirmação da senha"
-            secureTextEntry
-            value={confirmacaoSenha}
-            onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
-            errorMessage={confirmacaoSenhaErro}
-            isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
-            autoCapitalize="none"
-          />
+          <View style={{ width: '100%' }}>
+            <CustomTextInput
+              placeholder="Senha"
+              secureTextEntry={!mostrarSenha}
+              value={senha}
+              onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
+              errorMessage={senhaErro}
+              isValid={stepOneTouched.senha && senhaValida}
+              styleValidIcon={{ marginRight: 28 }}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
+              <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
+            </TouchableOpacity>
+          </View>
+          <View style={{ width: '100%' }}>
+            <CustomTextInput
+              placeholder="Confirmação da senha"
+              secureTextEntry={!mostrarSenha}
+              value={confirmacaoSenha}
+              onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
+              errorMessage={confirmacaoSenhaErro}
+              isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
+              styleValidIcon={{ marginRight: 28 }}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
+              <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)} activeOpacity={0.7}>
             <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>{checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}</View>
             <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
