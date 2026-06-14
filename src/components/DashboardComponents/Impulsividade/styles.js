@@ -147,4 +147,12 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.dadoDois,
   },
+
+  emptyMessage: {
+    fontSize: 14,
+    color: '#999999',
+    textAlign: 'center',
+    paddingVertical: 16,
+    fontWeight: '500',
+  },
 });

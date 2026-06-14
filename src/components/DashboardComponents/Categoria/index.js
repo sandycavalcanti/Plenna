@@ -83,7 +83,9 @@ export default function Categoria({ gastosCategoria = [] }) {
   if (categories.length === 0) {
     return (
       <View style={styles.section}>
-        <Text style={styles.emptyMessage}>Nenhuma categoria encontrada</Text>
+        <ProfileCard title="Gastos por categoria">
+          <Text style={styles.emptyMessage}>Nenhuma categoria encontrada</Text>
+        </ProfileCard>
       </View>
     );
   }
@@ -100,7 +102,6 @@ export default function Categoria({ gastosCategoria = [] }) {
 
           <View style={styles.summaryBadge}>
             <Text style={styles.summaryBadgeValue}>{topPercent}%</Text>
-
           </View>
         </View>
         <View style={styles.chartCard}>
