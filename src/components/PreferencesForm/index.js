@@ -4,7 +4,7 @@
  * Utilizado tanto no SignUp (Step 2) quanto na tela de edição de perfil.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import LimitSlider from '../LimitSlider';
 import ProfileCard from '../ProfileComponents/ProfileCard';
@@ -70,6 +70,7 @@ export default function PreferencesForm({
   const stepTwoInvalido = excessoCategorias > 0;
   const mostrarErroStepTwo = (stepTwoTouched || stepTwoAttempted) && stepTwoInvalido;
   const stepTwoErro = mostrarErroStepTwo ? `A soma dos limites por categoria não pode exceder o limite mensal.` : '';
+  const restantePermitido = limiteMensalAtual - somaCategoriasSelecionadas;
 
   function abrirTelinhaCategorias() {
     setCategoryModalVisible(true);
@@ -271,6 +272,7 @@ export default function PreferencesForm({
               min={0}
               max={1000}
               step={10}
+              maxAllowedValue={metaBloqueada ? Math.min(restantePermitido + Number(category.limite || 0), 1000) : null}
               valor
               compact
               value={category.limite}

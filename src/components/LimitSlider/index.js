@@ -9,6 +9,7 @@ export default function LimitSlider({
   min = 0,
   max = 1000,
   step = 1,
+  maxAllowedValue,
   suffix = 'R$',
   valor = false,
   horas = false,
@@ -24,6 +25,7 @@ export default function LimitSlider({
   const safeMin = Number.isFinite(min) ? min : 0;
   const safeMax = Number.isFinite(max) && max >= safeMin ? max : safeMin;
   const safeStep = Number.isFinite(step) && step > 0 ? step : 1;
+  const effectiveMax = Number.isFinite(maxAllowedValue) ? Math.min(maxAllowedValue, safeMax) : safeMax;
 
   const normalizeValue = (raw) => {
     if (!Number.isFinite(raw)) {
@@ -215,29 +217,29 @@ export default function LimitSlider({
   }, []);
 
   const handleSliderChange = useCallback(
-  (nextValue) => {
-    let parsed = nextValue;
+    (nextValue) => {
+      let parsed = nextValue;
 
-    if (!Number.isFinite(parsed)) {
-      parsed = safeMin;
-    }
+      if (!Number.isFinite(parsed)) {
+        parsed = safeMin;
+      }
 
-    parsed = Math.max(safeMin, Math.min(parsed, safeMax));
+      parsed = Math.max(safeMin, Math.min(parsed, safeMax));
 
-    if (textValue && typeof textValue === 'object') {
-      textValue.current = parsed;
-    }
+      if (textValue && typeof textValue === 'object') {
+        textValue.current = parsed;
+      }
 
-    if (!isControlled) {
-      setInternalValue(parsed);
-    }
+      if (!isControlled) {
+        setInternalValue(parsed);
+      }
 
-    if (typeof onValueChange === 'function') {
-      onValueChange(parsed);
-    }
-  },
-  [safeMin, safeMax, textValue, isControlled, onValueChange],
-);
+      if (typeof onValueChange === 'function') {
+        onValueChange(parsed);
+      }
+    },
+    [safeMin, safeMax, textValue, isControlled, onValueChange],
+  );
   return (
     <View style={[styles.container, compact && styles.containerCompact]}>
       <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
@@ -249,6 +251,7 @@ export default function LimitSlider({
           maximumValue={safeMax}
           step={safeStep}
           value={currentValue}
+          upperLimit={effectiveMax}
           onValueChange={handleSliderChange}
           minimumTrackTintColor={COLORS.limitSliderThumbEsquerda}
           maximumTrackTintColor={COLORS.limitSliderThumbDireita}
