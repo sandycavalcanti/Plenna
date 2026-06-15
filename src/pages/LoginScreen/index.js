@@ -49,8 +49,8 @@ export default function LoginScreen({ navigation }) {
   }
 
   function falhaLogin(error) {
-    const mensagemErro = error.response?.data?.message || 'Houve um erro ao tentar fazer login';
-    ToastAndroid.show(mensagemErro, ToastAndroid.LONG);
+    // const mensagemErro = error.response?.data?.message || 'Houve um erro ao tentar fazer login';
+    // ToastAndroid.show(mensagemErro, ToastAndroid.LONG);
   }
 
   return (
