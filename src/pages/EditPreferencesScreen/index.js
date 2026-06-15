@@ -90,7 +90,7 @@ export default function EditPreferencesScreen() {
     });
   }
 
-  function atualizarLimiteCategoria(categoriaId, novoValor) {
+  function atualizarLimiteCategoria(categoriaId, novoValor, metaBloqueada) {
     setSelectedCategories((prevCategories) => {
       const nextCategories = prevCategories.map((item) =>
         item.categoria_id === categoriaId
@@ -101,7 +101,9 @@ export default function EditPreferencesScreen() {
           : item,
       );
 
-      ajustarLimiteGastoParaCategorias(nextCategories);
+      if(!metaBloqueada) {
+        ajustarLimiteGastoParaCategorias(nextCategories);
+      }
 
       return nextCategories;
     });

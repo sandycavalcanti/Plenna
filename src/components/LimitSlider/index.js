@@ -25,7 +25,7 @@ export default function LimitSlider({
   const safeMin = Number.isFinite(min) ? min : 0;
   const safeMax = Number.isFinite(max) && max >= safeMin ? max : safeMin;
   const safeStep = Number.isFinite(step) && step > 0 ? step : 1;
-  const effectiveMax = Number.isFinite(maxAllowedValue) ? Math.min(maxAllowedValue, safeMax) : safeMax;
+  const limitSliderMax = Number.isFinite(maxAllowedValue) ? (maxAllowedValue >= 0 ? Math.min(maxAllowedValue, safeMax) : 0) : safeMax;
 
   const normalizeValue = (raw) => {
     if (!Number.isFinite(raw)) {
@@ -251,7 +251,7 @@ export default function LimitSlider({
           maximumValue={safeMax}
           step={safeStep}
           value={currentValue}
-          upperLimit={effectiveMax}
+          upperLimit={limitSliderMax}
           onValueChange={handleSliderChange}
           minimumTrackTintColor={COLORS.limitSliderThumbEsquerda}
           maximumTrackTintColor={COLORS.limitSliderThumbDireita}

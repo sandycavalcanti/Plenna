@@ -164,7 +164,7 @@ export default function SignUpScreen({ navigation }) {
     fecharTelinhaCategorias();
   }
 
-  function atualizarLimiteCategoria(categoriaId, novoValor) {
+  function atualizarLimiteCategoria(categoriaId, novoValor, metaBloqueada) {
     setStepTwoTouched(true);
 
     setSelectedCategories((prevCategories) => {
@@ -177,7 +177,9 @@ export default function SignUpScreen({ navigation }) {
           : item,
       );
 
-      ajustarLimiteGastoParaCategorias(nextCategories);
+      if (!metaBloqueada) {
+        ajustarLimiteGastoParaCategorias(nextCategories);
+      }
 
       return nextCategories;
     });
@@ -206,7 +208,7 @@ export default function SignUpScreen({ navigation }) {
       Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
       return;
     } catch (error) {
-      logApiErrors(error, 'Erro ao verificar email');
+      logApiErrors(error, 'Erro ao verificar email', false);
     }
 
     try {

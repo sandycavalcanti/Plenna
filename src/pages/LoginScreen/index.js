@@ -49,8 +49,8 @@ export default function LoginScreen({ navigation }) {
   }
 
   function falhaLogin(error) {
-    // const mensagemErro = error.response?.data?.message || 'Houve um erro ao tentar fazer login';
-    // ToastAndroid.show(mensagemErro, ToastAndroid.LONG);
+    const mensagemErro = error.response?.data?.message || 'Houve um erro ao tentar fazer login';
+    ToastAndroid.show(mensagemErro, ToastAndroid.LONG);
   }
 
   return (
@@ -91,7 +91,7 @@ export default function LoginScreen({ navigation }) {
                 senha.current = 'senha123';
                 Login();
               }}>
-              Conta com nada
+              Conta sem nada
             </Text>
           </>
         )}

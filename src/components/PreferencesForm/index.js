@@ -285,9 +285,7 @@ export default function PreferencesForm({
 
               const totalNovo = somaOutrasCategorias + novoValor;
 
-              if (totalNovo <= limiteMensalAtual) {
-                onAtualizarLimiteCategoria(category.categoria_id, novoValor);
-              }
+              onAtualizarLimiteCategoria(category.categoria_id, novoValor, true);
             }}
           />
         </ProfileCard>

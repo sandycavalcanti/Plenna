@@ -1,12 +1,14 @@
+import { ToastAndroid } from "react-native";
+
 // Se true, vai fazer toast de qualquer mensagem de erro da API
-const toast = true;
+const toast = false;
 
 // Função para imprimir detalhes do erro da API no console, se ativado for false, apenas erros de rede serão impressos.
 export function logApiErrors(error, texto, ativado = true) {
   if (error.response) {
     const { status, data } = error.response;
 
-    if (!ativado) {
+    if (ativado) {
       texto ? console.error(texto, status, data) : console.error(status, data);
     }
     if (toast) {
