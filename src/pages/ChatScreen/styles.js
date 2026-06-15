@@ -15,6 +15,7 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.chatContainerEnviarFundo,
     paddingHorizontal: 14,
     paddingTop: 8,
+    paddingBottom: 12,
   },
 
   header: {

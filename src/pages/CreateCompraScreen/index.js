@@ -155,7 +155,7 @@ export default function CreateCompraScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}>
+      <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
         <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.heroCard}>
             <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />

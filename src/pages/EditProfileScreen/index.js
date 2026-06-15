@@ -349,7 +349,7 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}>
+      <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
         <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.heroCard}>
             <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />

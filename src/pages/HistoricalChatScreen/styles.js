@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.fundoPrincipal,
   },
   search: {
-    paddingTop: 54,
+    paddingTop: 10,
     paddingBottom: 5,
     paddingHorizontal: 16,
     flexDirection: 'row',

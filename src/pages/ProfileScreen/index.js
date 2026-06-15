@@ -12,7 +12,7 @@ import { Alert, ScrollView, RefreshControl, Text, TouchableOpacity, View } from 
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './styles';
 // Importação dos componentes que compõem a tela de perfil
 import ProfileHeader from '../../components/ProfileComponents/ProfileHeader';
@@ -150,55 +150,56 @@ export default function ProfileScreen() {
   );
 
   return (
-    // Container com rolagem para acomodar todos os componentes
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.contentContainer, { paddingBottom: bottomSpacing }]}
-      scrollIndicatorInsets={{ bottom: bottomSpacing }}
-      onScrollBeginDrag={() => setAccountMenuVisible(false)}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dadoUm} />}>
-      <View style={styles.accountActionRow}>
-        <View style={styles.accountActionWrapper}>
-          <TouchableOpacity
-            style={[styles.accountActionButton, accountActionLoading && styles.accountActionButtonDisabled]}
-            onPress={handleAccountMenu}
-            activeOpacity={0.8}
-            disabled={accountActionLoading}>
-            <Feather name="more-vertical" size={26} color={COLORS.perfilIconeEditar} />
-          </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.contentContainer, { paddingBottom: bottomSpacing }]}
+        scrollIndicatorInsets={{ bottom: bottomSpacing }}
+        onScrollBeginDrag={() => setAccountMenuVisible(false)}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dadoUm} />}>
+        <View style={styles.accountActionRow}>
+          <View style={styles.accountActionWrapper}>
+            <TouchableOpacity
+              style={[styles.accountActionButton, accountActionLoading && styles.accountActionButtonDisabled]}
+              onPress={handleAccountMenu}
+              activeOpacity={0.8}
+              disabled={accountActionLoading}>
+              <Feather name="more-vertical" size={26} color={COLORS.perfilIconeEditar} />
+            </TouchableOpacity>
 
-          {accountMenuVisible ? (
-            <View style={styles.accountDropdown}>
-              <TouchableOpacity style={styles.accountDropdownItem} onPress={handleLogout} activeOpacity={0.8} disabled={accountActionLoading}>
-                <Feather name="log-out" size={16} color={COLORS.cadTitulo} />
-                <Text style={styles.accountDropdownText}>Sair da conta</Text>
-              </TouchableOpacity>
+            {accountMenuVisible ? (
+              <View style={styles.accountDropdown}>
+                <TouchableOpacity style={styles.accountDropdownItem} onPress={handleLogout} activeOpacity={0.8} disabled={accountActionLoading}>
+                  <Feather name="log-out" size={16} color={COLORS.cadTitulo} />
+                  <Text style={styles.accountDropdownText}>Sair da conta</Text>
+                </TouchableOpacity>
 
-              <View style={styles.accountDropdownDivider} />
+                <View style={styles.accountDropdownDivider} />
 
-              <TouchableOpacity style={styles.accountDropdownItem} onPress={handleDeleteAccount} activeOpacity={0.8} disabled={accountActionLoading}>
-                <Feather name="trash-2" size={16} color="#A31414" />
-                <Text style={[styles.accountDropdownText, styles.accountDropdownTextDanger]}>Apagar conta</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
+                <TouchableOpacity style={styles.accountDropdownItem} onPress={handleDeleteAccount} activeOpacity={0.8} disabled={accountActionLoading}>
+                  <Feather name="trash-2" size={16} color="#A31414" />
+                  <Text style={[styles.accountDropdownText, styles.accountDropdownTextDanger]}>Apagar conta</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
         </View>
-      </View>
 
-      {/* Cabeçalho do perfil */}
-      <ProfileHeader nome={nome.current} />
+        {/* Cabeçalho do perfil */}
+        <ProfileHeader nome={nome.current} />
 
-      {/* Informações pessoais do usuário */}
-      <PersonalInfo email={email.current} telefone={telefone.current} dataNascimento={dataNascimento.current} />
+        {/* Informações pessoais do usuário */}
+        <PersonalInfo email={email.current} telefone={telefone.current} dataNascimento={dataNascimento.current} />
 
-      {/* Metas financeiras */}
-      <Goals metas={metas} />
+        {/* Metas financeiras */}
+        <Goals metas={metas} />
 
-      {/* Preferências de orçamento */}
-      <BudgetPreferences gastoIdealMensal={gastoIdealMensal.current} gastoIdealCompra={gastoIdealCompra.current} preferencias={preferencias} />
+        {/* Preferências de orçamento */}
+        <BudgetPreferences gastoIdealMensal={gastoIdealMensal.current} gastoIdealCompra={gastoIdealCompra.current} preferencias={preferencias} />
 
-      {/* Configurações de permissões */}
-      <Permissions />
-    </ScrollView>
+        {/* Configurações de permissões */}
+        <Permissions />
+      </ScrollView>
+    </SafeAreaView>
   );
 }

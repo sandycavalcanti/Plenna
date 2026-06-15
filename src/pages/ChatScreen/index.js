@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Keyboard } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './styles';
 import { COLORS } from '../../constants/colors';
+import { useHeaderHeight } from '@react-navigation/elements';
 
 export default function ChatScreen() {
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
 
   const [messages, setMessages] = useState([
     { id: '1', text: 'Olá!', sender: 'user' },
@@ -25,9 +29,25 @@ export default function ChatScreen() {
     setDraftMessage('');
   }
 
+  useEffect(() => {
+    // Listener do teclado
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+  
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView style={styles.keyboardWrapper} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView style={styles.keyboardWrapper} behavior={keyboardVisible ? (Platform.OS === 'ios' ? 'padding' : 'height') : undefined}>
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -62,7 +82,7 @@ export default function ChatScreen() {
         />
 
         {/* INPUT */}
-        <View style={[styles.composerShell, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <View style={styles.composerShell}>
           <View style={styles.inputArea}>
             <TouchableOpacity style={styles.iconButton}>
               <MaterialIcons name="attach-file" size={24} color={COLORS.chatBotoesAdicionaisEnviar} />

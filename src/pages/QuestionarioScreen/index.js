@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, ScrollView, TextInput, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Image, ScrollView, TextInput, Text, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView } from 'react-native';
 import { styles } from './styles';
 import CustomButton from '../../components/CustomButton';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
 import { logApiErrors } from '../../utils/error';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
@@ -200,68 +201,72 @@ export default function QuestionarioScreen({ navigation }) {
   );
 
   return (
-    <ScrollView style={{ backgroundColor: COLORS.cadFundo }} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-      <TouchableOpacity style={styles.skipButton} onPress={() => navigation.replace('App')} activeOpacity={0.85}>
-        <Text style={styles.skipButtonText}>Pular</Text>
-      </TouchableOpacity>
-      <View style={styles.heroCard}>
-        <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-        <View style={styles.titleRow}>
-          <Text style={styles.badge}>Opcional</Text>
-        </View>
-        <Text style={styles.titulo}>Finalize seu perfil</Text>
-        <Text style={styles.subtitle}>Essas respostas ajudam a personalizar sua experiência, mas você pode continuar sem preencher agora.</Text>
-      </View>
-
-      <View style={styles.questionBlock}>
-        <Text style={styles.questionTitle}>Telefone</Text>
-        <TextInput
-          value={phoneVisual}
-          onChangeText={(texto) => setPhone(manterSomenteDigitos(texto).slice(0, 11))}
-          placeholder="(00) 00000-0000"
-          placeholderTextColor={COLORS.questionarioPlaceholder}
-          keyboardType="phone-pad"
-          style={styles.stepThreeInput}
-          maxLength={15}
-        />
-      </View>
-
-      <View style={styles.questionBlock}>
-        <Text style={styles.questionTitle}>Data de nascimento</Text>
-        <TextInput
-          value={birthDateVisual}
-          onChangeText={(texto) => setBirthDate(extrairDigitosDaData(texto))}
-          placeholder="DD/MM/AAAA"
-          placeholderTextColor={COLORS.questionarioPlaceholder}
-          keyboardType="numeric"
-          style={styles.stepThreeInput}
-          maxLength={10}
-        />
-      </View>
-
-      {renderOptionGroup('O que mais te incomoda no seu consumo digital?', discomfortOptions, digitalDiscomfort, setDigitalDiscomfort)}
-
-      {renderOptionGroup('Quanto tempo voce acha que passa no celular?', screenTimeOptions, screenTime, setScreenTime)}
-
-      {renderOptionGroup('O que mais te faz comprar ou consumir algo?', triggerOptions, consumptionTrigger, setConsumptionTrigger)}
-
-      {loading ? (
-        <ActivityIndicator size="small" color={COLORS.cadTitulo} />
-      ) : isEditing ? (
-        <View style={styles.actionsArea}>
-          <CustomButton title={saving ? 'Salvando...' : 'Salvar respostas'} style={styles.stepThreeButton} onPress={atualizarUsuario} disabled={!podeSalvar || saving} />
-          <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
-            <Text style={styles.secondaryActionText}>Deixar para depois</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
+        <ScrollView style={{ backgroundColor: COLORS.cadFundo }} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <TouchableOpacity style={styles.skipButton} onPress={() => navigation.replace('App')} activeOpacity={0.85}>
+            <Text style={styles.skipButtonText}>Pular</Text>
           </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.actionsArea}>
-          <CustomButton title="Concluir cadastro" onPress={() => navigation.replace('App')} />
-          <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
-            <Text style={styles.secondaryActionText}>Agora não</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </ScrollView>
+          <View style={styles.heroCard}>
+            <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
+            <View style={styles.titleRow}>
+              <Text style={styles.badge}>Opcional</Text>
+            </View>
+            <Text style={styles.titulo}>Finalize seu perfil</Text>
+            <Text style={styles.subtitle}>Essas respostas ajudam a personalizar sua experiência, mas você pode continuar sem preencher agora.</Text>
+          </View>
+
+          <View style={styles.questionBlock}>
+            <Text style={styles.questionTitle}>Telefone</Text>
+            <TextInput
+              value={phoneVisual}
+              onChangeText={(texto) => setPhone(manterSomenteDigitos(texto).slice(0, 11))}
+              placeholder="(00) 00000-0000"
+              placeholderTextColor={COLORS.questionarioPlaceholder}
+              keyboardType="phone-pad"
+              style={styles.stepThreeInput}
+              maxLength={15}
+            />
+          </View>
+
+          <View style={styles.questionBlock}>
+            <Text style={styles.questionTitle}>Data de nascimento</Text>
+            <TextInput
+              value={birthDateVisual}
+              onChangeText={(texto) => setBirthDate(extrairDigitosDaData(texto))}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor={COLORS.questionarioPlaceholder}
+              keyboardType="numeric"
+              style={styles.stepThreeInput}
+              maxLength={10}
+            />
+          </View>
+
+          {renderOptionGroup('O que mais te incomoda no seu consumo digital?', discomfortOptions, digitalDiscomfort, setDigitalDiscomfort)}
+
+          {renderOptionGroup('Quanto tempo voce acha que passa no celular?', screenTimeOptions, screenTime, setScreenTime)}
+
+          {renderOptionGroup('O que mais te faz comprar ou consumir algo?', triggerOptions, consumptionTrigger, setConsumptionTrigger)}
+
+          {loading ? (
+            <ActivityIndicator size="small" color={COLORS.cadTitulo} />
+          ) : isEditing ? (
+            <View style={styles.actionsArea}>
+              <CustomButton title={saving ? 'Salvando...' : 'Salvar respostas'} style={styles.stepThreeButton} onPress={atualizarUsuario} disabled={!podeSalvar || saving} />
+              <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
+                <Text style={styles.secondaryActionText}>Deixar para depois</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.actionsArea}>
+              <CustomButton title="Concluir cadastro" onPress={() => navigation.replace('App')} />
+              <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
+                <Text style={styles.secondaryActionText}>Agora não</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

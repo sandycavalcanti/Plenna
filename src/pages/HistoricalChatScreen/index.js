@@ -6,6 +6,7 @@ import CustomTextInput from '../../components/CustomTextInput';
 import ChatItem from '../../components/ChatComponents/historicalChatItem';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HistoricalChatScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -18,7 +19,7 @@ export default function HistoricalChatScreen({ navigation }) {
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.search}>
         <CustomTextInput placeholder="Pesquisar chat..." style={styles.searchInput} />
         <TouchableOpacity
@@ -36,6 +37,6 @@ export default function HistoricalChatScreen({ navigation }) {
         style={styles.lista}
         contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
       />
-    </View>
+    </SafeAreaView>
   );
 }

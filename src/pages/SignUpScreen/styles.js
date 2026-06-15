@@ -9,6 +9,19 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.cadFundo,
     paddingTop: -50,
   },
+  contentContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    paddingBottom: 40,
+  },
+  containerScroll: {
+    flex: 1,
+    width: '96%',
+    alignSelf: 'center',
+    backgroundColor: COLORS.cadFundo,
+  },
   overlay: {
     width: '85%',
     justifyContent: 'center',

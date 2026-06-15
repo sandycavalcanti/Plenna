@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Image, Text, Alert } from 'react-native';
+import { View, Image, Text, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PreferencesForm from '../../components/PreferencesForm';
@@ -194,26 +194,30 @@ export default function EditPreferencesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <PreferencesForm
-        quantidadeComprasMes={quantidadeComprasMes}
-        onQuantidadeComprasChange={setQuantidadeComprasMes}
-        valorMaximoCompra={valorMaximoCompra}
-        onValorMaximoCompraChange={setValorMaximoCompra}
-        limiteGastoValor={limiteGastoValor}
-        onLimiteGastoChange={setLimiteGastoValor}
-        limiteTempo={limiteTempo.current}
-        onLimiteTempoChange={(valor) => {
-          limiteTempo.current = valor;
-        }}
-        selectedCategories={selectedCategories}
-        onRemoverCategoria={removerCategoria}
-        onAdicionarCategoria={selecionarCategoria}
-        onAtualizarLimiteCategoria={atualizarLimiteCategoria}
-        onSalvar={salvarPreferencias}
-        onCancel={() => navigation.goBack()}
-        isEditing={true}
-        obterSomaLimitesCategorias={obterSomaLimitesCategorias}
-      />
+      <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
+        <ScrollView style={styles.containerScroll} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+          <PreferencesForm
+            quantidadeComprasMes={quantidadeComprasMes}
+            onQuantidadeComprasChange={setQuantidadeComprasMes}
+            valorMaximoCompra={valorMaximoCompra}
+            onValorMaximoCompraChange={setValorMaximoCompra}
+            limiteGastoValor={limiteGastoValor}
+            onLimiteGastoChange={setLimiteGastoValor}
+            limiteTempo={limiteTempo.current}
+            onLimiteTempoChange={(valor) => {
+              limiteTempo.current = valor;
+            }}
+            selectedCategories={selectedCategories}
+            onRemoverCategoria={removerCategoria}
+            onAdicionarCategoria={selecionarCategoria}
+            onAtualizarLimiteCategoria={atualizarLimiteCategoria}
+            onSalvar={salvarPreferencias}
+            onCancel={() => navigation.goBack()}
+            isEditing={true}
+            obterSomaLimitesCategorias={obterSomaLimitesCategorias}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

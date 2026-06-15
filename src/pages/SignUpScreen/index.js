@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { tokenStorage } from '../../api/tokenStorage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 WebBrowser.maybeCompleteAuthSession();
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
@@ -338,93 +339,95 @@ export default function SignUpScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      {step === 1 && (
-        <KeyboardAvoidingView style={styles.overlay} behavior="padding">
-          <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-          <Text style={styles.titulo}>Cadastre-se!</Text>
-          <CustomTextInput
-            placeholder="Como devemos te chamar?"
-            value={nome}
-            onChangeText={(text) => atualizarCampo(setNome, 'nome', text)}
-            errorMessage={nomeErro}
-            isValid={stepOneTouched.nome && nomeValido}
-          />
-          <CustomTextInput
-            placeholder="E-mail"
-            value={email}
-            onChangeText={(text) => atualizarCampo(setEmail, 'email', text)}
-            errorMessage={emailErro}
-            isValid={stepOneTouched.email && emailValido}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <View style={{ width: '100%' }}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
+        {step === 1 && (
+          <View style={styles.overlay}>
+            <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
+            <Text style={styles.titulo}>Cadastre-se!</Text>
             <CustomTextInput
-              placeholder="Senha"
-              secureTextEntry={!mostrarSenha}
-              value={senha}
-              onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
-              errorMessage={senhaErro}
-              isValid={stepOneTouched.senha && senhaValida}
-              styleValidIcon={{ marginRight: 28 }}
+              placeholder="Como devemos te chamar?"
+              value={nome}
+              onChangeText={(text) => atualizarCampo(setNome, 'nome', text)}
+              errorMessage={nomeErro}
+              isValid={stepOneTouched.nome && nomeValido}
+            />
+            <CustomTextInput
+              placeholder="E-mail"
+              value={email}
+              onChangeText={(text) => atualizarCampo(setEmail, 'email', text)}
+              errorMessage={emailErro}
+              isValid={stepOneTouched.email && emailValido}
+              keyboardType="email-address"
               autoCapitalize="none"
             />
-            <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
-              <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
+            <View style={{ width: '100%' }}>
+              <CustomTextInput
+                placeholder="Senha"
+                secureTextEntry={!mostrarSenha}
+                value={senha}
+                onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
+                errorMessage={senhaErro}
+                isValid={stepOneTouched.senha && senhaValida}
+                styleValidIcon={{ marginRight: 28 }}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
+                <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ width: '100%' }}>
+              <CustomTextInput
+                placeholder="Confirmação da senha"
+                secureTextEntry={!mostrarSenha}
+                value={confirmacaoSenha}
+                onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
+                errorMessage={confirmacaoSenhaErro}
+                isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
+                styleValidIcon={{ marginRight: 28 }}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
+                <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)} activeOpacity={0.7}>
+              <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>{checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}</View>
+              <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxTermos(!checkboxTermos)} activeOpacity={0.7}>
+              <View style={[styles.checkbox, checkboxTermos && styles.checkboxChecked]}>{checkboxTermos && <Text style={styles.checkboxMark}>✓</Text>}</View>
+              <Text style={styles.checkboxText}>
+                Li e concordo com os <Text style={styles.checkboxLink}>termos</Text>{' '}
+              </Text>
+            </TouchableOpacity>
+            <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
           </View>
-          <View style={{ width: '100%' }}>
-            <CustomTextInput
-              placeholder="Confirmação da senha"
-              secureTextEntry={!mostrarSenha}
-              value={confirmacaoSenha}
-              onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
-              errorMessage={confirmacaoSenhaErro}
-              isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
-              styleValidIcon={{ marginRight: 28 }}
-              autoCapitalize="none"
+        )}
+        {step === 2 && (
+          <ScrollView style={styles.containerScroll} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+            <PreferencesForm
+              quantidadeComprasMes={quantidadeComprasMes}
+              onQuantidadeComprasChange={setQuantidadeComprasMes}
+              valorMaximoCompra={valorMaximoCompra}
+              onValorMaximoCompraChange={setValorMaximoCompra}
+              limiteGastoValor={limiteGastoValor}
+              onLimiteGastoChange={setLimiteGastoValor}
+              limiteTempo={limiteTempo.current}
+              onLimiteTempoChange={(valor) => {
+                limiteTempo.current = valor;
+              }}
+              selectedCategories={selectedCategories}
+              onRemoverCategoria={removerCategoria}
+              onAdicionarCategoria={selecionarCategoria}
+              onAtualizarLimiteCategoria={atualizarLimiteCategoria}
+              onSalvar={AtualizarUsuario}
+              isEditing={false}
+              obterSomaLimitesCategorias={obterSomaLimitesCategorias}
             />
-            <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
-              <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)} activeOpacity={0.7}>
-            <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>{checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}</View>
-            <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxTermos(!checkboxTermos)} activeOpacity={0.7}>
-            <View style={[styles.checkbox, checkboxTermos && styles.checkboxChecked]}>{checkboxTermos && <Text style={styles.checkboxMark}>✓</Text>}</View>
-            <Text style={styles.checkboxText}>
-              Li e concordo com os <Text style={styles.checkboxLink}>termos</Text>{' '}
-            </Text>
-          </TouchableOpacity>
-          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
-        </KeyboardAvoidingView>
-      )}
-      {step === 2 && (
-        <View style={{ width: '100%', flex: 1 }}>
-          <PreferencesForm
-            quantidadeComprasMes={quantidadeComprasMes}
-            onQuantidadeComprasChange={setQuantidadeComprasMes}
-            valorMaximoCompra={valorMaximoCompra}
-            onValorMaximoCompraChange={setValorMaximoCompra}
-            limiteGastoValor={limiteGastoValor}
-            onLimiteGastoChange={setLimiteGastoValor}
-            limiteTempo={limiteTempo.current}
-            onLimiteTempoChange={(valor) => {
-              limiteTempo.current = valor;
-            }}
-            selectedCategories={selectedCategories}
-            onRemoverCategoria={removerCategoria}
-            onAdicionarCategoria={selecionarCategoria}
-            onAtualizarLimiteCategoria={atualizarLimiteCategoria}
-            onSalvar={AtualizarUsuario}
-            isEditing={false}
-            obterSomaLimitesCategorias={obterSomaLimitesCategorias}
-          />
-        </View>
-      )}
-    </View>
+          </ScrollView>
+        )}
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

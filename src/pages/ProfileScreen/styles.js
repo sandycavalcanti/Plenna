@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
 
   accountDropdown: {
     position: 'absolute',
-    top: 48,
+    top: 38,
     right: 0,
     minWidth: 182,
     backgroundColor: '#FFFFFF',
@@ -90,6 +90,6 @@ export const styles = StyleSheet.create({
   // Estilos aplicados ao conteúdo rolável da tela
   contentContainer: {
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
   },
 });
