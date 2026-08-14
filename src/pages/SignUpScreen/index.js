@@ -138,6 +138,22 @@ export default function SignUpScreen({ navigation }) {
     }
   }
 
+  function ajustarLimiteMensalMinimo(valorCompra, categorias) {
+  const valorMaximo = valorCompra
+    ? valorMonetarioParaNumero(valorCompra)
+    : 0;
+
+  const somaCategorias = obterSomaLimitesCategorias(categorias);
+
+  const novoLimite = Math.max(
+    Number(limiteGastoValor) || 0,
+    valorMaximo,
+    somaCategorias
+  );
+
+  setLimiteGastoValor(novoLimite);
+}
+
   function selecionarCategoria(category) {
     setStepTwoTouched(true);
 
@@ -196,43 +212,52 @@ export default function SignUpScreen({ navigation }) {
       return nextCategories;
     });
   }
+async function CadastrarUsuario() {
+  try {
+    setStepOneAttempted(true);
 
-  async function CadastrarUsuario() {
+    if (stepOneInvalido) {
+      Alert.alert('Campos inválidos', 'Confira os campos em vermelho.');
+      return;
+    }
+
     try {
-      setStepOneAttempted(true);
-      if (stepOneInvalido) {
-        Alert.alert('Campos inválidos', 'Confira os campos em vermelho.');
-        return;
-      }
       await apiClient.get('/users/email/' + email.trim());
+
       Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
       return;
     } catch (error) {
       logApiErrors(error, 'Erro ao verificar email', false);
-    }
 
-    try {
-      const registerPayload = {
-        nome: nome.trim(),
-        email: email.trim(),
-        senha,
-      };
-      await apiClient.post('/auth/register', registerPayload);
-      const loginResponse = await apiClient.post('/auth/login', {
-        email: email.trim(),
-        senha,
-      });
-      await tokenStorage.setToken(loginResponse.data.token);
-      if (checkboxAutorizacao) {
-        await vincularEmailGoogle();
-      } else {
-        setStep(2);
+      if (error.response?.status !== 404) {
+        return;
       }
-    } catch (error) {
-      logApiErrors(error, 'Erro ao cadastrar usuário');
     }
-  }
 
+    const registerPayload = {
+      nome: nome.trim(),
+      email: email.trim(),
+      senha,
+    };
+
+    await apiClient.post('/auth/register', registerPayload);
+
+    const loginResponse = await apiClient.post('/auth/login', {
+      email: email.trim(),
+      senha,
+    });
+
+    await tokenStorage.setToken(loginResponse.data.token);
+
+    if (checkboxAutorizacao) {
+      await vincularEmailGoogle();
+    } else {
+      setStep(2);
+    }
+  } catch (error) {
+    logApiErrors(error, 'Erro ao cadastrar usuário');
+  }
+}
   function listarCategorias() {
     setCategoriesLoading(true);
     apiClient
@@ -341,95 +366,138 @@ export default function SignUpScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <KeyboardAvoidingView style={styles.container} behavior="padding">
-        {step === 1 && (
-          <View style={styles.overlay}>
-            <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-            <Text style={styles.titulo}>Cadastre-se!</Text>
+  <SafeAreaView style={{ flex: 1 }}>
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      {step === 1 && (
+        <View style={styles.overlay}>
+          <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
+          <Text style={styles.titulo}>Cadastre-se!</Text>
+
+          <CustomTextInput
+            placeholder="Como devemos te chamar?"
+            value={nome}
+            onChangeText={(text) => atualizarCampo(setNome, 'nome', text)}
+            errorMessage={nomeErro}
+            isValid={stepOneTouched.nome && nomeValido}
+          />
+
+          <CustomTextInput
+            placeholder="E-mail"
+            value={email}
+            onChangeText={(text) => atualizarCampo(setEmail, 'email', text)}
+            errorMessage={emailErro}
+            isValid={stepOneTouched.email && emailValido}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <View style={{ width: '100%' }}>
             <CustomTextInput
-              placeholder="Como devemos te chamar?"
-              value={nome}
-              onChangeText={(text) => atualizarCampo(setNome, 'nome', text)}
-              errorMessage={nomeErro}
-              isValid={stepOneTouched.nome && nomeValido}
-            />
-            <CustomTextInput
-              placeholder="E-mail"
-              value={email}
-              onChangeText={(text) => atualizarCampo(setEmail, 'email', text)}
-              errorMessage={emailErro}
-              isValid={stepOneTouched.email && emailValido}
-              keyboardType="email-address"
+              placeholder="Senha"
+              secureTextEntry={!mostrarSenha}
+              value={senha}
+              onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
+              errorMessage={senhaErro}
+              isValid={stepOneTouched.senha && senhaValida}
+              styleValidIcon={{ marginRight: 28 }}
               autoCapitalize="none"
             />
-            <View style={{ width: '100%' }}>
-              <CustomTextInput
-                placeholder="Senha"
-                secureTextEntry={!mostrarSenha}
-                value={senha}
-                onChangeText={(text) => atualizarCampo(setSenha, 'senha', text)}
-                errorMessage={senhaErro}
-                isValid={stepOneTouched.senha && senhaValida}
-                styleValidIcon={{ marginRight: 28 }}
-                autoCapitalize="none"
+            <TouchableOpacity
+              style={{ position: 'absolute', right: 10, top: 8 }}
+              onPress={() => setMostrarSenha(!mostrarSenha)}
+            >
+              <Ionicons
+                name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'}
+                size={24}
+                color={COLORS.loginLinks}
               />
-              <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
-                <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
-              </TouchableOpacity>
-            </View>
-            <View style={{ width: '100%' }}>
-              <CustomTextInput
-                placeholder="Confirmação da senha"
-                secureTextEntry={!mostrarSenha}
-                value={confirmacaoSenha}
-                onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
-                errorMessage={confirmacaoSenhaErro}
-                isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
-                styleValidIcon={{ marginRight: 28 }}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
-                <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)} activeOpacity={0.7}>
-              <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>{checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}</View>
-              <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxTermos(!checkboxTermos)} activeOpacity={0.7}>
-              <View style={[styles.checkbox, checkboxTermos && styles.checkboxChecked]}>{checkboxTermos && <Text style={styles.checkboxMark}>✓</Text>}</View>
-              <Text style={styles.checkboxText}>
-                Li e concordo com os <Text style={styles.checkboxLink}>termos</Text>{' '}
-              </Text>
-            </TouchableOpacity>
-            <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
           </View>
-        )}
-        {step === 2 && (
-          <ScrollView style={styles.containerScroll} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
-            <PreferencesForm
-              quantidadeComprasMes={quantidadeComprasMes}
-              onQuantidadeComprasChange={setQuantidadeComprasMes}
-              valorMaximoCompra={valorMaximoCompra}
-              onValorMaximoCompraChange={setValorMaximoCompra}
-              limiteGastoValor={limiteGastoValor}
-              onLimiteGastoChange={setLimiteGastoValor}
-              limiteTempo={limiteTempo.current}
-              onLimiteTempoChange={(valor) => {
-                limiteTempo.current = valor;
-              }}
-              selectedCategories={selectedCategories}
-              onRemoverCategoria={removerCategoria}
-              onAdicionarCategoria={selecionarCategoria}
-              onAtualizarLimiteCategoria={atualizarLimiteCategoria}
-              onSalvar={AtualizarUsuario}
-              isEditing={false}
-              obterSomaLimitesCategorias={obterSomaLimitesCategorias}
+
+          <View style={{ width: '100%' }}>
+            <CustomTextInput
+              placeholder="Confirmação da senha"
+              secureTextEntry={!mostrarSenha}
+              value={confirmacaoSenha}
+              onChangeText={(text) => atualizarCampo(setConfirmacaoSenha, 'confirmacaoSenha', text)}
+              errorMessage={confirmacaoSenhaErro}
+              isValid={stepOneTouched.confirmacaoSenha && confirmacaoSenhaValida}
+              styleValidIcon={{ marginRight: 28 }}
+              autoCapitalize="none"
             />
-          </ScrollView>
-        )}
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+            <TouchableOpacity
+              style={{ position: 'absolute', right: 10, top: 8 }}
+              onPress={() => setMostrarSenha(!mostrarSenha)}
+            >
+              <Ionicons
+                name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'}
+                size={24}
+                color={COLORS.loginLinks}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.checkboxRow}
+            onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>
+              {checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}
+            </View>
+            <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.checkboxRow}
+            onPress={() => setCheckboxTermos(!checkboxTermos)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, checkboxTermos && styles.checkboxChecked]}>
+              {checkboxTermos && <Text style={styles.checkboxMark}>✓</Text>}
+            </View>
+            <Text style={styles.checkboxText}>
+              Li e concordo com os <Text style={styles.checkboxLink}>termos</Text>{' '}
+            </Text>
+          </TouchableOpacity>
+
+          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
+        </View>
+      )}
+
+      {step === 2 && (
+        <ScrollView
+          style={styles.containerScroll}
+          contentContainerStyle={styles.contentContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <PreferencesForm
+            quantidadeComprasMes={quantidadeComprasMes}
+            onQuantidadeComprasChange={setQuantidadeComprasMes}
+            valorMaximoCompra={valorMaximoCompra}
+            onValorMaximoCompraChange={(valor) => {
+              setValorMaximoCompra(valor);
+              ajustarLimiteMensalMinimo(valor, selectedCategories);
+            }}
+            limiteGastoValor={limiteGastoValor}
+            onLimiteGastoChange={(valor) => {
+              setLimiteGastoValor(valor);
+            }}
+            limiteTempo={limiteTempo.current}
+            onLimiteTempoChange={(valor) => {
+              limiteTempo.current = valor;
+            }}
+            selectedCategories={selectedCategories}
+            onRemoverCategoria={removerCategoria}
+            onAdicionarCategoria={selecionarCategoria}
+            onAtualizarLimiteCategoria={atualizarLimiteCategoria}
+            onSalvar={AtualizarUsuario}
+            isEditing={false}
+            obterSomaLimitesCategorias={obterSomaLimitesCategorias}
+          />
+        </ScrollView>
+      )}
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
 }

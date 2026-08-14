@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { styles } from './styles';
-import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ToastAndroid } from 'react-native';
+import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import { apiClient } from '../../api/client';
@@ -31,6 +31,11 @@ export default function LoginScreen({ navigation }) {
   const senha = useRef('');
 
   async function Login() {
+     if (!email.current || !senha.current) {
+    Alert.alert('Atenção', 'Preencha o e-mail e a senha.');
+    return;
+  }
+
     apiClient
       .post('/auth/login', {
         email: email.current,
@@ -42,15 +47,23 @@ export default function LoginScreen({ navigation }) {
         await tokenStorage.setToken(token);
         handleLogin();
       })
-      .catch((error) => {
-        logApiErrors(error, 'Erro ao fazer login');
-        falhaLogin(error);
-      });
+      .catch(CatchError);
   }
 
-  function falhaLogin(error) {
-    const mensagemErro = error.response?.data?.message || 'Houve um erro ao tentar fazer login';
-    ToastAndroid.show(mensagemErro, ToastAndroid.LONG);
+  async function irDireto() {
+    apiClient
+      .post('/auth/login', {
+        email: 'sandy@email.com',
+        senha: 'senha123',
+      })
+      .then(async (response) => {
+        const dados = response.data;
+        const token = dados.token;
+        await tokenStorage.setToken(token);
+        console.log('token: ', token);
+        handleLogin();
+      })
+      .catch(CatchError);
   }
 
   return (
