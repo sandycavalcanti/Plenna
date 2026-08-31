@@ -25,8 +25,9 @@ const triggerOptions = ['Promocao relampago', 'Anuncios', 'Influencia de pessoas
 
 const EMAIL_REGEX = /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/;
 
-export default function SignUpScreen({ navigation }) {
-  const [step, setStep] = useState(1);
+export default function SignUpScreen({ navigation, route }) {
+  const completandoOnboarding = route?.params?.completarOnboarding === true;
+  const [step, setStep] = useState(completandoOnboarding ? 2 : 1);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -84,12 +85,17 @@ export default function SignUpScreen({ navigation }) {
     }
 
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (completandoOnboarding) {
+        Alert.alert('Preferências obrigatórias', 'Finalize suas preferências para acessar o Plenna.');
+        return true;
+      }
+
       setStep(1);
       return true;
     });
 
     return () => backSubscription.remove();
-  }, [step]);
+  }, [completandoOnboarding, step]);
 
   const nomeValido = nome.trim().length >= 2;
   const emailValido = EMAIL_REGEX.test(email.trim());
