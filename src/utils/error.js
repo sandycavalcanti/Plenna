@@ -1,25 +1,20 @@
-import { ToastAndroid } from "react-native";
+import { ToastAndroid } from 'react-native';
 
-// Se true, vai fazer toast de qualquer mensagem de erro da API
+// Se true, exibe toast com mensagens de erro da API.
 const toast = false;
 
-// Função para imprimir detalhes do erro da API no console, se ativado for false, apenas erros de rede serão impressos.
+// Registra somente metadados seguros. O objeto Axios completo pode conter o JWT
+// nos headers da requisição e não deve ser escrito no console.
 export function logApiErrors(error, texto, ativado = true) {
-  if (error.response) {
-    const { status, data } = error.response;
+  const status = error?.response?.status;
+  const codigo = error?.code;
+  const mensagem = error?.response?.data?.message || error?.message || 'Erro desconhecido';
 
-    if (ativado) {
-      texto ? console.error(texto, status, data) : console.error(status, data);
-    }
-    if (toast) {
-      const mensagemErro = error.response?.data?.message || 'Houve um erro';
-      ToastAndroid.show(mensagemErro, ToastAndroid.LONG);
-    }
-  } else {
-    // Quando não há resposta do servidor, ou seja, erros de rede ou outros problemas
-    texto ? console.error(texto, error) : console.error(error);
-    if(toast) {
-      ToastAndroid.show('Erro de rede ou servidor indisponível', ToastAndroid.LONG);
-    }
+  if (ativado) {
+    console.error(texto || 'Erro de API', { status, codigo, mensagem });
+  }
+
+  if (toast) {
+    ToastAndroid.show(mensagem, ToastAndroid.LONG);
   }
 }

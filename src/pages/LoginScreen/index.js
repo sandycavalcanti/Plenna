@@ -65,7 +65,6 @@ export default function LoginScreen({ navigation }) {
         const dados = response.data;
         const token = dados.token;
         await tokenStorage.setToken(token);
-        console.log('token: ', token);
         handleLogin(dados.onboardingCompleto);
       })
       .catch((error) => {
