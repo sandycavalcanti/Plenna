@@ -12,11 +12,9 @@ import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { tokenStorage } from '../../api/tokenStorage';
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import { conectarEmail, consultarConexaoEmail } from '../../api/email';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-WebBrowser.maybeCompleteAuthSession();
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 
 const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
@@ -27,6 +25,10 @@ const EMAIL_REGEX = /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-.]*)[A-Za-z0-9_+-]@([A-Za-
 
 export default function SignUpScreen({ navigation, route }) {
   const completandoOnboarding = route?.params?.completarOnboarding === true;
+  const contaCriada = useRef(completandoOnboarding);
+  const criandoConta = useRef(false);
+  const [cadastrando, setCadastrando] = useState(false);
+  const [sessaoPronta, setSessaoPronta] = useState(completandoOnboarding);
   const [step, setStep] = useState(completandoOnboarding ? 2 : 1);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -62,30 +64,12 @@ export default function SignUpScreen({ navigation, route }) {
   const [checkboxTermos, setCheckboxTermos] = useState(false);
 
   useEffect(() => {
-    const sub = Linking.addEventListener('url', (event) => {
-      const url = event.url;
-
-      if (url.includes('oauth-success')) {
-        WebBrowser.dismissBrowser();
-        setStep(2);
-      }
-
-      if (url.includes('oauth-error')) {
-        WebBrowser.dismissBrowser();
-        Alert.alert('Erro ao conectar email');
-      }
-    });
-
-    return () => sub.remove();
-  }, []);
-
-  useEffect(() => {
     if (step !== 2) {
       return undefined;
     }
 
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (completandoOnboarding) {
+      if (completandoOnboarding || contaCriada.current) {
         Alert.alert('Preferências obrigatórias', 'Finalize suas preferências para acessar o Plenna.');
         return true;
       }
@@ -219,49 +203,45 @@ export default function SignUpScreen({ navigation, route }) {
     });
   }
 async function CadastrarUsuario() {
+  if (criandoConta.current) return;
+  setStepOneAttempted(true);
+  if (stepOneInvalido || !checkboxTermos) {
+    Alert.alert('Confira seus dados', 'Preencha os campos e aceite os termos para continuar.');
+    return;
+  }
+  criandoConta.current = true;
+  setCadastrando(true);
   try {
-    setStepOneAttempted(true);
-
-    if (stepOneInvalido) {
-      Alert.alert('Campos inválidos', 'Confira os campos em vermelho.');
-      return;
-    }
-
-    try {
-      await apiClient.get('/users/email/' + email.trim());
-
-      Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
-      return;
-    } catch (error) {
-      logApiErrors(error, 'Erro ao verificar email', false);
-
-      if (error.response?.status !== 404) {
+    if (!contaCriada.current) {
+      try {
+        await apiClient.post('/auth/register', {
+          nome: nome.trim(), email: email.trim(), senha, aceitouTermos: true,
+        });
+        contaCriada.current = true;
+      } catch (error) {
+        const semResposta = !error.response;
+        Alert.alert('Criação não confirmada', semResposta
+          ? 'Não foi possível confirmar a criação. Tente entrar para verificar e retomar, antes de cadastrar novamente.'
+          : 'Não foi possível criar a conta. Confira os dados ou entre se já possui cadastro.',
+          [{ text: 'Fechar' }, { text: 'Entrar', onPress: () => navigation.navigate('Login') }]);
         return;
       }
     }
-
-    const registerPayload = {
-      nome: nome.trim(),
-      email: email.trim(),
-      senha,
-    };
-
-    await apiClient.post('/auth/register', registerPayload);
-
-    const loginResponse = await apiClient.post('/auth/login', {
-      email: email.trim(),
-      senha,
-    });
-
-    await tokenStorage.setToken(loginResponse.data.token);
-
-    if (checkboxAutorizacao) {
-      await vincularEmailGoogle();
-    } else {
+    try {
+      const login = await apiClient.post('/auth/login', { email: email.trim(), senha });
+      await tokenStorage.setToken(login.data.token);
+      setSessaoPronta(true);
       setStep(2);
+      if (checkboxAutorizacao) {
+        Alert.alert('Conta criada', 'Você pode concluir suas preferências e conectar o Gmail quando desejar.');
+      }
+    } catch {
+      Alert.alert('Sua conta foi criada', 'Entre para continuar suas preferências. Não é necessário criar outra conta.',
+        [{ text: 'Tentar entrar novamente' }, { text: 'Entrar', onPress: () => navigation.navigate('Login') }]);
     }
-  } catch (error) {
-    logApiErrors(error, 'Erro ao cadastrar usuário');
+  } finally {
+    criandoConta.current = false;
+    setCadastrando(false);
   }
 }
   function listarCategorias() {
@@ -361,18 +341,32 @@ async function CadastrarUsuario() {
   }
 
   async function vincularEmailGoogle() {
+    if (criandoConta.current) return;
+    criandoConta.current = true;
+    setCadastrando(true);
     try {
-      const response = await apiClient.get('/email/connect');
-      const authUrl = response.data.url;
-
-      await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
-    } catch (error) {
-      logApiErrors(error, 'Erro ao vincular e-mail ao Google');
+      const resultado = await conectarEmail();
+      Alert.alert(resultado.cancelado ? 'Conexão cancelada' : 'Conexão confirmada',
+        'Sua conta está criada. Continue suas preferências ou gerencie o e-mail em Permissões.');
+    } catch {
+      try {
+        const estado = await consultarConexaoEmail();
+        Alert.alert('Estado da conexão', estado.conexaoEmail === 'conectado'
+          ? 'Gmail conectado. Sua conta foi criada.'
+          : 'Sua conta foi criada. A conexão de e-mail pode ser retomada em Permissões.');
+      } catch {
+        Alert.alert('Sua conta foi criada', 'Não foi possível confirmar a conexão. Atualize em Permissões para verificar o estado.');
+      }
+    } finally {
+      criandoConta.current = false;
+      setCadastrando(false);
     }
   }
 
   return (
   <SafeAreaView style={{ flex: 1 }}>
+    {cadastrando && <ActivityIndicator />}
+    {sessaoPronta && <CustomButton title="Conectar Gmail (opcional)" onPress={vincularEmailGoogle} disabled={cadastrando} />}
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       {step === 1 && (
         <View style={styles.overlay}>
@@ -451,7 +445,7 @@ async function CadastrarUsuario() {
             <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>
               {checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
+            <Text style={styles.checkboxText}>Quero conectar meu e-mail para importar compras (opcional, confirmado após conectar)</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -467,7 +461,7 @@ async function CadastrarUsuario() {
             </Text>
           </TouchableOpacity>
 
-          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
+          <CustomButton title={contaCriada.current ? "Entrar e continuar" : "Cadastrar"} style={styles.button} onPress={CadastrarUsuario} disabled={cadastrando} />
         </View>
       )}
 

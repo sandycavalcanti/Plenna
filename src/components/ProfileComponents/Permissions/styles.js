@@ -16,6 +16,7 @@ import { COLORS } from '../../../constants';
  * Define layout, alinhamento e estilos de texto das permissões
  */
 export default StyleSheet.create({
+  action: { color: COLORS.perfilInfoLabel, paddingVertical: 10, textDecorationLine: 'underline' },
   // Container de cada linha de permissão (texto + switch)
   row: {
     flexDirection: 'row',
@@ -52,6 +53,12 @@ export default StyleSheet.create({
     marginTop: 3,
     color: COLORS.perfilInfoValor,
     lineHeight: 16,
+  },
+
+  date: {
+    fontSize: 11,
+    marginTop: 3,
+    color: COLORS.perfilInfoValor,
   },
 
   // Mensagem de aviso sobre impacto das permissões
