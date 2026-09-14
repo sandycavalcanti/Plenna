@@ -15,7 +15,7 @@ import Impulsividade from '../../components/DashboardComponents/Impulsividade';
 import FormaPagamento from '../../components/DashboardComponents/FormaPagamento';
 import AnimatedSection from '../../components/AnimatedSection';
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { loading, setLoading, fetchTempoUso, fetchCompras, fetchUsuario, fetchGastosCategoria, fetchImpulsividade, fetchGastosFormaPagamento, fetchLimiteCompra } = useDataRefresh();
 
@@ -85,6 +85,15 @@ export default function DashboardScreen() {
         </TouchableOpacity>
 
         <View style={styles.topBarActions}>
+          {/*
+            Botão de acesso ao histórico: reutiliza exatamente o container visual
+            do filtro e apenas adiciona a navegação para a nova tela.
+          */}
+          <TouchableOpacity style={styles.iconAction} onPress={() => navigation.navigate('Purchases')}>
+            <Feather name="shopping-bag" size={28} color={COLORS.dashboardIconeBotaoCanto} />
+          </TouchableOpacity>
+
+          {/* O filtro existente permanece sem alteração de comportamento. */}
           <TouchableOpacity style={styles.iconAction} onPress={() => {}}>
             <Feather name="filter" size={28} color={COLORS.dashboardIconeBotaoCanto} />
           </TouchableOpacity>

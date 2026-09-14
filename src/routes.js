@@ -28,6 +28,7 @@ import QuestionarioScreen from './pages/QuestionarioScreen';
 import EditProfileScreen from './pages/EditProfileScreen';
 import EditPreferencesScreen from './pages/EditPreferencesScreen';
 import CreateCompraScreen from './pages/CreateCompraScreen';
+import PurchasesScreen from './pages/PurchasesScreen';
 import { COLORS } from './constants';
 
 // Configuração de deeplinks para OAuth
@@ -202,6 +203,11 @@ export default function Routes() {
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         <Stack.Screen name="EditPreferences" component={EditPreferencesScreen} />
         <Stack.Screen name="CreateCompra" component={CreateCompraScreen} />
+        {/*
+          A tela de compras fica no stack principal, como CreateCompra, para
+          ser acessada a partir da Dashboard sem criar uma nova aba inferior.
+        */}
+        <Stack.Screen name="Purchases" component={PurchasesScreen} />
         <Stack.Screen name="App" component={TabRoutes} />
       </Stack.Navigator>
     </NavigationContainer>
