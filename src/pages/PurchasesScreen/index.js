@@ -20,6 +20,9 @@ export default function PurchasesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  // Um único item pode ser excluído por vez para evitar requests concorrentes
+  // e manter o total da compra previsível durante a atualização.
+  const [deletingItemId, setDeletingItemId] = useState(null);
 
   /**
    * Busca a lista preservando a ordem definida pela API (data decrescente).
@@ -78,6 +81,32 @@ export default function PurchasesScreen() {
     }
   }, []);
 
+  /**
+   * Exclui um item individual e substitui a compra pelo payload atualizado.
+   * O novo total calculado no back-end chega junto com os itens restantes.
+   */
+  const handleDeleteItem = useCallback(async (purchase, item) => {
+    const purchaseId = purchase.compra_id;
+    const itemId = item.compra_item_id;
+    setDeletingItemId(itemId);
+
+    try {
+      // A API valida ownership, vínculo do item, último item e recalcula o total.
+      const response = await apiClient.delete(`/compras/${purchaseId}/items/${itemId}`);
+
+      // Substituímos somente a compra afetada para preservar a ordem da lista.
+      setPurchases((currentPurchases) => currentPurchases.map((currentPurchase) => (
+        currentPurchase.compra_id === purchaseId ? response.data : currentPurchase
+      )));
+    } catch (error) {
+      logApiErrors(error, 'Erro ao excluir item da compra');
+      const message = error.response?.data?.message || 'Não foi possível excluir o item. Tente novamente.';
+      Alert.alert('Erro', message);
+    } finally {
+      setDeletingItemId(null);
+    }
+  }, []);
+
   if (loading) {
     // O carregamento inicial ocupa a tela para não confundir ausência de dados
     // com uma lista realmente vazia.
@@ -126,7 +155,10 @@ export default function PurchasesScreen() {
           <PurchaseItem
             purchase={item}
             isDeleting={deletingId === item.compra_id}
+            hasItemDeleting={deletingItemId !== null}
+            isItemDeleting={deletingItemId !== null && item.tb_compra_item?.some((purchaseItem) => purchaseItem.compra_item_id === deletingItemId)}
             onDelete={handleDeletePurchase}
+            onDeleteItem={(purchaseItem) => handleDeleteItem(item, purchaseItem)}
           />
         )}
         contentContainerStyle={purchases.length === 0 ? styles.emptyListContent : styles.listContent}
