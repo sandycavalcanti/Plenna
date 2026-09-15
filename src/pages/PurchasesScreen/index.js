@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiClient } from '../../api/client';
@@ -112,6 +113,15 @@ export default function PurchasesScreen() {
     // com uma lista realmente vazia.
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerIconBox}>
+            <MaterialCommunityIcons name="shopping-outline" size={23} color={COLORS.cadTitulo} />
+          </View>
+          <View style={styles.headerTextGroup}>
+            <Text style={styles.title}>Minhas compras</Text>
+            <Text style={styles.subtitle}>Acompanhe e organize suas compras</Text>
+          </View>
+        </View>
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} />
           <Text style={styles.stateText}>Carregando compras...</Text>
@@ -125,7 +135,13 @@ export default function PurchasesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.title}>Minhas compras</Text>
+          <View style={styles.headerIconBox}>
+            <MaterialCommunityIcons name="shopping-outline" size={23} color={COLORS.cadTitulo} />
+          </View>
+          <View style={styles.headerTextGroup}>
+            <Text style={styles.title}>Minhas compras</Text>
+            <Text style={styles.subtitle}>Acompanhe e organize suas compras</Text>
+          </View>
         </View>
         <View style={styles.stateContainer}>
           <Text style={styles.stateText}>{errorMessage}</Text>
@@ -141,7 +157,14 @@ export default function PurchasesScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Cabeçalho simples, alinhado ao padrão de telas com título do app. */}
       <View style={styles.header}>
-        <Text style={styles.title}>Minhas compras</Text>
+        {/* O cabeçalho usa composição leve, sem uma faixa colorida pesada. */}
+        <View style={styles.headerIconBox}>
+          <MaterialCommunityIcons name="shopping-outline" size={23} color={COLORS.cadTitulo} />
+        </View>
+        <View style={styles.headerTextGroup}>
+          <Text style={styles.title}>Minhas compras</Text>
+          <Text style={styles.subtitle}>Acompanhe e organize suas compras</Text>
+        </View>
       </View>
 
       {/*

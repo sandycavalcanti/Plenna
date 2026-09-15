@@ -7,7 +7,8 @@ export const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.2)',
+    // A borda sutil deixa a sombra fazer a separação principal entre os cards.
+    borderColor: 'rgba(131, 111, 226, 0.12)',
     borderRadius: 20,
     padding: 16,
     marginBottom: 14,
@@ -51,26 +52,37 @@ export const styles = StyleSheet.create({
     marginTop: 13,
   },
   statusBadge: {
-    backgroundColor: '#E3E0F4',
+    // O status usa um tom positivo/lilás, separado visualmente da classificação.
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   statusBadgeText: {
-    color: COLORS.cadTitulo,
+    color: COLORS.perfilProfileCardTitulo,
     fontSize: 12,
     fontWeight: '700',
   },
   classificationBadge: {
-    backgroundColor: '#F4E3EC',
+    // A classificação padrão usa o lilás suave da identidade do aplicativo.
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   classificationBadgeText: {
-    color: '#8F5577',
+    color: COLORS.cadTitulo,
     fontSize: 12,
     fontWeight: '700',
+  },
+  impulsiveBadge: {
+    // A classificação impulsiva ganha um alerta rosado mais quente para
+    // merecer maior atenção, sem recorrer a um vermelho agressivo.
+    backgroundColor: '#D98291',
+  },
+  impulsiveBadgeText: {
+    // Texto claro aumenta a legibilidade sobre o fundo rosado de alerta.
+    color: '#FFF7FA',
   },
   itemsSummary: {
     color: COLORS.dadoUm,
@@ -95,10 +107,20 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: '#FAF9FD',
+    // O fundo tonalizado diferencia o item do card branco sem criar outra cor.
+    backgroundColor: COLORS.cadCaixaPreferenciasFundo,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  categoryIconBox: {
+    // O fundo tonalizado mantém o ícone delicado e conectado à paleta do app.
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
   },
   itemInfo: {
     flex: 1,
@@ -128,7 +150,7 @@ export const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8EDF3',
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
   },
   purchaseActionRow: {
     alignItems: 'flex-end',
@@ -144,7 +166,9 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    backgroundColor: '#F8EDF3',
+    // A ação continua claramente destrutiva, mas usa um fundo suave para
+    // funcionar como ação secundária e não como botão principal do card.
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
   },
   purchaseDeleteText: {
     color: COLORS.cadTextoAdicionarLimites,

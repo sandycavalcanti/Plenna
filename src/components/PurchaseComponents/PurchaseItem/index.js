@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/colors';
 import { styles } from './styles';
 
@@ -32,6 +32,36 @@ function getClassificationLabel(classification) {
   };
 
   return labels[classification] || classification;
+}
+
+/**
+ * Escolhe um ícone vetorial coerente para cada categoria real do aplicativo.
+ * O helper retorna também a família para manter o componente desacoplado da
+ * decisão visual e permitir trocar a biblioteca sem alterar a renderização.
+ * Categorias novas ou desconhecidas usam uma sacola neutra como fallback.
+ */
+function getCategoryIcon(categoryName) {
+  const normalizedName = String(categoryName || '').trim().toLocaleLowerCase('pt-BR');
+  const icons = {
+    moradia: { family: MaterialCommunityIcons, name: 'home' },
+    'contas e serviços': { family: MaterialCommunityIcons, name: 'flash' },
+    transporte: { family: MaterialCommunityIcons, name: 'car' },
+    saúde: { family: MaterialCommunityIcons, name: 'medical-bag' },
+    educação: { family: MaterialCommunityIcons, name: 'book-open-variant' },
+    'restaurantes e delivery': { family: MaterialCommunityIcons, name: 'silverware-fork-knife' },
+    pets: { family: MaterialCommunityIcons, name: 'paw' },
+    'assinaturas e serviços digitais': { family: MaterialCommunityIcons, name: 'cellphone' },
+    'roupas e calçados': { family: MaterialCommunityIcons, name: 'tshirt-crew' },
+    // "palette" existe na versão instalada e representa beleza/cosméticos
+    // sem depender de um glyph inexistente que poderia renderizar "?".
+    'beleza e cosméticos': { family: MaterialCommunityIcons, name: 'palette' },
+    'eletrônicos e gadgets': { family: MaterialCommunityIcons, name: 'laptop' },
+    'hobbies e lazer': { family: MaterialCommunityIcons, name: 'gamepad-variant' },
+    presentes: { family: MaterialCommunityIcons, name: 'gift' },
+    outros: { family: MaterialCommunityIcons, name: 'shopping-bag' },
+  };
+
+  return icons[normalizedName] || { family: MaterialCommunityIcons, name: 'shopping-bag' };
 }
 
 /**
@@ -80,6 +110,20 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
   function confirmDeleteItem(item) {
     if (isDeleting || hasItemDeleting) return;
 
+    // Quando só resta um item, a exclusão precisa seguir o DELETE da compra,
+    // pois o resultado esperado é remover o card inteiro e suas métricas.
+    if (itemsCount === 1) {
+      Alert.alert(
+        'Excluir compra?',
+        'Este é o único item desta compra. Ao excluí-lo, a compra inteira também será removida. Essa ação é permanente e não poderá ser desfeita.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Excluir definitivamente', style: 'destructive', onPress: () => onDelete(purchase) },
+        ],
+      );
+      return;
+    }
+
     Alert.alert(
       'Excluir item?',
       `Tem certeza de que deseja excluir "${item.compra_item_nome}"? Essa ação é permanente e não poderá ser desfeita.`,
@@ -116,12 +160,24 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
 
       {/* Badges traduzem os enums sem alterar os dados recebidos da API. */}
       <View style={styles.badgesRow}>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusBadgeText}>{statusLabel}</Text>
-        </View>
+        {purchase.compra_status ? (
+          <View style={styles.statusBadge}>
+            <Text style={styles.statusBadgeText}>{statusLabel}</Text>
+          </View>
+        ) : null}
         {purchase.compra_classificacao ? (
-          <View style={styles.classificationBadge}>
-            <Text style={styles.classificationBadgeText}>{classificationLabel}</Text>
+          <View style={[
+            styles.classificationBadge,
+            purchase.compra_classificacao === 'IMPULSIVA' ? styles.impulsiveBadge : null,
+          ]}>
+            {/*
+              A classificação impulsiva recebe texto próprio para manter
+              contraste com o fundo rosado e chamar atenção sem agressividade.
+            */}
+            <Text style={[
+              styles.classificationBadgeText,
+              purchase.compra_classificacao === 'IMPULSIVA' ? styles.impulsiveBadgeText : null,
+            ]}>{classificationLabel}</Text>
           </View>
         ) : null}
         <Text style={styles.itemsSummary}>{itemsCount} {itemsCount === 1 ? 'item' : 'itens'}</Text>
@@ -134,9 +190,15 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
           purchase.tb_compra_item.map((item) => {
             const quantityLabel = formatQuantity(item.compra_item_quantidade);
             const categoryLabel = item.tb_categoria?.categoria_nome;
+            const categoryIcon = getCategoryIcon(categoryLabel);
+            const CategoryIcon = categoryIcon.family;
 
             return (
               <View key={String(item.compra_item_id)} style={styles.itemRow}>
+                {/* O emoji contextualiza a categoria sem criar uma informação nova. */}
+                <View style={styles.categoryIconBox}>
+                  <CategoryIcon name={categoryIcon.name} size={19} color={COLORS.cadTitulo} />
+                </View>
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName} numberOfLines={1}>{item.compra_item_nome}</Text>
                   <View style={styles.itemDetails}>
