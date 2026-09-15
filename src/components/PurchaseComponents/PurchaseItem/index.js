@@ -52,9 +52,9 @@ function getCategoryIcon(categoryName) {
     pets: { family: MaterialCommunityIcons, name: 'paw' },
     'assinaturas e serviços digitais': { family: MaterialCommunityIcons, name: 'cellphone' },
     'roupas e calçados': { family: MaterialCommunityIcons, name: 'tshirt-crew' },
-    // "palette" existe na versão instalada e representa beleza/cosméticos
-    // sem depender de um glyph inexistente que poderia renderizar "?".
-    'beleza e cosméticos': { family: MaterialCommunityIcons, name: 'palette' },
+    // "lipstick" representa diretamente maquiagem/beleza e existe na versão
+    // instalada, tornando a categoria imediatamente intuitiva para a usuária.
+    'beleza e cosméticos': { family: MaterialCommunityIcons, name: 'lipstick' },
     'eletrônicos e gadgets': { family: MaterialCommunityIcons, name: 'laptop' },
     'hobbies e lazer': { family: MaterialCommunityIcons, name: 'gamepad-variant' },
     presentes: { family: MaterialCommunityIcons, name: 'gift' },
