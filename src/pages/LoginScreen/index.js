@@ -47,7 +47,9 @@ export default function LoginScreen({ navigation }) {
         await tokenStorage.setToken(token);
         handleLogin();
       })
-      .catch(CatchError);
+      // Usa o helper existente para registrar erros sem referenciar um
+      // identificador inexistente no escopo da tela de login.
+      .catch((error) => logApiErrors(error, 'Erro ao realizar login'));
   }
 
   async function irDireto() {
@@ -63,7 +65,9 @@ export default function LoginScreen({ navigation }) {
         console.log('token: ', token);
         handleLogin();
       })
-      .catch(CatchError);
+      // O login de desenvolvimento segue o mesmo tratamento de erro do
+      // fluxo normal, mantendo o diagnóstico centralizado no utilitário atual.
+      .catch((error) => logApiErrors(error, 'Erro ao realizar login'));
   }
 
   return (
