@@ -138,6 +138,9 @@ export default function PurchasesScreen() {
           ? { ...item, ...updatedPurchase, compra_status: 'CONFIRMADA' }
           : item
       ))));
+      // O sucesso usa uma mensagem única e curta; a mudança visual da lista
+      // continua sendo a confirmação principal da operação concluída.
+      Alert.alert('Compra confirmada com sucesso!');
     } catch (error) {
       logApiErrors(error, 'Erro ao confirmar compra');
       Alert.alert('Erro', 'Não foi possível confirmar a compra. Tente novamente.');
@@ -159,6 +162,7 @@ export default function PurchasesScreen() {
       // Ignorada permanece no banco, mas sai imediatamente da única lista
       // visual porque esse status final não é uma página recuperável.
       setPurchases((currentPurchases) => currentPurchases.filter((item) => item.compra_id !== purchase.compra_id));
+      Alert.alert('Compra ignorada com sucesso!');
     } catch (error) {
       logApiErrors(error, 'Erro ao ignorar compra');
       Alert.alert('Erro', 'Não foi possível ignorar a compra. Tente novamente.');
@@ -240,7 +244,7 @@ export default function PurchasesScreen() {
 
       // Atualização otimista é evitada: só filtramos após o sucesso da API.
       setPurchases((currentPurchases) => currentPurchases.filter((item) => item.compra_id !== purchaseId));
-      Alert.alert('Compra excluída', 'A compra foi removida com sucesso.');
+      Alert.alert('Compra excluída com sucesso!');
     } catch (error) {
       logApiErrors(error, 'Erro ao excluir compra');
       Alert.alert('Erro', 'Não foi possível excluir a compra. Tente novamente.');
@@ -267,10 +271,10 @@ export default function PurchasesScreen() {
       setPurchases((currentPurchases) => currentPurchases.map((currentPurchase) => (
         currentPurchase.compra_id === purchaseId ? response.data : currentPurchase
       )));
+      Alert.alert('Item excluído com sucesso!');
     } catch (error) {
       logApiErrors(error, 'Erro ao excluir item da compra');
-      const message = error.response?.data?.message || 'Não foi possível excluir o item. Tente novamente.';
-      Alert.alert('Erro', message);
+      Alert.alert('Erro', 'Não foi possível excluir o item. Tente novamente.');
     } finally {
       setDeletingItemId(null);
     }

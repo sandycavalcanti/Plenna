@@ -115,10 +115,10 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
     if (itemsCount === 1) {
       Alert.alert(
         'Excluir compra?',
-        'Este é o único item desta compra. Ao excluí-lo, a compra inteira também será removida. Essa ação é permanente e não poderá ser desfeita.',
+        'Deseja excluir esta compra?',
         [
           { text: 'Cancelar', style: 'cancel' },
-          { text: 'Excluir definitivamente', style: 'destructive', onPress: () => onDelete(purchase) },
+          { text: 'Excluir', style: 'destructive', onPress: () => onDelete(purchase) },
         ],
       );
       return;
@@ -126,10 +126,10 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
 
     Alert.alert(
       'Excluir item?',
-      `Tem certeza de que deseja excluir "${item.compra_item_nome}"? Essa ação é permanente e não poderá ser desfeita.`,
+      'Deseja excluir este item?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Excluir definitivamente', style: 'destructive', onPress: () => onDeleteItem(item) },
+        { text: 'Excluir', style: 'destructive', onPress: () => onDeleteItem(item) },
       ],
     );
   }
@@ -141,10 +141,46 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
   function confirmDelete() {
     if (isDeleting || hasItemDeleting) return;
 
-    Alert.alert('Excluir compra?', 'Tem certeza de que deseja excluir esta compra e todos os seus itens? Essa ação é permanente e não poderá ser desfeita.', [
+    Alert.alert('Excluir compra?', 'Deseja excluir esta compra?', [
       { text: 'Cancelar', style: 'cancel' },
-        { text: 'Excluir definitivamente', style: 'destructive', onPress: () => onDelete(purchase) },
+        { text: 'Excluir', style: 'destructive', onPress: () => onDelete(purchase) },
     ]);
+  }
+
+  /**
+   * Confirmar altera o status persistido e faz a compra participar dos gastos
+   * e métricas. Por isso a API só é chamada depois de uma decisão explícita;
+   * cancelar fecha o alerta sem alterar estado local ou remoto.
+   */
+  function confirmPurchaseStatus() {
+    if (isStatusActionRunning) return;
+
+    Alert.alert(
+      'Confirmar compra?',
+      'Deseja confirmar esta compra?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Confirmar', onPress: () => onConfirm(purchase) },
+      ],
+    );
+  }
+
+  /**
+   * Ignorar também muda um estado persistido. A confirmação evita que um
+   * toque acidental retire a compra dos pendentes; cancelar não produz efeito
+   * colateral e a chamada existente só ocorre após escolher Ignorar.
+   */
+  function confirmIgnoreStatus() {
+    if (isStatusActionRunning) return;
+
+    Alert.alert(
+      'Ignorar compra?',
+      'Deseja ignorar esta compra?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Ignorar', style: 'destructive', onPress: () => onIgnore(purchase) },
+      ],
+    );
   }
 
   return (
@@ -249,11 +285,11 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
       {isPending ? <View style={styles.purchaseActionRow}>
         {isPending ? (
           <View style={styles.statusActionsGroup}>
-            <TouchableOpacity accessibilityLabel="Ignorar compra" disabled={isStatusActionRunning} onPress={() => onIgnore(purchase)} style={[styles.ignoreButton, isStatusActionRunning && styles.disabledAction]}>
+            <TouchableOpacity accessibilityLabel="Ignorar compra" disabled={isStatusActionRunning} onPress={confirmIgnoreStatus} style={[styles.ignoreButton, isStatusActionRunning && styles.disabledAction]}>
               {isStatusActionRunning && statusAction === 'ignore' ? <ActivityIndicator size="small" color="#8A5A00" /> : null}
               <Text style={styles.ignoreButtonText}>Ignorar</Text>
             </TouchableOpacity>
-            <TouchableOpacity accessibilityLabel="Confirmar compra" disabled={isStatusActionRunning} onPress={() => onConfirm(purchase)} style={[styles.confirmButton, isStatusActionRunning && styles.disabledAction]}>
+            <TouchableOpacity accessibilityLabel="Confirmar compra" disabled={isStatusActionRunning} onPress={confirmPurchaseStatus} style={[styles.confirmButton, isStatusActionRunning && styles.disabledAction]}>
               {isStatusActionRunning && statusAction === 'confirm' ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
               <Text style={styles.confirmButtonText}>Confirmar</Text>
             </TouchableOpacity>
