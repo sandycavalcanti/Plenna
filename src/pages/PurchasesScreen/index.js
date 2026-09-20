@@ -180,9 +180,23 @@ export default function PurchasesScreen() {
       // O foco apenas inicia o gate. A função loadPurchases só é disparada no
       // efeito abaixo depois que o gate informa status UNLOCKED, evitando que
       // GET /compras ou qualquer valor financeiro apareça antes da autenticação.
+      // Cada foco representa uma nova visita à área financeira. O gate só
+      // dispara GET /compras depois de uma autenticação local bem-sucedida.
       setFocusRevision((revision) => revision + 1);
       protectedAccess.beginAccess();
-    }, [protectedAccess.beginAccess]),
+
+      return () => {
+        // Ao sair, a sessão em memória é invalidada e a lista é limpa para
+        // impedir que valores financeiros permaneçam renderizáveis durante a
+        // próxima entrada. Isso não é um re-render: é o encerramento real da
+        // visita causado pela perda de foco da tela.
+        protectedAccess.cancelAccess();
+        setPurchases([]);
+        setLoading(true);
+        setErrorMessage(null);
+        setStatusActions({});
+      };
+    }, [protectedAccess.beginAccess, protectedAccess.cancelAccess]),
   );
 
   React.useEffect(() => {

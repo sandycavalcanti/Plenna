@@ -31,6 +31,10 @@ export function useProtectedAccess() {
   const [setupCompleted, setSetupCompleted] = useState(false);
   const [lifecycleRevision, setLifecycleRevision] = useState(0);
   const requestInProgress = useRef(false);
+  // Cada entrada na tela recebe um número de tentativa. Ao perder foco,
+  // invalidamos o número anterior para que uma biometria que ainda esteja
+  // retornando não consiga desbloquear uma visita já encerrada.
+  const accessAttempt = useRef(0);
   const lockoutTimer = useRef(null);
 
   const clearLockoutTimer = useCallback(() => {
@@ -45,6 +49,12 @@ export function useProtectedAccess() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'background' || nextState === 'inactive') {
+        // Background/inactive encerra a tentativa em andamento também. Assim
+        // um prompt biométrico iniciado antes da saída não pode concluir
+        // depois e desbloquear a área financeira fora da visita atual.
+        accessAttempt.current += 1;
+        requestInProgress.current = false;
+        cancelBiometricAuthentication();
         // O serviço também invalida a sessão global; este estado local é
         // atualizado para que a tela deixe de renderizar compras imediatamente.
         invalidateProtectedSession();
@@ -66,6 +76,8 @@ export function useProtectedAccess() {
 
   const beginAccess = useCallback(async ({ forceReauthentication = false } = {}) => {
     if (requestInProgress.current) return;
+    const currentAttempt = accessAttempt.current + 1;
+    accessAttempt.current = currentAttempt;
     requestInProgress.current = true;
     setErrorMessage('');
     setStatus(PROTECTED_ACCESS_STATES.CHECKING);
@@ -74,6 +86,7 @@ export function useProtectedAccess() {
       // somente para selecionar o namespace correto do SecureStore; nenhuma
       // compra é solicitada durante o gate.
       const response = await apiClient.get('/users/user');
+      if (accessAttempt.current !== currentAttempt) return;
       const currentUserId = String(response.data?.usuario_id || '');
       if (!currentUserId) throw new Error('Usuário autenticado não identificado.');
 
@@ -88,6 +101,7 @@ export function useProtectedAccess() {
       }
 
       const pinRecord = await getPinRecord(currentUserId);
+      if (accessAttempt.current !== currentAttempt) return;
       setSetupCompleted(false);
 
       if (!pinRecord) {
@@ -99,6 +113,7 @@ export function useProtectedAccess() {
 
       setStatus(PROTECTED_ACCESS_STATES.BIOMETRIC);
       const biometricResult = await authenticateWithBiometrics();
+      if (accessAttempt.current !== currentAttempt) return;
       if (biometricResult.success) {
         unlock(currentUserId);
       } else {
@@ -107,10 +122,11 @@ export function useProtectedAccess() {
         setStatus(PROTECTED_ACCESS_STATES.PIN);
       }
     } catch {
+      if (accessAttempt.current !== currentAttempt) return;
       setStatus(PROTECTED_ACCESS_STATES.ERROR);
       setErrorMessage('Não foi possível preparar a autenticação local. Tente novamente.');
     } finally {
-      requestInProgress.current = false;
+      if (accessAttempt.current === currentAttempt) requestInProgress.current = false;
     }
   }, [unlock]);
 
@@ -202,9 +218,17 @@ export function useProtectedAccess() {
   }, [userId]);
 
   const cancelAccess = useCallback(() => {
+    // Cancelar ou sair da tela invalida a visita atual. Além de bloquear a UI,
+    // o cancelamento nativo evita que um prompt biométrico antigo permaneça
+    // associado à próxima entrada em Minhas compras.
+    accessAttempt.current += 1;
+    requestInProgress.current = false;
+    cancelBiometricAuthentication();
+    invalidateProtectedSession();
     clearLockoutTimer();
     setStatus(PROTECTED_ACCESS_STATES.LOCKED);
     setErrorMessage('');
+    setLifecycleRevision((revision) => revision + 1);
   }, [clearLockoutTimer]);
 
   const usePinFallback = useCallback(async () => {
