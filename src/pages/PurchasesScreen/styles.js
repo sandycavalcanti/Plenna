@@ -54,6 +54,66 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 16,
   },
+  tabsScroll: {
+    flexGrow: 0,
+  },
+  tabsContent: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  tab: {
+    minHeight: 38,
+    minWidth: 0,
+    flex: 1,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // backgroundColor: '#EEEAF8',
+    // borderBottomWidth: 1,
+    // borderBottomColor: 'rgba(130, 111, 226, 0.79)',
+  },
+  activeTab: {
+    Color: COLORS.cadTitulo,
+  },
+  tabLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 0,
+    maxWidth: '100%',
+  },
+  tabText: {
+    color: COLORS.dadoUm,
+    fontSize: 13,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  tabCount: {
+    color: COLORS.dadoUm,
+    fontSize: 13,
+    fontWeight: '600',
+    flexShrink: 0,
+  },
+  activeTabText: {
+    color: COLORS.cadTitulo,
+  },
+  tabIndicator: {
+    // O indicador acompanha o progresso horizontal do pager por opacidade,
+    // suavizando a troca visual sem adicionar uma biblioteca de tabs.
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 0,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: COLORS.cadTitulo,
+  },
+  pagerPage: {
+    flex: 1,
+  },
   loadingState: {
     flex: 1,
     alignItems: 'center',

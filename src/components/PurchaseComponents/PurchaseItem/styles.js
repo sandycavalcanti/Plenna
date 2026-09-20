@@ -18,6 +18,11 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
+  pendingCard: {
+    // O amarelo suave destaca a decisão pendente sem tratar a compra como erro.
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(131, 111, 226, 0.18)',
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -26,6 +31,7 @@ export const styles = StyleSheet.create({
   },
   headerInfo: {
     flex: 1,
+    minWidth: 0,
     gap: 3,
   },
   establishment: {
@@ -43,6 +49,21 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'right',
+  },
+  headerValueGroup: {
+    flexDirection: 'row',
+    flexShrink: 0,
+    alignItems: 'center',
+    gap: 6,
+  },
+  purchaseDeleteIconButton: {
+    // A lixeira permanece fácil de tocar, mas não domina o card como o antigo
+    // botão textual no rodapé. Ela só é renderizada para compras confirmadas.
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    marginLeft: 3,
+    justifyContent: 'center',
   },
   badgesRow: {
     flexDirection: 'row',
@@ -63,6 +84,9 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  pendingStatusBadge: { backgroundColor: '#FBE4AE' },
+  pendingMessageRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 14 },
+  pendingMessage: { color: '#8A5A00', fontSize: 13, fontWeight: '700' },
   classificationBadge: {
     // A classificação padrão usa o lilás suave da identidade do aplicativo.
     backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
@@ -175,4 +199,10 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+  statusActionsGroup: { flexDirection: 'row', width: '100%', gap: 10, marginLeft: 0 },
+  ignoreButton: { flex: 1, minHeight: 40, paddingHorizontal: 14, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: '#FBE4AE' },
+  ignoreButtonText: { color: '#8A5A00', fontSize: 13, fontWeight: '700' },
+  confirmButton: { flex: 1, minHeight: 40, paddingHorizontal: 14, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: COLORS.cadTitulo },
+  confirmButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+  disabledAction: { opacity: 0.6 },
 });

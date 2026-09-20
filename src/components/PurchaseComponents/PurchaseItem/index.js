@@ -13,7 +13,6 @@ function getStatusLabel(status) {
   const labels = {
     AGUARDANDO_CONFIRMACAO: 'Aguardando confirmação',
     CONFIRMADA: 'Confirmada',
-    IGNORADA: 'Ignorada',
   };
 
   return labels[status] || status;
@@ -71,12 +70,13 @@ function getCategoryIcon(categoryName) {
  * e para seus itens. Assim, a apresentação não precisa conhecer a lista
  * inteira nem manipular diretamente o estado da tela.
  */
-export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, isItemDeleting, onDelete, onDeleteItem }) {
+export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, isItemDeleting, isStatusActionRunning, statusAction, onConfirm, onIgnore, onDelete, onDeleteItem }) {
   const itemsCount = Array.isArray(purchase.tb_compra_item) ? purchase.tb_compra_item.length : 0;
   const establishment = purchase.compra_fonte || 'Origem não informada';
   // Os helpers são usados somente na apresentação; o objeto recebido não é alterado.
   const statusLabel = getStatusLabel(purchase.compra_status);
   const classificationLabel = getClassificationLabel(purchase.compra_classificacao);
+  const isPending = purchase.compra_status === 'AGUARDANDO_CONFIRMACAO';
 
   /** Formata a data ISO da API sem expor o formato técnico ao usuário. */
   function formatDate(value) {
@@ -148,23 +148,34 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
   }
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, isPending ? styles.pendingCard : null]}>
       {/* Cabeçalho: estabelecimento e valor são os dois pontos de maior destaque. */}
       <View style={styles.headerRow}>
         <View style={styles.headerInfo}>
           <Text style={styles.establishment} numberOfLines={1}>{establishment}</Text>
           <Text style={styles.date}>{formatDate(purchase.compra_horario)}</Text>
         </View>
-        <Text style={styles.value}>{formatCurrency(purchase.compra_valor)}</Text>
+        <View style={styles.headerValueGroup}>
+          <Text style={styles.value}>{formatCurrency(purchase.compra_valor)}</Text>
+          {purchase.compra_status === 'CONFIRMADA' ? (
+            <TouchableOpacity
+              accessibilityLabel="Excluir compra e todos os itens"
+              disabled={isDeleting || hasItemDeleting}
+              onPress={confirmDelete}
+              style={styles.purchaseDeleteIconButton}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={COLORS.cadTextoAdicionarLimites} />
+              ) : (
+                <Feather name="trash-2" size={25} color={COLORS.cadTextoAdicionarLimites} />
+              )}
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
-
       {/* Badges traduzem os enums sem alterar os dados recebidos da API. */}
       <View style={styles.badgesRow}>
-        {purchase.compra_status ? (
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusBadgeText}>{statusLabel}</Text>
-          </View>
-        ) : null}
+
         {purchase.compra_classificacao ? (
           <View style={[
             styles.classificationBadge,
@@ -183,7 +194,10 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
         <Text style={styles.itemsSummary}>{itemsCount} {itemsCount === 1 ? 'item' : 'itens'}</Text>
       </View>
 
-      {/* Cada item fica em uma linha compacta, com categoria e ação própria. */}
+      {/*
+        Somente compras visíveis chegam a este componente: pendentes ou
+        confirmadas. A exclusão de item permanece restrita às confirmadas.
+      */}
       <View style={styles.itemsSection}>
         <Text style={styles.itemsTitle}>Itens da compra</Text>
         {Array.isArray(purchase.tb_compra_item) && purchase.tb_compra_item.length > 0 ? (
@@ -207,7 +221,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
                   </View>
                 </View>
                 <Text style={styles.itemValue}>{formatCurrency(item.compra_item_valor)}</Text>
-                <TouchableOpacity
+                {!isPending ? <TouchableOpacity
                   accessibilityLabel={`Excluir item ${item.compra_item_nome}`}
                   disabled={isDeleting || hasItemDeleting}
                   onPress={() => confirmDeleteItem(item)}
@@ -218,7 +232,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
                   ) : (
                     <Feather name="trash-2" size={17} color={COLORS.cadTextoAdicionarLimites} />
                   )}
-                </TouchableOpacity>
+                </TouchableOpacity> : null}
               </View>
             );
           })
@@ -227,22 +241,25 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
         )}
       </View>
 
-      {/* Ação da compra fica separada para não ser confundida com a do item. */}
-      <View style={styles.purchaseActionRow}>
-        <TouchableOpacity
-          accessibilityLabel="Excluir compra e todos os itens"
-          disabled={isDeleting || hasItemDeleting}
-          onPress={confirmDelete}
-          style={styles.purchaseDeleteButton}
-        >
-          {isDeleting ? (
-            <ActivityIndicator size="small" color={COLORS.cadTextoAdicionarLimites} />
-          ) : (
-            <Feather name="trash-2" size={17} color={COLORS.cadTextoAdicionarLimites} />
-          )}
-          <Text style={styles.purchaseDeleteText}>Excluir compra</Text>
-        </TouchableOpacity>
-      </View>
+      {/*
+        Somente pendentes precisam de uma ação de status no rodapé.
+        A exclusão da compra confirmada fica no cabeçalho para reduzir a altura
+        do card sem remover a confirmação nem o soft delete existente.
+      */}
+      {isPending ? <View style={styles.purchaseActionRow}>
+        {isPending ? (
+          <View style={styles.statusActionsGroup}>
+            <TouchableOpacity accessibilityLabel="Ignorar compra" disabled={isStatusActionRunning} onPress={() => onIgnore(purchase)} style={[styles.ignoreButton, isStatusActionRunning && styles.disabledAction]}>
+              {isStatusActionRunning && statusAction === 'ignore' ? <ActivityIndicator size="small" color="#8A5A00" /> : null}
+              <Text style={styles.ignoreButtonText}>Ignorar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityLabel="Confirmar compra" disabled={isStatusActionRunning} onPress={() => onConfirm(purchase)} style={[styles.confirmButton, isStatusActionRunning && styles.disabledAction]}>
+              {isStatusActionRunning && statusAction === 'confirm' ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
+              <Text style={styles.confirmButtonText}>Confirmar</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </View> : null}
     </View>
   );
 }
