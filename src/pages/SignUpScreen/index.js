@@ -11,6 +11,7 @@ import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
 import { Ionicons } from '@expo/vector-icons';
+import { invalidateProtectedSession } from '../../services/security/protectedSession';
 import { tokenStorage } from '../../api/tokenStorage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -248,6 +249,9 @@ async function CadastrarUsuario() {
     });
 
     await tokenStorage.setToken(loginResponse.data.token);
+    // O cadastro também inicia uma nova sessão de usuário e não pode herdar
+    // uma área de compras desbloqueada anteriormente neste processo.
+    invalidateProtectedSession();
 
     if (checkboxAutorizacao) {
       await vincularEmailGoogle();

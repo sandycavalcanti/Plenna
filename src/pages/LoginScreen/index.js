@@ -9,6 +9,7 @@ import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants/colors';
 import { devMode } from '../../constants/config';
 import { Ionicons } from '@expo/vector-icons';
+import { invalidateProtectedSession } from '../../services/security/protectedSession';
 
 // Tela de Login
 // Após clicar em "Login", o usuário é direcionado para a área principal (Tabs)
@@ -45,6 +46,9 @@ export default function LoginScreen({ navigation }) {
         const dados = response.data;
         const token = dados.token;
         await tokenStorage.setToken(token);
+        // Um novo login começa sempre sem herdar o desbloqueio local de outra
+        // conta, mesmo que o SecureStore mantenha PINs de usuários anteriores.
+        invalidateProtectedSession();
         handleLogin();
       })
       // Usa o helper existente para registrar erros sem referenciar um
@@ -62,7 +66,10 @@ export default function LoginScreen({ navigation }) {
         const dados = response.data;
         const token = dados.token;
         await tokenStorage.setToken(token);
-        console.log('token: ', token);
+        // O login de desenvolvimento também pode trocar a conta ativa. Por
+        // isso invalidamos a sessão local de compras sem registrar o JWT ou
+        // qualquer outro segredo no console.
+        invalidateProtectedSession();
         handleLogin();
       })
       // O login de desenvolvimento segue o mesmo tratamento de erro do

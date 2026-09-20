@@ -1,13 +1,15 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiClient } from '../../api/client';
 import { logApiErrors } from '../../utils/error';
 import PurchaseItem from '../../components/PurchaseComponents/PurchaseItem';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles';
+import PinModal from '../../components/SecurityComponents/PinModal';
+import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
 
 /**
  * Tela que apresenta todas as compras retornadas para o usuário autenticado.
@@ -15,6 +17,8 @@ import { styles } from './styles';
  * adiciona o token existente em todas as requisições.
  */
 export default function PurchasesScreen() {
+  const isFocused = useIsFocused();
+  const protectedAccess = useProtectedAccess();
   // Estes estados distinguem carregamento inicial, erro, lista e exclusão.
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +28,7 @@ export default function PurchasesScreen() {
   // Um único item pode ser excluído por vez para evitar requests concorrentes
   // e manter o total da compra previsível durante a atualização.
   const [deletingItemId, setDeletingItemId] = useState(null);
+  const [focusRevision, setFocusRevision] = useState(0);
 
   /**
    * Busca a lista preservando a ordem definida pela API (data decrescente).
@@ -54,14 +59,44 @@ export default function PurchasesScreen() {
    */
   useFocusEffect(
     useCallback(() => {
-      loadPurchases();
-    }, [loadPurchases]),
+      // O foco apenas inicia o gate. A função loadPurchases só é disparada no
+      // efeito abaixo depois que o gate informa status UNLOCKED, evitando que
+      // GET /compras ou qualquer valor financeiro apareça antes da autenticação.
+      setFocusRevision((revision) => revision + 1);
+      protectedAccess.beginAccess();
+    }, [protectedAccess.beginAccess]),
   );
+
+  React.useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && isFocused) {
+        // O AppState já invalidou a sessão ao entrar em background/inactive;
+        // ao retornar com Purchases em foco, o gate precisa reabrir antes de
+        // qualquer nova chamada financeira.
+        protectedAccess.beginAccess();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [isFocused, protectedAccess.beginAccess]);
+
+  React.useEffect(() => {
+    if (!isFocused || protectedAccess.status !== PROTECTED_ACCESS_STATES.UNLOCKED) return;
+
+    // O request financeiro está deliberadamente atrás desta condição. O JWT
+    // continua sendo usado normalmente pela API, mas não substitui a camada
+    // local que protege a tela contra alguém com o aparelho desbloqueado.
+    loadPurchases();
+  }, [focusRevision, isFocused, loadPurchases, protectedAccess.lifecycleRevision, protectedAccess.status]);
 
   /**
    * Executa a exclusão somente depois de o back-end confirmar o DELETE 204.
    * A remoção local ocorre depois da resposta para não esconder uma compra
    * quando a operação falhar.
+   *
+   * Este hook precisa estar antes dos returns de segurança. A tela renderiza
+   * primeiro o gate e só depois a lista, mas a ordem dos hooks deve permanecer
+   * igual nos dois estados.
    */
   const handleDeletePurchase = useCallback(async (purchase) => {
     const purchaseId = purchase.compra_id;
@@ -85,6 +120,7 @@ export default function PurchasesScreen() {
   /**
    * Exclui um item individual e substitui a compra pelo payload atualizado.
    * O novo total calculado no back-end chega junto com os itens restantes.
+   * A declaração também fica incondicional para respeitar as Rules of Hooks.
    */
   const handleDeleteItem = useCallback(async (purchase, item) => {
     const purchaseId = purchase.compra_id;
@@ -107,6 +143,59 @@ export default function PurchasesScreen() {
       setDeletingItemId(null);
     }
   }, []);
+
+  function renderSecurityState() {
+    const isBusy = [PROTECTED_ACCESS_STATES.CHECKING, PROTECTED_ACCESS_STATES.BIOMETRIC].includes(protectedAccess.status);
+    const message = protectedAccess.status === PROTECTED_ACCESS_STATES.ERROR
+      ? protectedAccess.errorMessage
+      : protectedAccess.status === PROTECTED_ACCESS_STATES.BIOMETRIC
+        ? 'Confirme sua identidade no aviso do aparelho.'
+        : protectedAccess.status === PROTECTED_ACCESS_STATES.LOCKOUT
+          ? protectedAccess.errorMessage
+          : 'Suas compras ficam protegidas por uma confirmação local.';
+
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerIconBox}>
+            <MaterialCommunityIcons name="shield-lock-outline" size={23} color={COLORS.cadTitulo} />
+          </View>
+          <View style={styles.headerTextGroup}>
+            <Text style={styles.title}>Minhas compras</Text>
+            <Text style={styles.subtitle}>Confirmação necessária para continuar</Text>
+          </View>
+        </View>
+        <View style={styles.stateContainer}>
+          {isBusy ? <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /> : null}
+          <Text style={styles.stateText}>{message}</Text>
+          {protectedAccess.status === PROTECTED_ACCESS_STATES.BIOMETRIC ? (
+            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.usePinFallback}>
+              <Text style={styles.retryButtonText}>Usar PIN</Text>
+            </TouchableOpacity>
+          ) : null}
+          {protectedAccess.status === PROTECTED_ACCESS_STATES.ERROR ? (
+            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.beginAccess}>
+              <Text style={styles.retryButtonText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        <PinModal
+          visible={protectedAccess.status === PROTECTED_ACCESS_STATES.SETUP || protectedAccess.status === PROTECTED_ACCESS_STATES.PIN}
+          mode={protectedAccess.status === PROTECTED_ACCESS_STATES.SETUP ? 'setup' : 'unlock'}
+          errorMessage={protectedAccess.errorMessage}
+          onSubmit={protectedAccess.status === PROTECTED_ACCESS_STATES.SETUP ? protectedAccess.completeSetup : protectedAccess.submitPin}
+          onCancel={protectedAccess.cancelAccess}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // Enquanto qualquer autenticação está pendente, nenhum componente que
+  // renderiza compras é montado. Isso cobre navegação direta, retorno do
+  // background e abertura da tela por qualquer outro chamador.
+  if (protectedAccess.status !== PROTECTED_ACCESS_STATES.UNLOCKED) {
+    return renderSecurityState();
+  }
 
   if (loading) {
     // O carregamento inicial ocupa a tela para não confundir ausência de dados

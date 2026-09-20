@@ -31,7 +31,17 @@
     "web": {
       "favicon": "./assets/img/icon.png"
     },
-    "plugins": ["expo-font", "expo-web-browser"],
+    "plugins": [
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Permita que o Plenna confirme sua identidade para proteger suas compras."
+        }
+      ],
+      "expo-secure-store"
+    ],
     "scheme": "plenna",
     "extra": {
       "eas": {
