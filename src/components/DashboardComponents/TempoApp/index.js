@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
+import { obterJanelaDiaLocal } from '../../../utils/tempoUsoSync';
 
 function formatMinutes(totalMinutes) {
   const minutes = Math.max(0, Math.round(Number(totalMinutes) || 0));
@@ -24,17 +25,34 @@ function formatMinutes(totalMinutes) {
 export default function TempoApp({ tempoUso = [], title = 'Tempo em sites de compra' }) {
   const [expanded, setExpanded] = useState(false);
   const barAnim = useRef(new Animated.Value(0)).current;
-  const agregado = tempoUso.reduce((acc, item) => {
-    const nome = item.tempo_uso_nome || 'Desconhecido';
-    const minutos = Number(item.tempo_uso_minutos ?? 0);
+  const { dataLocal: hoje } = obterJanelaDiaLocal();
+
+const agregado = tempoUso
+  .filter((item) => item?.tempo_uso_data_local === hoje)
+  .reduce((acc, item) => {
+    const nome = item?.tempo_uso_nome;
+
+    if (!nome) return acc;
+
+    const segundos = Number(item?.tempo_uso_duracao_segundos);
+
+    const minutos =
+      Number.isFinite(segundos) && segundos > 0
+        ? segundos / 60
+        : Number(item?.tempo_uso_minutos);
+
+    if (!Number.isFinite(minutos) || minutos <= 0) {
+      return acc;
+    }
+
     acc[nome] = (acc[nome] || 0) + minutos;
+
     return acc;
   }, {});
 
-  const items = Object.entries(agregado)
-    .map(([label, value]) => ({ label, value }))
-    .sort((a, b) => b.value - a.value);
-
+const items = Object.entries(agregado)
+  .map(([label, value]) => ({ label, value }))
+  .sort((a, b) => b.value - a.value);
   const totalMinutes = items.reduce((acc, item) => acc + item.value, 0);
   const topItem = items[0];
   const displayedItems = expanded ? items : items.slice(0, 3);
@@ -77,7 +95,7 @@ export default function TempoApp({ tempoUso = [], title = 'Tempo em sites de com
 
           <View style={styles.summaryBadge}>
             <MaterialCommunityIcons name="clock-outline" size={22} color={COLORS.dashboardBoxMaiorTempoBorda} />
-            <Text style={styles.summaryBadgeText}>{formatMinutes(totalMinutes)}</Text>
+            <Text style={styles.summaryBadgeText}>{formatMinutes(topItem?.value)}</Text>
           </View>
         </View>
 

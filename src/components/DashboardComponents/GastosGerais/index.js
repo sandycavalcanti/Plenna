@@ -3,8 +3,57 @@ import { View, Text, ScrollView, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
+import { obterJanelaDiaLocal } from '../../../utils/tempoUsoSync';
 
-export default function GastosTotais({ compras = [], meta = 0, monthTitle = 'Resumo do mês' }) {
+export default function GastosTotais({
+  compras = [],
+  meta = 0,
+  tempoUso = [],
+  monthTitle = 'Resumo do mês',
+})  {
+  const { dataLocal: hoje } = obterJanelaDiaLocal();
+
+  const registrosHoje = tempoUso.filter(
+  (item) => item?.tempo_uso_data_local === hoje,
+);
+const totalSegundosHoje = registrosHoje.reduce((total, item) => {
+const segundos = Number(item?.tempo_uso_duracao_segundos);
+
+  if (Number.isFinite(segundos) && segundos > 0) {
+    return total + segundos;
+  }
+
+  const minutos = Number(item?.tempo_uso_minutos);
+
+  if (Number.isFinite(minutos) && minutos > 0) {
+    return total + minutos * 60;
+  }
+
+  return total;
+}, 0);
+
+const formatarTempoUso = (segundos) => {
+  if (segundos <= 0) return '--';
+
+  if (segundos < 60) {
+    return `${Math.round(segundos)}s`;
+  }
+
+  const minutos = Math.floor(segundos / 60);
+
+  if (minutos < 60) {
+    return `${minutos}m`;
+  }
+
+  const horas = Math.floor(minutos / 60);
+  const minutosRestantes = minutos % 60;
+
+  return minutosRestantes > 0
+    ? `${horas}h ${minutosRestantes}m`
+    : `${horas}h`;
+};
+
+const tempoHojeFormatado = formatarTempoUso(totalSegundosHoje);
   const parsedMeta = Number(meta) || 0;
 
   const gasto = compras.reduce((acc, c) => {
@@ -124,7 +173,13 @@ export default function GastosTotais({ compras = [], meta = 0, monthTitle = 'Res
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
         <StatCard icon={statusIcone} iconColor={statusCor} label={statusTitulo} value={`R$ ${gastoFmt}`} subtitle={statusMensagem} />
         <StatCard icon="target" iconColor={COLORS.dadoTres} label="Meta" value={`R$ ${metaFmt}`} subtitle={subtituloMeta} />
-        <StatCard icon="clock-outline" iconColor={COLORS.customButtonFundo} label="Tempo em sites" value="2h 45m" subtitle="Hoje" />
+        <StatCard
+          icon="clock-outline"
+          iconColor={COLORS.customButtonFundo}
+          label="Tempo em sites"
+          value={tempoHojeFormatado}
+          subtitle={totalSegundosHoje > 0 ? 'Hoje' : 'Sem dados registrados'}
+/>
       </ScrollView>
     </View>
   );
