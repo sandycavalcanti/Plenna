@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { styles } from './styles';
-import { Text, Image, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, Image, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import { apiClient } from '../../api/client';
@@ -17,9 +17,11 @@ export default function LoginScreen({ navigation }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
   // Função chamada ao clicar no botão
-  function handleLogin() {
+  function handleLogin(onboardingCompleto = true) {
     // replace impede voltar para a tela de login
-    navigation.replace('App');
+    navigation.replace(onboardingCompleto ? 'App' : 'SignUp', {
+      completarOnboarding: !onboardingCompleto,
+    });
   }
   function handleForgotPassword() {
     navigation.navigate('ForgotPassword');
@@ -39,7 +41,7 @@ export default function LoginScreen({ navigation }) {
 
     apiClient
       .post('/auth/login', {
-        email: email.current,
+        email: email.current.trim().toLowerCase(),
         senha: senha.current,
       })
       .then(async (response) => {

@@ -10,6 +10,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+
   buttonText: {
     color: COLORS.customButtonTexto,
     fontSize: 16,

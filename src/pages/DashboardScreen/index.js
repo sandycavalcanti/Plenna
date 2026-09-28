@@ -106,7 +106,11 @@ export default function DashboardScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dashboardChipMesTexto} />}>
         <AnimatedSection delay={0}>
-          <GastosTotais compras={compras} meta={usuario?.usuario_meta_valor_mensal} />
+          <GastosTotais
+             compras={compras}
+             meta={usuario?.usuario_meta_valor_mensal}
+             tempoUso={tempoUso}
+          />
         </AnimatedSection>
 
         <AnimatedSection delay={100}>
