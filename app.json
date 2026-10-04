@@ -35,6 +35,12 @@
       "expo-font",
       "expo-web-browser",
       [
+        "expo-notifications",
+        {
+          "defaultChannel": "plenna-alerts"
+        }
+      ],
+      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Permita que o Plenna confirme sua identidade para proteger suas compras."

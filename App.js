@@ -8,6 +8,10 @@ import React, { useEffect } from 'react';
 import Routes from './src/routes';
 import { useFonts } from 'expo-font';
 import { subscribeToProtectedAppState } from './src/services/security/protectedSession';
+import {
+  configureForegroundNotificationHandler,
+  setupNotificationResponseHandling,
+} from './src/services/notifications/notificationService';
 
 export default function App() {
   useEffect(() => {
@@ -15,6 +19,11 @@ export default function App() {
     // protegida mesmo quando Purchases não está atualmente em foco. Assim,
     // voltar do background nunca reutiliza um desbloqueio antigo.
     return subscribeToProtectedAppState();
+  }, []);
+
+  useEffect(() => {
+    configureForegroundNotificationHandler();
+    return setupNotificationResponseHandling();
   }, []);
 
   const [fontsLoaded] = useFonts({

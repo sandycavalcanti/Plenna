@@ -27,6 +27,8 @@ import PurchasesScreen from './pages/PurchasesScreen';
 import { COLORS } from './constants';
 
 import { useTempoUsoSync } from './hooks/useTempoUsoSync';
+import { useNotificationRegistration } from './hooks/useNotificationRegistration';
+import { notificationNavigationRef } from './services/notifications/notificationNavigation';
 
 const linking = {
   prefixes: [
@@ -265,6 +267,7 @@ function CustomTabBar({
 
 function TabRoutes() {
   useTempoUsoSync();
+  useNotificationRegistration();
 
   return (
     <Tab.Navigator
@@ -301,6 +304,7 @@ function TabRoutes() {
 export default function Routes() {
   return (
     <NavigationContainer
+      ref={notificationNavigationRef}
       theme={MyTheme}
       linking={linking}
       fallback={<SplashScreen />}

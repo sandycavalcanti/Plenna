@@ -27,6 +27,7 @@ import { tokenStorage } from '../../api/tokenStorage';
 import { invalidateProtectedSession } from '../../services/security/protectedSession';
 import { useProtectedAccess } from '../../hooks/useProtectedAccess';
 import PinModal from '../../components/SecurityComponents/PinModal';
+import { disableRegisteredDevice } from '../../services/notifications/notificationService';
 
 /**
  * Componente: ProfileScreen
@@ -78,6 +79,7 @@ export default function ProfileScreen() {
     setAccountActionLoading(true);
 
     try {
+      await disableRegisteredDevice();
       await tokenStorage.clearToken();
       // O desbloqueio é somente da sessão corrente; logout precisa removê-lo
       // antes que outra conta possa entrar no mesmo aparelho.
@@ -103,6 +105,7 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
+            await disableRegisteredDevice();
             await apiClient.delete('/users');
             await tokenStorage.clearToken();
             invalidateProtectedSession();
