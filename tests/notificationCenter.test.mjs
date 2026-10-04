@@ -42,10 +42,36 @@ async function loadModule(relativePath, mocks = {}) {
 
 test('notificationApi usa os endpoints autenticados esperados', async () => {
   const calls = [];
+  const backendNotifications = [
+    {
+      notificacao_id: 12,
+      notificacao_tipo: 'LIMITE_MENSAL',
+      notificacao_titulo: 'Planejamento mensal',
+      notificacao_mensagem: 'Seu orçamento mensal merece atenção.',
+      compra_id: 101,
+      categoria_id: null,
+      notificacao_evento: null,
+      notificacao_lida: 0,
+      notificacao_lida_em: null,
+      notificacao_data_criacao: '2026-10-04T19:30:00.000Z',
+    },
+    {
+      notificacao_id: 11,
+      notificacao_tipo: 'SAZONAL',
+      notificacao_titulo: 'Planeje suas compras',
+      notificacao_mensagem: 'Compare opções antes de comprar.',
+      compra_id: null,
+      categoria_id: null,
+      notificacao_evento: 'BLACK_FRIDAY',
+      notificacao_lida: 1,
+      notificacao_lida_em: '2026-10-01T12:00:00.000Z',
+      notificacao_data_criacao: '2026-10-03T19:30:00.000Z',
+    },
+  ];
   const apiClient = {
     async get(url) {
       calls.push({ method: 'get', url });
-      if (url === '/notifications') return { data: [{ notificacao_id: 1 }] };
+      if (url === '/notifications') return { data: backendNotifications };
       return { data: { count: 4 } };
     },
     async patch(url) {
@@ -57,7 +83,9 @@ test('notificationApi usa os endpoints autenticados esperados', async () => {
     [new URL('src/api/client.js', root).href]: { apiClient },
   });
 
-  assert.deepEqual(await api.getNotifications(), [{ notificacao_id: 1 }]);
+  const receivedNotifications = await api.getNotifications();
+  assert.deepEqual(receivedNotifications, backendNotifications);
+  assert.deepEqual(receivedNotifications.map((item) => item.notificacao_id), [12, 11]);
   assert.equal(await api.getUnreadCount(), 4);
   assert.deepEqual(await api.markNotificationAsRead(1), {
     notificacao_id: 1,
