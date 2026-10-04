@@ -356,6 +356,11 @@ export default function Routes() {
         />
 
         <Stack.Screen
+          name="Purchases"
+          component={PurchasesScreen}
+        />
+
+        <Stack.Screen
           name="App"
           component={TabRoutes}
         />
