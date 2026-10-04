@@ -3,7 +3,7 @@ import { SUPPORTED_NOTIFICATION_TYPES } from './notificationConstants';
 
 export const notificationNavigationRef = createNavigationContainerRef();
 
-const FUTURE_NOTIFICATION_ROUTES = ['Notifications', 'NotificationCenter', 'Central'];
+const NOTIFICATION_ROUTE = 'Notifications';
 let pendingNotificationIntent = null;
 
 function normalizeNotificationId(value) {
@@ -28,7 +28,7 @@ export function extractNotificationIntent(response) {
 function availableNotificationRoute(navigation) {
   const state = navigation?.getState?.();
   const routeNames = Array.isArray(state?.routeNames) ? state.routeNames : [];
-  return FUTURE_NOTIFICATION_ROUTES.find((routeName) => routeNames.includes(routeName)) ?? null;
+  return routeNames.includes(NOTIFICATION_ROUTE) ? NOTIFICATION_ROUTE : null;
 }
 
 function navigateIfPossible(intent, navigation) {

@@ -9,12 +9,15 @@ import PurchaseHero from '../../components/PurchaseHero';
 import { COLORS } from '../../constants/colors';
 import { useDataRefresh } from '../../hooks/useDataRefresh';
 import AlertasHabito from '../../components/DashboardComponents/AlertasHabito';
+import { getUnreadCount } from '../../services/notifications/notificationApi';
+import { getUnreadBadgeLabel } from '../../services/notifications/notificationPresentation';
 
 export default function HomeScreen({ navigation }) {
   const { fetchCompras, fetchUsuario } = useDataRefresh();
   const [compras, setCompras] = useState([]);
   const [usuario, setUsuario] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const refetchAllData = useCallback(async () => {
     setRefreshing(true);
@@ -28,6 +31,14 @@ export default function HomeScreen({ navigation }) {
     }
   }, [fetchCompras, fetchUsuario]);
 
+  const refetchUnreadCount = useCallback(async () => {
+    try {
+      setUnreadCount(await getUnreadCount());
+    } catch {
+      // O sino continua funcional mesmo quando a consulta do contador falha.
+    }
+  }, []);
+
   useEffect(() => {
     refetchAllData();
   }, []);
@@ -35,8 +46,15 @@ export default function HomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       refetchAllData();
-    }, [refetchAllData]),
+      refetchUnreadCount();
+    }, [refetchAllData, refetchUnreadCount]),
   );
+
+  const openNotifications = useCallback(() => {
+    const parentNavigation = navigation.getParent?.();
+    (parentNavigation || navigation).navigate('Notifications');
+  }, [navigation]);
+  const unreadBadgeLabel = getUnreadBadgeLabel(unreadCount);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -47,9 +65,13 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.subtitle}>Vamos ter um mês mais consciente?</Text>
           </View>
 
-          <TouchableOpacity style={styles.notificationButton} onPress={() => {}} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.notificationButton} onPress={openNotifications} activeOpacity={0.8}>
             <MaterialCommunityIcons name="bell-outline" size={26} color={COLORS.dadoUm} />
-            <View style={styles.notificationDot} />
+            {unreadBadgeLabel ? (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{unreadBadgeLabel}</Text>
+              </View>
+            ) : null}
           </TouchableOpacity>
         </View>
 

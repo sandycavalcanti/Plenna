@@ -23,12 +23,13 @@ import EditProfileScreen from './pages/EditProfileScreen';
 import EditPreferencesScreen from './pages/EditPreferencesScreen';
 import CreateCompraScreen from './pages/CreateCompraScreen';
 import PurchasesScreen from './pages/PurchasesScreen';
+import NotificationsScreen from './pages/NotificationsScreen';
 
 import { COLORS } from './constants';
 
 import { useTempoUsoSync } from './hooks/useTempoUsoSync';
 import { useNotificationRegistration } from './hooks/useNotificationRegistration';
-import { notificationNavigationRef } from './services/notifications/notificationNavigation';
+import { consumePendingNotificationIntent, notificationNavigationRef } from './services/notifications/notificationNavigation';
 
 const linking = {
   prefixes: [
@@ -308,6 +309,7 @@ export default function Routes() {
       theme={MyTheme}
       linking={linking}
       fallback={<SplashScreen />}
+      onReady={() => consumePendingNotificationIntent(notificationNavigationRef)}
     >
       <Stack.Navigator
         screenOptions={{
@@ -362,6 +364,11 @@ export default function Routes() {
         <Stack.Screen
           name="Purchases"
           component={PurchasesScreen}
+        />
+
+        <Stack.Screen
+          name="Notifications"
+          component={NotificationsScreen}
         />
 
         <Stack.Screen

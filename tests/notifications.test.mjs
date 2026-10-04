@@ -506,7 +506,7 @@ test('response válida extrai somente notificationId e type esperados', async ()
   assert.equal(navigation.extractNotificationIntent({}), null);
 });
 
-test('rota ausente guarda pending intent e rota futura pode consumi-lo', async () => {
+test('rota Notifications ausente guarda pending intent e pode consumi-lo quando pronta', async () => {
   const { navigation } = await createHarness();
   const nav = {
     ready: true,
@@ -619,7 +619,7 @@ test('pending intent não é entregue duas vezes', async () => {
     navigate() {},
   };
   navigation.deliverNotificationIntent({ notificationId: 8, type: 'SAZONAL' }, nav);
-  nav.state.routeNames.push('Central');
+  nav.state.routeNames.push('Notifications');
   assert.ok(navigation.consumePendingNotificationIntent(nav));
   assert.equal(navigation.consumePendingNotificationIntent(nav), null);
 });
