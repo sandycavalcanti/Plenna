@@ -86,6 +86,12 @@ test('notificationApi usa os endpoints autenticados esperados', async () => {
   const receivedNotifications = await api.getNotifications();
   assert.deepEqual(receivedNotifications, backendNotifications);
   assert.deepEqual(receivedNotifications.map((item) => item.notificacao_id), [12, 11]);
+  const presentation = await loadModule('src/services/notifications/notificationPresentation.js');
+  const seasonal = receivedNotifications[1];
+  assert.equal(seasonal.notificacao_tipo, 'SAZONAL');
+  assert.equal(seasonal.compra_id, null);
+  assert.equal(seasonal.categoria_id, null);
+  assert.equal(presentation.getNotificationPresentation(seasonal.notificacao_tipo).label, 'Alerta sazonal');
   assert.equal(await api.getUnreadCount(), 4);
   assert.deepEqual(await api.markNotificationAsRead(1), {
     notificacao_id: 1,
@@ -115,6 +121,7 @@ test('apresentação cobre data PT-BR, tipos, fallback, badge e leitura local', 
   const presentation = await loadModule('src/services/notifications/notificationPresentation.js');
 
   assert.equal(presentation.getNotificationPresentation('LIMITE_MENSAL').label, 'Limite mensal');
+  assert.equal(presentation.getNotificationPresentation('SAZONAL').icon, 'calendar-month-outline');
   assert.equal(presentation.getNotificationPresentation('UNKNOWN').icon, 'bell-outline');
   assert.match(presentation.formatNotificationDate('2026-10-04T22:30:00Z'), /2026/);
   assert.equal(presentation.formatNotificationDate('invalid'), 'Data indisponível');
