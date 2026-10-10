@@ -38,7 +38,8 @@
       [
         "expo-notifications",
         {
-          "defaultChannel": "plenna-alerts"
+          "defaultChannel": "plenna-alerts",
+          "color": "#C97BA0"
         }
       ],
       [
