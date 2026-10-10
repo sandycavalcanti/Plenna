@@ -24,7 +24,7 @@ export function configureForegroundNotificationHandler(notifications) {
   if (foregroundHandlerConfigured) return false;
 
   runtimeNotifications.setNotificationHandler({
-    handle: async () => FOREGROUND_NOTIFICATION_BEHAVIOR,
+    handleNotification: async () => FOREGROUND_NOTIFICATION_BEHAVIOR,
   });
   foregroundHandlerConfigured = true;
   return true;

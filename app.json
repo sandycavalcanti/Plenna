@@ -21,6 +21,7 @@
         "foregroundImage": "./assets/img/adaptive-icon.png"
       },
       "package": "com.Plenna",
+      "googleServicesFile": "./google-services.json",
       "icon": "./assets/img/icon.png",
       "iconBackgroundColor": "#E6F4FE"
     },

@@ -334,6 +334,12 @@ test('projectId ausente retorna falha controlada sem crashar', async () => {
 test('Expo Go é detectado por expoGoConfig e development build não é confundido', async () => {
   const { service } = await createHarness({ expoGoConfig: {} });
   assert.equal(service.isExpoGo({ expoGoConfig: {} }), true);
+  assert.equal(service.isExpoGo({
+    expoGoConfig: {},
+    appOwnership: null,
+    executionEnvironment: 'bare',
+  }), false);
+  assert.equal(service.isExpoGo({ appOwnership: 'expo', executionEnvironment: 'storeClient' }), true);
   assert.equal(service.isExpoGo({ expoGoConfig: null, executionEnvironment: 'storeClient' }), false);
   assert.equal(service.isExpoGo({ expoGoConfig: undefined, executionEnvironment: 'standalone' }), false);
 });
@@ -482,7 +488,7 @@ test('foreground handler é explícito e configurado uma única vez', async () =
   assert.equal(service.configureForegroundNotificationHandler(), true);
   assert.equal(service.configureForegroundNotificationHandler(), false);
   assert.equal(state.calls.filter((call) => call.name === 'setHandler').length, 1);
-  assert.equal(JSON.stringify(await state.notificationHandler.handle()), JSON.stringify({
+  assert.equal(JSON.stringify(await state.notificationHandler.handleNotification()), JSON.stringify({
     shouldShowBanner: true,
     shouldShowList: true,
     shouldPlaySound: false,

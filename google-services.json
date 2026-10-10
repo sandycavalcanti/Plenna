@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "749141118456",
+    "project_id": "plenna-681da",
+    "storage_bucket": "plenna-681da.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749141118456:android:44289b26a4a16bf4765a0d",
+        "android_client_info": {
+          "package_name": "com.Plenna"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPXegzpgnfWl5dWERcuyC6zZnJfZvccik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

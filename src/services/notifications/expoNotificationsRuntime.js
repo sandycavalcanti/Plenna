@@ -1,7 +1,16 @@
 import Constants from 'expo-constants';
 
 export function isExpoGo(constants = Constants) {
-  return constants?.expoGoConfig != null;
+  // In SDK 55, expoGoConfig is also populated from the embedded app config in
+  // a native development build. Use the legacy ownership marker when it is
+  // available, and keep expoGoConfig as a fallback for test/web-shaped values.
+  const hasExplicitOwnership = constants?.appOwnership != null;
+  const expoGo = hasExplicitOwnership
+    ? constants.appOwnership === 'expo'
+    : constants?.executionEnvironment === 'bare' || constants?.executionEnvironment === 'standalone'
+      ? false
+      : constants?.expoGoConfig != null;
+  return expoGo;
 }
 
 export function getExpoNotifications(constants = Constants) {
