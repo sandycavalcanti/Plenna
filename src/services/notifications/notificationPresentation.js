@@ -1,14 +1,36 @@
 const NOTIFICATION_PRESENTATIONS = {
-  LIMITE_COMPRA: { icon: 'shopping-bag-outline', label: 'Limite por compra' },
-  LIMITE_CATEGORIA: { icon: 'tag-outline', label: 'Limite por categoria' },
-  LIMITE_MENSAL: { icon: 'chart-pie-outline', label: 'Limite mensal' },
-  SAZONAL: { icon: 'calendar-month-outline', label: 'Alerta sazonal' },
+  LIMITE_COMPRA: {
+    icon: 'wallet-outline',
+    label: 'Limite por compra',
+    iconColor: '#A85C00',
+    iconBackgroundColor: '#FFF1DD',
+  },
+  LIMITE_CATEGORIA: {
+    icon: 'tag-outline',
+    label: 'Limite por categoria',
+    iconColor: '#5F68A0',
+    iconBackgroundColor: '#EEF1FF',
+  },
+  LIMITE_MENSAL: {
+    icon: 'chart-line',
+    label: 'Limite mensal',
+    iconColor: '#6E63B5',
+    iconBackgroundColor: '#F0EDFF',
+  },
+  SAZONAL: {
+    icon: 'calendar-star-outline',
+    label: 'Alerta sazonal',
+    iconColor: '#C02C7A',
+    iconBackgroundColor: '#FCECF4',
+  },
 };
 
 export function getNotificationPresentation(type) {
   return NOTIFICATION_PRESENTATIONS[type] || {
     icon: 'bell-outline',
     label: 'Notificação',
+    iconColor: '#595D7C',
+    iconBackgroundColor: '#E3E0F4',
   };
 }
 

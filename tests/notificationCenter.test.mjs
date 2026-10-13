@@ -121,7 +121,11 @@ test('apresentação cobre data PT-BR, tipos, fallback, badge e leitura local', 
   const presentation = await loadModule('src/services/notifications/notificationPresentation.js');
 
   assert.equal(presentation.getNotificationPresentation('LIMITE_MENSAL').label, 'Limite mensal');
-  assert.equal(presentation.getNotificationPresentation('SAZONAL').icon, 'calendar-month-outline');
+  assert.equal(presentation.getNotificationPresentation('LIMITE_COMPRA').icon, 'wallet-outline');
+  assert.equal(presentation.getNotificationPresentation('LIMITE_MENSAL').icon, 'chart-line');
+  assert.equal(presentation.getNotificationPresentation('SAZONAL').icon, 'calendar-star-outline');
+  assert.ok(presentation.getNotificationPresentation('SAZONAL').iconColor);
+  assert.ok(presentation.getNotificationPresentation('SAZONAL').iconBackgroundColor);
   assert.equal(presentation.getNotificationPresentation('UNKNOWN').icon, 'bell-outline');
   assert.match(presentation.formatNotificationDate('2026-10-04T22:30:00Z'), /2026/);
   assert.equal(presentation.formatNotificationDate('invalid'), 'Data indisponível');
@@ -176,6 +180,9 @@ test('Central cobre estados, proteção, refresh, leitura e intent', async () =>
   assert.match(apiSource, /\/notifications\/unread-count/);
   assert.match(apiSource, /\/notifications\/\$\{encodeURIComponent\(notificationId\)\}\/read/);
   assert.match(source, /markNotificationAsReadLocally/);
+  assert.match(source, /markLoadedUnreadNotifications/);
+  assert.match(source, /Promise\.all\(unreadNotifications\.map\(markNotificationAsReadById\)\)/);
+  assert.match(source, /loadedNotifications\.filter\(isNotificationUnread\)/);
 });
 
 test('Stack e pending intent usam somente a rota Notifications', async () => {

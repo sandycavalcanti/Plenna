@@ -85,7 +85,40 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [readingIds, setReadingIds] = useState({});
+  const readingIdsRef = useRef(new Set());
   const handledIntentId = useRef(null);
+
+  const markNotificationAsReadById = useCallback(async (notification) => {
+    if (!isNotificationUnread(notification)) return false;
+
+    const notificationId = String(notification.notificacao_id);
+    if (readingIdsRef.current.has(notificationId)) return false;
+
+    readingIdsRef.current.add(notificationId);
+    setReadingIds((current) => ({ ...current, [notificationId]: true }));
+
+    try {
+      const updatedNotification = await markNotificationAsRead(notification.notificacao_id);
+      const readAt = updatedNotification?.notificacao_lida_em || new Date().toISOString();
+      setNotifications((current) => markNotificationAsReadLocally(current, notification.notificacao_id, readAt));
+      return true;
+    } catch {
+      // A falha mantém o item não lido para permitir nova tentativa futura.
+      return false;
+    } finally {
+      readingIdsRef.current.delete(notificationId);
+      setReadingIds((current) => {
+        const next = { ...current };
+        delete next[notificationId];
+        return next;
+      });
+    }
+  }, []);
+
+  const markLoadedUnreadNotifications = useCallback(async (loadedNotifications) => {
+    const unreadNotifications = loadedNotifications.filter(isNotificationUnread);
+    await Promise.all(unreadNotifications.map(markNotificationAsReadById));
+  }, [markNotificationAsReadById]);
 
   const loadNotifications = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -93,7 +126,9 @@ export default function NotificationsScreen() {
     setErrorMessage(null);
 
     try {
-      setNotifications(await getNotifications());
+      const loadedNotifications = await getNotifications();
+      setNotifications(loadedNotifications);
+      await markLoadedUnreadNotifications(loadedNotifications);
     } catch {
       setErrorMessage('Não foi possível carregar suas notificações.');
     } finally {
@@ -112,6 +147,7 @@ export default function NotificationsScreen() {
         setLoading(true);
         setErrorMessage(null);
         setReadingIds({});
+        readingIdsRef.current.clear();
         handledIntentId.current = null;
       };
     }, [protectedAccess.beginAccess, protectedAccess.cancelAccess]),
@@ -122,25 +158,10 @@ export default function NotificationsScreen() {
     loadNotifications();
   }, [isFocused, loadNotifications, protectedAccess.lifecycleRevision, protectedAccess.status]);
 
-  const handleNotificationPress = useCallback(async (notification) => {
-    if (!isNotificationUnread(notification) || readingIds[notification.notificacao_id]) return;
-
-    const notificationId = notification.notificacao_id;
-    setReadingIds((current) => ({ ...current, [notificationId]: true }));
-    try {
-      const updatedNotification = await markNotificationAsRead(notificationId);
-      const readAt = updatedNotification?.notificacao_lida_em || new Date().toISOString();
-      setNotifications((current) => markNotificationAsReadLocally(current, notificationId, readAt));
-    } catch {
-      // A falha mantém o item não lido para permitir nova tentativa futura.
-    } finally {
-      setReadingIds((current) => {
-        const next = { ...current };
-        delete next[notificationId];
-        return next;
-      });
-    }
-  }, [readingIds]);
+  const handleNotificationPress = useCallback(
+    (notification) => markNotificationAsReadById(notification),
+    [markNotificationAsReadById],
+  );
 
   const notificationId = route.params?.notificationId;
   useEffect(() => {
@@ -209,8 +230,8 @@ export default function NotificationsScreen() {
               activeOpacity={0.85}
               disabled={Boolean(readingIds[item.notificacao_id])}
             >
-              <View style={styles.cardIconBox}>
-                <MaterialCommunityIcons name={presentation.icon} size={21} color={COLORS.cadTitulo} />
+              <View style={[styles.cardIconBox, { backgroundColor: presentation.iconBackgroundColor }]}>
+                <MaterialCommunityIcons name={presentation.icon} size={21} color={presentation.iconColor} />
               </View>
               <View style={styles.cardBody}>
                 <View style={styles.cardHeader}>
