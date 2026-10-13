@@ -147,12 +147,18 @@ test('Home integra contador, badge dinâmico, foco e navegação para Notificati
   const styles = await readFile(new URL('../src/pages/HomeScreen/styles.js', import.meta.url), 'utf8');
 
   assert.match(source, /getUnreadCount/);
+  assert.match(source, /waitForPendingNotificationReads/);
   assert.match(source, /useFocusEffect/);
   assert.match(source, /refetchUnreadCount\(\)/);
   assert.match(source, /getParent\?\.\(\)/);
   assert.match(source, /navigate\('Notifications'\)/);
   assert.doesNotMatch(source, /onPress=\{\(\) => \{\}\}/);
   assert.match(source, /notificationBadge/);
+  assert.match(source, /useIsFocused/);
+  assert.match(source, /Animated\.loop/);
+  assert.match(source, /Animated\.delay\(3000\)/);
+  assert.match(source, /unreadCount > 0/);
+  assert.match(styles, /notificationButtonPending/);
   assert.doesNotMatch(styles, /notificationDot/);
 });
 
@@ -179,10 +185,14 @@ test('Central cobre estados, proteção, refresh, leitura e intent', async () =>
   }
   assert.match(apiSource, /\/notifications\/unread-count/);
   assert.match(apiSource, /\/notifications\/\$\{encodeURIComponent\(notificationId\)\}\/read/);
+  assert.match(apiSource, /waitForPendingNotificationReads/);
   assert.match(source, /markNotificationAsReadLocally/);
-  assert.match(source, /markLoadedUnreadNotifications/);
-  assert.match(source, /Promise\.all\(unreadNotifications\.map\(markNotificationAsReadById\)\)/);
-  assert.match(source, /loadedNotifications\.filter\(isNotificationUnread\)/);
+  assert.match(source, /unreadOnEntryRef/);
+  assert.match(source, /markNotificationsReadOnBlur/);
+  assert.match(source, /void markNotificationsReadOnBlur\(\)/);
+  assert.match(source, /notificationsToRead\.map/);
+  assert.match(source, /loadedNotifications\s*\.filter\(isNotificationUnread\)/);
+  assert.doesNotMatch(source, /markLoadedUnreadNotifications/);
 });
 
 test('Stack e pending intent usam somente a rota Notifications', async () => {

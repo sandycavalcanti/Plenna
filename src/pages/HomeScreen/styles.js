@@ -52,6 +52,12 @@ export const styles = StyleSheet.create({
     position: 'relative',
   },
 
+  notificationButtonPending: {
+    backgroundColor: '#FFF2F7',
+    borderWidth: 1,
+    borderColor: 'rgba(192, 44, 122, 0.2)',
+  },
+
   notificationBadge: {
     position: 'absolute',
     top: 4,

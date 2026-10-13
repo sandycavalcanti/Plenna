@@ -86,6 +86,9 @@ export default function NotificationsScreen() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [readingIds, setReadingIds] = useState({});
   const readingIdsRef = useRef(new Set());
+  const notificationsRef = useRef([]);
+  const unreadOnEntryRef = useRef(new Set());
+  const screenActiveRef = useRef(false);
   const handledIntentId = useRef(null);
 
   const markNotificationAsReadById = useCallback(async (notification) => {
@@ -115,9 +118,20 @@ export default function NotificationsScreen() {
     }
   }, []);
 
-  const markLoadedUnreadNotifications = useCallback(async (loadedNotifications) => {
-    const unreadNotifications = loadedNotifications.filter(isNotificationUnread);
-    await Promise.all(unreadNotifications.map(markNotificationAsReadById));
+  const markNotificationsReadOnBlur = useCallback(async () => {
+    const notificationsToRead = notificationsRef.current.filter((notification) => (
+      unreadOnEntryRef.current.has(String(notification.notificacao_id))
+      && isNotificationUnread(notification)
+    ));
+
+    const results = await Promise.all(notificationsToRead.map(async (notification) => ({
+      notificationId: String(notification.notificacao_id),
+      marked: await markNotificationAsReadById(notification),
+    })));
+
+    results.forEach(({ notificationId, marked }) => {
+      if (marked) unreadOnEntryRef.current.delete(notificationId);
+    });
   }, [markNotificationAsReadById]);
 
   const loadNotifications = useCallback(async (isRefresh = false) => {
@@ -127,8 +141,13 @@ export default function NotificationsScreen() {
 
     try {
       const loadedNotifications = await getNotifications();
+      if (!screenActiveRef.current) return;
+
+      notificationsRef.current = loadedNotifications;
+      loadedNotifications
+        .filter(isNotificationUnread)
+        .forEach((notification) => unreadOnEntryRef.current.add(String(notification.notificacao_id)));
       setNotifications(loadedNotifications);
-      await markLoadedUnreadNotifications(loadedNotifications);
     } catch {
       setErrorMessage('Não foi possível carregar suas notificações.');
     } finally {
@@ -139,29 +158,29 @@ export default function NotificationsScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      screenActiveRef.current = true;
+      unreadOnEntryRef.current.clear();
       protectedAccess.beginAccess();
 
       return () => {
+        screenActiveRef.current = false;
+        void markNotificationsReadOnBlur();
         protectedAccess.cancelAccess();
         setNotifications([]);
+        notificationsRef.current = [];
         setLoading(true);
         setErrorMessage(null);
         setReadingIds({});
         readingIdsRef.current.clear();
         handledIntentId.current = null;
       };
-    }, [protectedAccess.beginAccess, protectedAccess.cancelAccess]),
+    }, [markNotificationsReadOnBlur, protectedAccess.beginAccess, protectedAccess.cancelAccess]),
   );
 
   useEffect(() => {
     if (!isFocused || protectedAccess.status !== PROTECTED_ACCESS_STATES.UNLOCKED) return;
     loadNotifications();
   }, [isFocused, loadNotifications, protectedAccess.lifecycleRevision, protectedAccess.status]);
-
-  const handleNotificationPress = useCallback(
-    (notification) => markNotificationAsReadById(notification),
-    [markNotificationAsReadById],
-  );
 
   const notificationId = route.params?.notificationId;
   useEffect(() => {
@@ -170,9 +189,10 @@ export default function NotificationsScreen() {
     const notification = notifications.find((item) => String(item.notificacao_id) === String(notificationId));
     if (!notification) return;
 
+    // O tap de push apenas identifica a notificação na Central. A leitura fica
+    // pendente até a saída da tela, como na navegação normal.
     handledIntentId.current = String(notificationId);
-    handleNotificationPress(notification);
-  }, [handleNotificationPress, notificationId, notifications]);
+  }, [notificationId, notifications]);
 
   if (protectedAccess.status !== PROTECTED_ACCESS_STATES.UNLOCKED) {
     return renderSecurityState(protectedAccess, navigation);
@@ -226,7 +246,6 @@ export default function NotificationsScreen() {
             <TouchableOpacity
               accessibilityRole="button"
               style={[styles.card, unread ? styles.unreadCard : null]}
-              onPress={() => handleNotificationPress(item)}
               activeOpacity={0.85}
               disabled={Boolean(readingIds[item.notificacao_id])}
             >
