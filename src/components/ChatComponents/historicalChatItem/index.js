@@ -1,30 +1,24 @@
 import React from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { styles } from './styles';
-import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../../constants';
 
 export default function ChatItem({ title, lastMessage, onPress }) {
   return (
-    <View style={styles.container}>
-      {/* Área clicável do chat */}
-      <TouchableOpacity style={styles.chatArea} onPress={onPress}>
-        <View style={styles.chatInfo}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message} numberOfLines={1}>
-            {lastMessage}
-          </Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* Botão dos 3 pontinhos */}
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={() => {
-          console.log('Abrir menu');
-        }}>
-        <MaterialIcons name="more-vert" size={25} color={COLORS.histChatItemBotao3Pontos} />
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={`Abrir conversa ${title}`}
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={styles.chatIcon}>
+        <Text style={styles.chatIconText}>P</Text>
+      </View>
+      <View style={styles.chatInfo}>
+        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        <Text style={styles.message} numberOfLines={1}>{lastMessage}</Text>
+      </View>
+      <Text style={styles.chevron}>›</Text>
+    </TouchableOpacity>
   );
 }
