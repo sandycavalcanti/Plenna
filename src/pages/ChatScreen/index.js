@@ -14,6 +14,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getChatErrorMessage, getHistory, sendMessage, CHAT_MAX_MESSAGE_CHARS } from '../../api/chat';
 import { COLORS } from '../../constants/colors';
+import {
+  canComposeChat,
+  composerBlockedAfterReconciliation,
+  isCurrentChatRequest,
+} from './chatState';
 import { styles } from './styles';
 
 function mergeMessages(currentMessages, nextMessages) {
@@ -58,8 +63,12 @@ export default function ChatScreen({ navigation }) {
   const listRef = useRef(null);
   const mountedRef = useRef(true);
   const requestIdRef = useRef(0);
+  const sendRequestIdRef = useRef(0);
+  const activeHistoryIdRef = useRef(null);
   const isNearBottomRef = useRef(true);
   const shouldScrollAfterLoadRef = useRef(true);
+
+  activeHistoryIdRef.current = historicoId == null ? null : String(historicoId);
 
   const [history, setHistory] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -68,17 +77,24 @@ export default function ChatScreen({ navigation }) {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [sending, setSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [composerBlockedByError, setComposerBlockedByError] = useState(false);
 
   const loadHistory = useCallback(async () => {
     if (!historicoId) {
       setLoadingMessages(false);
+      setHistory(null);
+      setMessages([]);
+      setComposerBlockedByError(true);
       setErrorMessage('Não foi possível identificar esta conversa.');
       return;
     }
 
     const requestId = ++requestIdRef.current;
+    ++sendRequestIdRef.current;
     setLoadingMessages(true);
+    setSending(false);
     setErrorMessage(null);
+    setComposerBlockedByError(false);
     setHistory(null);
     setMessages([]);
     shouldScrollAfterLoadRef.current = true;
@@ -89,11 +105,13 @@ export default function ChatScreen({ navigation }) {
 
       setHistory(data?.historico || null);
       setMessages(Array.isArray(data?.mensagens) ? data.mensagens : []);
+      setComposerBlockedByError(false);
       shouldScrollAfterLoadRef.current = true;
     } catch (error) {
       if (!mountedRef.current || requestId !== requestIdRef.current) return;
       setHistory(null);
       setMessages([]);
+      setComposerBlockedByError(true);
       setErrorMessage(getChatErrorMessage(error, 'Não foi possível carregar esta conversa.'));
     } finally {
       if (mountedRef.current && requestId === requestIdRef.current) setLoadingMessages(false);
@@ -107,6 +125,7 @@ export default function ChatScreen({ navigation }) {
     return () => {
       mountedRef.current = false;
       requestIdRef.current += 1;
+      sendRequestIdRef.current += 1;
     };
   }, [loadHistory]);
 
@@ -123,51 +142,71 @@ export default function ChatScreen({ navigation }) {
     scrollToEndIfNeeded();
   }, [messages, scrollToEndIfNeeded]);
 
+  const canCompose = canComposeChat({
+    historicoId,
+    loadingMessages,
+    history,
+    composerBlockedByError,
+    sending,
+  });
+
   const handleSend = useCallback(async () => {
     const texto = draftMessage.trim();
-    if (!texto || sending || !historicoId) return;
+    if (!texto || !canCompose) return;
+
+    const conversationId = String(historicoId);
+    const sendRequestId = ++sendRequestIdRef.current;
+    const isCurrentRequest = () => isCurrentChatRequest({
+      mounted: mountedRef.current,
+      activeHistoryId: activeHistoryIdRef.current,
+      conversationId,
+      activeRequestId: sendRequestIdRef.current,
+      requestId: sendRequestId,
+    });
 
     setSending(true);
     setErrorMessage(null);
+    setComposerBlockedByError(false);
     setDraftMessage('');
 
     try {
-      const result = await sendMessage(historicoId, texto);
-      if (!mountedRef.current) return;
+      const result = await sendMessage(conversationId, texto);
+      if (!isCurrentRequest()) return;
 
       setMessages((currentMessages) => mergeMessages(currentMessages, [result?.mensagemUsuario, result?.mensagemIA]));
       shouldScrollAfterLoadRef.current = true;
     } catch (error) {
-      if (!mountedRef.current) return;
+      if (!isCurrentRequest()) return;
 
       // O backend pode ter salvo o user antes de falhar. Reconcile pelo GET;
       // este fluxo nunca repete automaticamente o POST.
       let reconciled = false;
       let reconciliationError = null;
       try {
-        const data = await getHistory(historicoId);
-        if (!mountedRef.current) return;
+        const data = await getHistory(conversationId);
+        if (!isCurrentRequest()) return;
         setHistory(data?.historico || null);
         setMessages(Array.isArray(data?.mensagens) ? data.mensagens : []);
+        setComposerBlockedByError(false);
         shouldScrollAfterLoadRef.current = true;
         reconciled = true;
       } catch (refetchError) {
-        if (!mountedRef.current) return;
+        if (!isCurrentRequest()) return;
         reconciliationError = refetchError;
       }
 
+      setComposerBlockedByError(composerBlockedAfterReconciliation(reconciliationError));
       setErrorMessage(reconciliationError
-        ? getChatErrorMessage(reconciliationError, 'Não foi possível atualizar esta conversa.')
+        ? 'Não foi possível confirmar o estado da mensagem nem reconciliar o histórico. Atualize antes de tentar novamente.'
         : reconciled
           ? getChatErrorMessage(error, 'Não foi possível enviar a mensagem. Confira o histórico antes de tentar novamente.')
           : 'Não foi possível confirmar o estado da mensagem. O envio não foi repetido automaticamente; atualize o histórico antes de tentar novamente.');
     } finally {
-      if (mountedRef.current) setSending(false);
+      if (isCurrentRequest()) setSending(false);
     }
-  }, [draftMessage, historicoId, sending]);
+  }, [canCompose, draftMessage, historicoId]);
 
   const composerCounter = useMemo(() => `${draftMessage.length}/${CHAT_MAX_MESSAGE_CHARS}`, [draftMessage.length]);
-  const canCompose = Boolean(historicoId && (history || !errorMessage));
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -244,6 +283,17 @@ export default function ChatScreen({ navigation }) {
           <View style={styles.errorBanner}>
             <MaterialIcons name="info-outline" size={18} color={COLORS.loginEsqueciSenha} />
             <Text style={styles.errorText}>{errorMessage}</Text>
+            {composerBlockedByError ? (
+              <TouchableOpacity
+                accessibilityLabel="Recarregar histórico"
+                accessibilityRole="button"
+                style={styles.errorRetryButton}
+                onPress={loadHistory}
+                disabled={loadingMessages}
+              >
+                <Text style={styles.errorRetryText}>Recarregar</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : null}
 

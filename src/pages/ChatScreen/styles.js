@@ -170,6 +170,16 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
   },
+  errorRetryButton: {
+    marginLeft: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  errorRetryText: {
+    color: COLORS.chatBotaoEnviar,
+    fontSize: 12,
+    fontWeight: '700',
+  },
   composerShell: {
     paddingHorizontal: 12,
     paddingTop: 8,
