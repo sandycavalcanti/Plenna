@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -12,28 +14,19 @@ import {
 import { useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getChatErrorMessage, getHistory, sendMessage, CHAT_MAX_MESSAGE_CHARS } from '../../api/chat';
+import { getChatErrorMessage, getHistory, sendFirstMessage, sendMessage, CHAT_MAX_MESSAGE_CHARS } from '../../api/chat';
 import { COLORS } from '../../constants/colors';
+import MarkdownMessage from './markdown';
 import {
   canComposeChat,
   composerBlockedAfterReconciliation,
+  createOptimisticUserMessage,
   isCurrentChatRequest,
+  mergeChatMessages,
+  reconcileOptimisticMessage,
+  resolveChatRoute,
 } from './chatState';
 import { styles } from './styles';
-
-function mergeMessages(currentMessages, nextMessages) {
-  const byId = new Map(currentMessages.map((message) => [String(message.mensagem_id), message]));
-
-  nextMessages.filter(Boolean).forEach((message) => {
-    byId.set(String(message.mensagem_id), message);
-  });
-
-  return [...byId.values()].sort((left, right) => {
-    const leftTime = new Date(left.mensagem_data_criacao).getTime();
-    const rightTime = new Date(right.mensagem_data_criacao).getTime();
-    return leftTime - rightTime || left.mensagem_id - right.mensagem_id;
-  });
-}
 
 function formatMessageTime(value) {
   const date = new Date(value);
@@ -47,7 +40,7 @@ function ChatMessage({ item }) {
   return (
     <View style={[styles.messageRow, isUser ? styles.messageRowUser : styles.messageRowAssistant]}>
       <View style={[styles.messageBubble, isUser ? styles.userMessage : styles.assistantMessage]}>
-        <Text style={[styles.messageText, isUser && styles.userMessageText]}>{item.texto}</Text>
+        {isUser ? <Text style={[styles.messageText, styles.userMessageText]}>{item.texto}</Text> : <MarkdownMessage value={item.texto} />}
         <Text style={[styles.messageTime, isUser && styles.userMessageTime]}>
           {formatMessageTime(item.mensagem_data_criacao)}
         </Text>
@@ -56,10 +49,71 @@ function ChatMessage({ item }) {
   );
 }
 
+function useReducedMotion() {
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const reduceMotionResult = AccessibilityInfo.isReduceMotionEnabled?.();
+    if (reduceMotionResult?.then) {
+      reduceMotionResult.then((enabled) => {
+        if (active) setReducedMotion(Boolean(enabled));
+      });
+    }
+    const subscription = AccessibilityInfo.addEventListener?.('reduceMotionChanged', setReducedMotion);
+
+    return () => {
+      active = false;
+      subscription?.remove?.();
+    };
+  }, []);
+
+  return reducedMotion;
+}
+
+function TypingDot({ delay, reducedMotion }) {
+  const opacity = useRef(new Animated.Value(0.35)).current;
+
+  useEffect(() => {
+    if (reducedMotion) {
+      opacity.setValue(0.7);
+      return undefined;
+    }
+
+    const animation = Animated.loop(Animated.sequence([
+      Animated.delay(delay),
+      Animated.timing(opacity, { toValue: 1, duration: 350, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 0.35, duration: 350, useNativeDriver: true }),
+      Animated.delay(180),
+    ]));
+    animation.start();
+
+    return () => animation.stop();
+  }, [delay, opacity, reducedMotion]);
+
+  return <Animated.View style={[styles.typingDot, { opacity }]} />;
+}
+
+function AssistantTypingIndicator() {
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <View style={styles.typingRow} accessibilityLabel="Plenna está respondendo">
+      <View style={[styles.messageBubble, styles.assistantMessage, styles.typingBubble]}>
+        <View style={styles.typingDots}>
+          <TypingDot delay={0} reducedMotion={reducedMotion} />
+          <TypingDot delay={120} reducedMotion={reducedMotion} />
+          <TypingDot delay={240} reducedMotion={reducedMotion} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function ChatScreen({ navigation }) {
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const historicoId = route.params?.historicoId;
+  const { isNewConversation, routeHistoricoId } = resolveChatRoute(route.params);
   const listRef = useRef(null);
   const mountedRef = useRef(true);
   const requestIdRef = useRef(0);
@@ -68,31 +122,40 @@ export default function ChatScreen({ navigation }) {
   const isNearBottomRef = useRef(true);
   const shouldScrollAfterLoadRef = useRef(true);
 
-  activeHistoryIdRef.current = historicoId == null ? null : String(historicoId);
-
   const [history, setHistory] = useState(null);
+  const [createdHistoryId, setCreatedHistoryId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [draftMessage, setDraftMessage] = useState('');
   const [composerHeight, setComposerHeight] = useState(44);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [sending, setSending] = useState(false);
+  const [assistantLoading, setAssistantLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [composerBlockedByError, setComposerBlockedByError] = useState(false);
+  const historicoId = isNewConversation ? createdHistoryId : routeHistoricoId ?? createdHistoryId;
+  const historyToLoadId = isNewConversation ? null : routeHistoricoId;
+  const conversationKey = historicoId == null ? 'new' : String(historicoId);
+
+  activeHistoryIdRef.current = conversationKey;
 
   const loadHistory = useCallback(async () => {
-    if (!historicoId) {
+    const requestId = ++requestIdRef.current;
+    ++sendRequestIdRef.current;
+
+    if (!historyToLoadId) {
       setLoadingMessages(false);
+      setAssistantLoading(false);
       setHistory(null);
       setMessages([]);
-      setComposerBlockedByError(true);
-      setErrorMessage('Não foi possível identificar esta conversa.');
+      setCreatedHistoryId(null);
+      setComposerBlockedByError(false);
+      setErrorMessage(null);
       return;
     }
 
-    const requestId = ++requestIdRef.current;
-    ++sendRequestIdRef.current;
     setLoadingMessages(true);
     setSending(false);
+    setAssistantLoading(false);
     setErrorMessage(null);
     setComposerBlockedByError(false);
     setHistory(null);
@@ -100,7 +163,7 @@ export default function ChatScreen({ navigation }) {
     shouldScrollAfterLoadRef.current = true;
 
     try {
-      const data = await getHistory(historicoId);
+      const data = await getHistory(historyToLoadId);
       if (!mountedRef.current || requestId !== requestIdRef.current) return;
 
       setHistory(data?.historico || null);
@@ -116,7 +179,7 @@ export default function ChatScreen({ navigation }) {
     } finally {
       if (mountedRef.current && requestId === requestIdRef.current) setLoadingMessages(false);
     }
-  }, [historicoId]);
+  }, [historyToLoadId]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -140,10 +203,11 @@ export default function ChatScreen({ navigation }) {
 
   useEffect(() => {
     scrollToEndIfNeeded();
-  }, [messages, scrollToEndIfNeeded]);
+  }, [assistantLoading, messages, scrollToEndIfNeeded]);
 
   const canCompose = canComposeChat({
     historicoId,
+    isNewConversation: historicoId == null,
     loadingMessages,
     history,
     composerBlockedByError,
@@ -154,36 +218,59 @@ export default function ChatScreen({ navigation }) {
     const texto = draftMessage.trim();
     if (!texto || !canCompose) return;
 
-    const conversationId = String(historicoId);
+    const conversationId = historicoId == null ? null : String(historicoId);
     const sendRequestId = ++sendRequestIdRef.current;
+    const optimisticMessage = createOptimisticUserMessage({
+      historicoId: conversationId,
+      texto,
+      requestId: sendRequestId,
+    });
     const isCurrentRequest = () => isCurrentChatRequest({
       mounted: mountedRef.current,
       activeHistoryId: activeHistoryIdRef.current,
-      conversationId,
+      conversationId: conversationId ?? 'new',
       activeRequestId: sendRequestIdRef.current,
       requestId: sendRequestId,
     });
 
     setSending(true);
+    setAssistantLoading(true);
     setErrorMessage(null);
     setComposerBlockedByError(false);
     setDraftMessage('');
+    setMessages((currentMessages) => mergeChatMessages(currentMessages, [optimisticMessage]));
+    shouldScrollAfterLoadRef.current = true;
 
     try {
-      const result = await sendMessage(conversationId, texto);
+      const result = conversationId == null
+        ? await sendFirstMessage(texto)
+        : await sendMessage(conversationId, texto);
       if (!isCurrentRequest()) return;
 
-      setMessages((currentMessages) => mergeMessages(currentMessages, [result?.mensagemUsuario, result?.mensagemIA]));
+      if (result?.historico?.historico_id) setCreatedHistoryId(result.historico.historico_id);
+      if (result?.historico) setHistory(result.historico);
+      setMessages((currentMessages) => reconcileOptimisticMessage(
+        currentMessages,
+        optimisticMessage.mensagem_id,
+        [result?.mensagemUsuario, result?.mensagemIA],
+      ));
+      setAssistantLoading(false);
       shouldScrollAfterLoadRef.current = true;
     } catch (error) {
       if (!isCurrentRequest()) return;
+      setAssistantLoading(false);
 
       // O backend pode ter salvo o user antes de falhar. Reconcile pelo GET;
       // este fluxo nunca repete automaticamente o POST.
       let reconciled = false;
       let reconciliationError = null;
+      const responseHistoryId = error?.response?.data?.historico_id;
+      const reconciliationId = conversationId ?? (responseHistoryId ? String(responseHistoryId) : null);
+      if (responseHistoryId && conversationId == null) setCreatedHistoryId(responseHistoryId);
+
       try {
-        const data = await getHistory(conversationId);
+        if (!reconciliationId) throw new Error('Historico ainda sem identificador para reconciliacao');
+        const data = await getHistory(reconciliationId);
         if (!isCurrentRequest()) return;
         setHistory(data?.historico || null);
         setMessages(Array.isArray(data?.mensagens) ? data.mensagens : []);
@@ -204,16 +291,18 @@ export default function ChatScreen({ navigation }) {
     } finally {
       if (isCurrentRequest()) setSending(false);
     }
-  }, [canCompose, draftMessage, historicoId]);
+  }, [canCompose, conversationKey, draftMessage, historicoId]);
 
   const composerCounter = useMemo(() => `${draftMessage.length}/${CHAT_MAX_MESSAGE_CHARS}`, [draftMessage.length]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
         style={styles.keyboardWrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+        // Android uses Expo's native resize semantics. Applying KAV height on
+        // top of that resize leaves a stale bottom gap after IME hide.
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
       >
         <View style={styles.header}>
           <TouchableOpacity
@@ -269,6 +358,7 @@ export default function ChatScreen({ navigation }) {
             }}
             scrollEventThrottle={16}
             onContentSizeChange={scrollToEndIfNeeded}
+            ListFooterComponent={assistantLoading ? <AssistantTypingIndicator /> : null}
             ListEmptyComponent={(
               <View style={styles.emptyState}>
                 <MaterialIcons name="chat-bubble-outline" size={38} color={COLORS.chatDestinatarioNome} />
@@ -297,7 +387,9 @@ export default function ChatScreen({ navigation }) {
           </View>
         ) : null}
 
-        <View style={styles.composerShell}>
+        <View style={[styles.composerShell, {
+          paddingBottom: Platform.OS === 'ios' ? Math.max(5, insets.bottom) : 5,
+        }]}>
           <View style={styles.inputRow}>
             <TextInput
               accessibilityLabel="Mensagem"

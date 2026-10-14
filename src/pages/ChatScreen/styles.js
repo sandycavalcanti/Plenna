@@ -100,6 +100,29 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.chatDestinatarioMensagemBorda,
   },
+  typingRow: {
+    width: '100%',
+    marginBottom: 12,
+    alignItems: 'flex-start',
+  },
+  typingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 9,
+  },
+  typingDots: {
+    minWidth: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  typingDot: {
+    width: 7,
+    height: 7,
+    marginHorizontal: 3,
+    borderRadius: 4,
+    backgroundColor: COLORS.chatBotaoEnviar,
+  },
   messageText: {
     color: COLORS.chatDestinatarioMensagemTexto,
     fontSize: 15,

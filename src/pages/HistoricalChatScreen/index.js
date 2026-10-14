@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ChatItem from '../../components/ChatComponents/historicalChatItem';
-import { createHistory, getChatErrorMessage, listHistories } from '../../api/chat';
+import { getChatErrorMessage, listHistories } from '../../api/chat';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles';
 
@@ -21,7 +21,6 @@ export default function HistoricalChatScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const mountedRef = useRef(false);
   const requestIdRef = useRef(0);
@@ -61,22 +60,9 @@ export default function HistoricalChatScreen({ navigation }) {
     }, [loadHistories]),
   );
 
-  const handleCreateHistory = useCallback(async () => {
-    if (creating) return;
-
-    setCreating(true);
-    setErrorMessage(null);
-    try {
-      const history = await createHistory();
-      const historicoId = history?.historico_id;
-      if (!historicoId) throw new Error('Historico sem identificador');
-      navigation.navigate('Chat', { historicoId });
-    } catch (error) {
-      if (mountedRef.current) setErrorMessage(getChatErrorMessage(error, 'Não foi possível criar uma nova conversa.'));
-    } finally {
-      if (mountedRef.current) setCreating(false);
-    }
-  }, [creating, navigation]);
+  const handleCreateHistory = useCallback(() => {
+    navigation.navigate('Chat', { mode: 'new' });
+  }, [navigation]);
 
   const normalizedSearch = searchText.trim().toLocaleLowerCase();
   const visibleHistories = histories.filter((history) => (
@@ -94,12 +80,10 @@ export default function HistoricalChatScreen({ navigation }) {
         <TouchableOpacity
           accessibilityLabel="Nova conversa"
           accessibilityRole="button"
-          style={[styles.newButton, creating && styles.newButtonDisabled]}
+          style={styles.newButton}
           onPress={handleCreateHistory}
-          disabled={creating}
         >
-          {creating ? <ActivityIndicator size="small" color="#FFFFFF" /> : <MaterialIcons name="add" size={22} color="#FFFFFF" />}
-          <Text style={styles.newButtonText}>Nova</Text>
+          <MaterialIcons name="add" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -144,7 +128,10 @@ export default function HistoricalChatScreen({ navigation }) {
             <ChatItem
               title={item.historico_nome || 'Nova conversa'}
               lastMessage={formatHistoryDate(item.historico_data_modificacao || item.historico_data_criacao)}
-              onPress={() => navigation.navigate('Chat', { historicoId: item.historico_id })}
+              onPress={() => navigation.navigate('Chat', {
+                mode: 'existing',
+                historicoId: item.historico_id,
+              })}
             />
           )}
           style={styles.list}
@@ -159,7 +146,7 @@ export default function HistoricalChatScreen({ navigation }) {
                 {normalizedSearch ? 'Tente outro termo de pesquisa.' : 'Crie uma conversa para começar a organizar seus pensamentos.'}
               </Text>
               {!normalizedSearch ? (
-                <TouchableOpacity style={styles.emptyButton} onPress={handleCreateHistory} disabled={creating}>
+                <TouchableOpacity style={styles.emptyButton} onPress={handleCreateHistory}>
                   <Text style={styles.emptyButtonText}>Começar conversa</Text>
                 </TouchableOpacity>
               ) : null}

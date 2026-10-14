@@ -26,11 +26,6 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.chatIconeRoboBorda,
   },
-  chatIconText: {
-    color: COLORS.chatIconeRobo,
-    fontSize: 17,
-    fontWeight: '700',
-  },
   chatInfo: {
     flex: 1,
     minWidth: 0,
@@ -47,8 +42,5 @@ export const styles = StyleSheet.create({
   },
   chevron: {
     marginLeft: 8,
-    color: COLORS.histChatBotao3Pontos,
-    fontSize: 27,
-    lineHeight: 27,
   },
 });

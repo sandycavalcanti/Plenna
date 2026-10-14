@@ -2,11 +2,6 @@ import { apiClient } from './client';
 
 export const CHAT_MAX_MESSAGE_CHARS = 4000;
 
-export async function createHistory() {
-  const response = await apiClient.post('/historicos', {});
-  return response.data;
-}
-
 export async function listHistories() {
   const response = await apiClient.get('/historicos');
   return Array.isArray(response.data) ? response.data : [];
@@ -22,6 +17,11 @@ export async function sendMessage(historicoId, texto) {
     `/historicos/${encodeURIComponent(historicoId)}/mensagens`,
     { texto },
   );
+  return response.data;
+}
+
+export async function sendFirstMessage(texto) {
+  const response = await apiClient.post('/historicos/mensagens', { texto });
   return response.data;
 }
 

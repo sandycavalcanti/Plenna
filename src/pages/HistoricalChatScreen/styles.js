@@ -29,21 +29,12 @@ export const styles = StyleSheet.create({
     fontSize: 13,
   },
   newButton: {
-    minHeight: 42,
-    paddingHorizontal: 12,
-    borderRadius: 13,
-    flexDirection: 'row',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
     backgroundColor: COLORS.chatBotaoEnviar,
-  },
-  newButtonDisabled: {
-    opacity: 0.6,
-  },
-  newButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
   },
   searchRow: {
     minHeight: 44,
