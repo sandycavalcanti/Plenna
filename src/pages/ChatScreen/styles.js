@@ -13,10 +13,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
   },
-  keyboardContentInner: {
-    flex: 1,
-    minHeight: 0,
-  },
   header: {
     minHeight: 72,
     paddingHorizontal: 14,

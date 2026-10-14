@@ -6,6 +6,8 @@ import vm from 'node:vm';
 const source = await readFile(new URL('../src/pages/ChatScreen/chatState.js', import.meta.url), 'utf8');
 const screenSource = await readFile(new URL('../src/pages/ChatScreen/index.js', import.meta.url), 'utf8');
 const chatStylesSource = await readFile(new URL('../src/pages/ChatScreen/styles.js', import.meta.url), 'utf8');
+const appSource = await readFile(new URL('../App.js', import.meta.url), 'utf8');
+const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
 const historyScreenSource = await readFile(new URL('../src/pages/HistoricalChatScreen/index.js', import.meta.url), 'utf8');
 const historyStylesSource = await readFile(new URL('../src/pages/HistoricalChatScreen/styles.js', import.meta.url), 'utf8');
 const historicalItemSource = await readFile(new URL('../src/components/ChatComponents/historicalChatItem/index.js', import.meta.url), 'utf8');
@@ -42,7 +44,6 @@ function assertReactNativeJsxImports(source, fileName) {
     'ActivityIndicator',
     'Animated',
     'FlatList',
-    'KeyboardAvoidingView',
     'Text',
     'TextInput',
     'TouchableOpacity',
@@ -230,22 +231,26 @@ test('parser local renderiza markdown sem alterar texto persistido', () => {
   assert.equal(blocks[2].ordered, true);
 });
 
-test('o composer não soma bottom inset externo ao teclado', () => {
+test('o chat usa um único controlador estrutural para lista e composer', () => {
   assert.match(screenSource, /<SafeAreaView style=\{styles\.container\} edges=\{\['top'\]\}>/);
+  assert.match(appSource, /import \{ KeyboardProvider \} from 'react-native-keyboard-controller'/);
+  assert.match(appSource, /<KeyboardProvider>[\s\S]*<Routes \/>[\s\S]*<\/KeyboardProvider>/);
+  assert.match(screenSource, /import \{ KeyboardAvoidingView \} from 'react-native-keyboard-controller'/);
+  assert.match(screenSource, /<KeyboardAvoidingView[\s\S]*style=\{styles\.keyboardContent\}[\s\S]*behavior="translate-with-padding"/);
   assert.match(screenSource, /keyboardVerticalOffset=\{0\}/);
-  assert.match(screenSource, /enabled=\{Platform\.OS === 'ios'\}/);
-  assert.match(screenSource, /keyboardDidShow/);
-  assert.match(screenSource, /keyboardDidChangeFrame/);
-  assert.match(screenSource, /keyboardDidHide/);
-  assert.match(screenSource, /measureInWindow/);
-  assert.match(screenSource, /composerRef/);
-  assert.match(screenSource, /measuredComposerBottom/);
-  assert.match(screenSource, /naturalComposerBottom/);
-  assert.match(screenSource, /naturalComposerBottom - keyboardFrameRef\.current\.screenY/);
-  assert.match(screenSource, /keyboardOverlapRef\.current = nextOverlap/);
-  assert.match(screenSource, /keyboardVisible \? 5 : Math\.max\(5, insets\.bottom\)/);
-  assert.doesNotMatch(screenSource, /behavior=.*height/);
-  assert.match(screenSource, /<View style=\{styles\.keyboardWrapper\}>[\s\S]*style=\{\[styles\.keyboardContent[\s\S]*<KeyboardAvoidingView[\s\S]*style=\{styles\.keyboardContentInner\}/);
+  assert.match(screenSource, /<KeyboardAvoidingView[\s\S]*<FlatList[\s\S]*styles\.composerShell[\s\S]*<\/KeyboardAvoidingView>/);
+  assert.match(screenSource, /paddingBottom: Math\.max\(5, insets\.bottom\)/);
+  assert.equal(packageJson.dependencies['react-native-keyboard-controller'], '1.20.7');
+  assert.equal(packageJson.dependencies['react-native-reanimated'], '4.2.1');
+  assert.equal(packageJson.dependencies['react-native-worklets'], '0.7.4');
+});
+
+test('lógica manual e painel temporário de teclado foram removidos', () => {
+  assert.doesNotMatch(screenSource, /keyboardOverlap|keyboardFrameRef|keyboardVisible/);
+  assert.doesNotMatch(screenSource, /measureInWindow|keyboardDidShow|keyboardDidChangeFrame|keyboardDidHide/);
+  assert.doesNotMatch(screenSource, /KeyboardDiagnosticPanel|Keyboard screenY:|Manual offset:/);
+  assert.doesNotMatch(chatStylesSource, /keyboardDiagnostics|keyboardContentInner/);
+  assert.doesNotMatch(screenSource, /KeyboardStickyView/);
 });
 
 test('header do chat prioriza o título da conversa e usa avatar acolhedor', () => {
