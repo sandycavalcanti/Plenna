@@ -6,14 +6,21 @@ export const styles = StyleSheet.create({
     width: '100%',
     minHeight: 72,
     marginBottom: 10,
-    paddingHorizontal: 13,
-    paddingVertical: 12,
+    paddingLeft: 13,
+    paddingRight: 6,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.histChatItemBorda,
     borderRadius: 14,
     backgroundColor: COLORS.histChatItemFundo,
+  },
+  contentButton: {
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   chatIcon: {
     width: 38,
@@ -40,7 +47,11 @@ export const styles = StyleSheet.create({
     color: COLORS.histChatItemMensagem,
     fontSize: 12,
   },
-  chevron: {
-    marginLeft: 8,
+  deleteButton: {
+    width: 44,
+    height: 44,
+    marginLeft: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

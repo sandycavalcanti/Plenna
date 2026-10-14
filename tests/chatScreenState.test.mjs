@@ -5,7 +5,9 @@ import vm from 'node:vm';
 
 const source = await readFile(new URL('../src/pages/ChatScreen/chatState.js', import.meta.url), 'utf8');
 const screenSource = await readFile(new URL('../src/pages/ChatScreen/index.js', import.meta.url), 'utf8');
+const chatStylesSource = await readFile(new URL('../src/pages/ChatScreen/styles.js', import.meta.url), 'utf8');
 const historyScreenSource = await readFile(new URL('../src/pages/HistoricalChatScreen/index.js', import.meta.url), 'utf8');
+const historyStylesSource = await readFile(new URL('../src/pages/HistoricalChatScreen/styles.js', import.meta.url), 'utf8');
 const historicalItemSource = await readFile(new URL('../src/components/ChatComponents/historicalChatItem/index.js', import.meta.url), 'utf8');
 const chatApiSource = await readFile(new URL('../src/api/chat.js', import.meta.url), 'utf8');
 const markdownSource = await readFile(new URL('../src/pages/ChatScreen/markdownParser.js', import.meta.url), 'utf8');
@@ -107,6 +109,33 @@ test('nova conversa sem historicoId permite digitar sem simular ID persistido', 
   assert.match(chatApiSource, /apiClient\.post\('\/historicos\/mensagens'/);
 });
 
+test('históricos exibem exclusão protegida sem confundir abertura com lixeira', () => {
+  assert.match(chatApiSource, /apiClient\.delete\(`\/historicos\/\$\{encodeURIComponent\(historicoId\)\}`\)/);
+  assert.match(historyScreenSource, /Alert\.alert\(/);
+  assert.match(historyScreenSource, /Excluir conversa\?/);
+  assert.match(historyScreenSource, /Cancelar/);
+  assert.match(historyScreenSource, /style: 'destructive'/);
+  assert.match(historyScreenSource, /await deleteHistory\(historyId\)/);
+  assert.match(historyScreenSource, /deletingIdsRef/);
+  assert.match(historyScreenSource, /removedIdsRef/);
+  assert.match(historicalItemSource, /name="delete-outline"/);
+  assert.match(historicalItemSource, /onPress=\{onDelete\}/);
+  assert.match(historicalItemSource, /onPress=\{onPress\}/);
+});
+
+test('histórico usa uma toolbar única para pesquisa e nova conversa', () => {
+  assert.doesNotMatch(historyScreenSource, />Conversas</);
+  assert.doesNotMatch(historyScreenSource, /Organize suas ideias com a Plenna/);
+  assert.match(historyScreenSource, /<View style=\{styles\.toolbar\}>/);
+  assert.match(historyScreenSource, /<View style=\{styles\.searchRow\}>/);
+  assert.match(historyScreenSource, /style=\{styles\.newButton\}/);
+  assert.match(historyScreenSource, /accessibilityLabel="Nova conversa"/);
+  assert.match(historyStylesSource, /toolbar:\s*\{[\s\S]*flexDirection: 'row'[\s\S]*alignItems: 'center'/);
+  assert.match(historyStylesSource, /searchRow:\s*\{[\s\S]*flex: 1/);
+  assert.doesNotMatch(historyStylesSource, /headerTextBlock/);
+  assert.doesNotMatch(historyStylesSource, /subtitle/);
+});
+
 test('navegacao explicita separa conversa nova de historico existente', () => {
   const newRoute = resolveChatRoute({ mode: 'new', historicoId: 71 });
   assert.equal(newRoute.isNewConversation, true);
@@ -204,6 +233,27 @@ test('parser local renderiza markdown sem alterar texto persistido', () => {
 test('o composer não soma bottom inset externo ao teclado', () => {
   assert.match(screenSource, /<SafeAreaView style=\{styles\.container\} edges=\{\['top'\]\}>/);
   assert.match(screenSource, /keyboardVerticalOffset=\{0\}/);
-  assert.match(screenSource, /behavior=\{Platform\.OS === 'ios' \? 'padding' : undefined\}/);
-  assert.match(screenSource, /paddingBottom: Platform\.OS === 'ios' \? Math\.max\(5, insets\.bottom\) : 5/);
+  assert.match(screenSource, /enabled=\{Platform\.OS === 'ios'\}/);
+  assert.match(screenSource, /keyboardDidShow/);
+  assert.match(screenSource, /keyboardDidChangeFrame/);
+  assert.match(screenSource, /keyboardDidHide/);
+  assert.match(screenSource, /measureInWindow/);
+  assert.match(screenSource, /composerRef/);
+  assert.match(screenSource, /measuredComposerBottom/);
+  assert.match(screenSource, /naturalComposerBottom/);
+  assert.match(screenSource, /naturalComposerBottom - keyboardFrameRef\.current\.screenY/);
+  assert.match(screenSource, /keyboardOverlapRef\.current = nextOverlap/);
+  assert.match(screenSource, /keyboardVisible \? 5 : Math\.max\(5, insets\.bottom\)/);
+  assert.doesNotMatch(screenSource, /behavior=.*height/);
+  assert.match(screenSource, /<View style=\{styles\.keyboardWrapper\}>[\s\S]*style=\{\[styles\.keyboardContent[\s\S]*<KeyboardAvoidingView[\s\S]*style=\{styles\.keyboardContentInner\}/);
+});
+
+test('header do chat prioriza o título da conversa e usa avatar acolhedor', () => {
+  assert.match(screenSource, /name="chat-bubble-outline"/);
+  assert.match(screenSource, /<Text style=\{styles\.headerTitle\} numberOfLines=\{1\} ellipsizeMode="tail">[\s\S]*history\?\.historico_nome \|\| 'Nova conversa'/);
+  assert.match(screenSource, /<Text style=\{styles\.headerSubtitle\} numberOfLines=\{1\}>Plenna Assistente<\/Text>/);
+  assert.match(screenSource, /setHistory\(result\.historico\)/);
+  assert.match(chatStylesSource, /headerTitle:[\s\S]*fontSize: 16[\s\S]*fontWeight: '700'/);
+  assert.match(chatStylesSource, /headerSubtitle:[\s\S]*fontSize: 12/);
+  assert.match(chatStylesSource, /headerAvatar:[\s\S]*width: 42[\s\S]*height: 42[\s\S]*borderRadius: 21/);
 });

@@ -7,6 +7,11 @@ export async function listHistories() {
   return Array.isArray(response.data) ? response.data : [];
 }
 
+export async function deleteHistory(historicoId) {
+  const response = await apiClient.delete(`/historicos/${encodeURIComponent(historicoId)}`);
+  return response.data;
+}
+
 export async function getHistory(historicoId) {
   const response = await apiClient.get(`/historicos/${encodeURIComponent(historicoId)}`);
   return response.data;

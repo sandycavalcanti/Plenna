@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Animated,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Text,
@@ -121,6 +122,10 @@ export default function ChatScreen({ navigation }) {
   const activeHistoryIdRef = useRef(null);
   const isNearBottomRef = useRef(true);
   const shouldScrollAfterLoadRef = useRef(true);
+  const keyboardFrameRef = useRef(null);
+  const keyboardMeasureFrameRef = useRef(null);
+  const keyboardOverlapRef = useRef(0);
+  const composerRef = useRef(null);
 
   const [history, setHistory] = useState(null);
   const [createdHistoryId, setCreatedHistoryId] = useState(null);
@@ -132,11 +137,64 @@ export default function ChatScreen({ navigation }) {
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [composerBlockedByError, setComposerBlockedByError] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardOverlap, setKeyboardOverlap] = useState(0);
   const historicoId = isNewConversation ? createdHistoryId : routeHistoricoId ?? createdHistoryId;
   const historyToLoadId = isNewConversation ? null : routeHistoricoId;
   const conversationKey = historicoId == null ? 'new' : String(historicoId);
 
   activeHistoryIdRef.current = conversationKey;
+
+  const measureKeyboardOverlap = useCallback(() => {
+    if (Platform.OS !== 'android' || !keyboardFrameRef.current || !composerRef.current) return;
+
+    if (keyboardMeasureFrameRef.current != null) cancelAnimationFrame(keyboardMeasureFrameRef.current);
+    keyboardMeasureFrameRef.current = requestAnimationFrame(() => {
+      keyboardMeasureFrameRef.current = null;
+      const keyboardFrame = keyboardFrameRef.current;
+      const composerView = composerRef.current;
+      if (!keyboardFrame || !composerView || !mountedRef.current) return;
+
+      composerView.measureInWindow((_x, y, _width, height) => {
+        if (!mountedRef.current || !keyboardFrameRef.current) return;
+        const measuredComposerBottom = y + height;
+        const naturalComposerBottom = measuredComposerBottom + keyboardOverlapRef.current;
+        const nextOverlap = Math.max(0, Math.round(naturalComposerBottom - keyboardFrameRef.current.screenY));
+        keyboardOverlapRef.current = nextOverlap;
+        setKeyboardOverlap((current) => (current === nextOverlap ? current : nextOverlap));
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+
+    const handleKeyboardShow = (event) => {
+      keyboardFrameRef.current = event?.endCoordinates || null;
+      setKeyboardVisible(true);
+      measureKeyboardOverlap();
+    };
+    const handleKeyboardHide = () => {
+      keyboardFrameRef.current = null;
+      keyboardOverlapRef.current = 0;
+      setKeyboardVisible(false);
+      setKeyboardOverlap(0);
+    };
+
+    const subscriptions = [
+      Keyboard.addListener('keyboardDidShow', handleKeyboardShow),
+      Keyboard.addListener('keyboardDidChangeFrame', handleKeyboardShow),
+      Keyboard.addListener('keyboardDidHide', handleKeyboardHide),
+    ];
+
+    return () => {
+      subscriptions.forEach((subscription) => subscription.remove());
+      if (keyboardMeasureFrameRef.current != null) cancelAnimationFrame(keyboardMeasureFrameRef.current);
+      keyboardMeasureFrameRef.current = null;
+      keyboardFrameRef.current = null;
+      keyboardOverlapRef.current = 0;
+    };
+  }, [measureKeyboardOverlap]);
 
   const loadHistory = useCallback(async () => {
     const requestId = ++requestIdRef.current;
@@ -297,13 +355,7 @@ export default function ChatScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        style={styles.keyboardWrapper}
-        // Android uses Expo's native resize semantics. Applying KAV height on
-        // top of that resize leaves a stale bottom gap after IME hide.
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-      >
+      <View style={styles.keyboardWrapper}>
         <View style={styles.header}>
           <TouchableOpacity
             accessibilityLabel="Voltar"
@@ -316,16 +368,27 @@ export default function ChatScreen({ navigation }) {
 
           <View style={styles.headerIdentity}>
             <View style={styles.headerAvatar}>
-              <MaterialIcons name="smart-toy" size={19} color={COLORS.chatIconeRobo} />
+              <MaterialIcons name="chat-bubble-outline" size={21} color={COLORS.chatIconeRobo} />
             </View>
             <View style={styles.headerTextBlock}>
-              <Text style={styles.headerTitle}>Plenna Assistente</Text>
-              <Text style={styles.headerSubtitle} numberOfLines={1}>
-                {history?.historico_nome || 'Conversa'}
+              <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+                {history?.historico_nome || 'Nova conversa'}
               </Text>
+              <Text style={styles.headerSubtitle} numberOfLines={1}>Plenna Assistente</Text>
             </View>
           </View>
         </View>
+
+        <View
+          style={[styles.keyboardContent, Platform.OS === 'android' && { paddingBottom: keyboardOverlap }]}
+          onLayout={measureKeyboardOverlap}
+        >
+        <KeyboardAvoidingView
+          style={styles.keyboardContentInner}
+          enabled={Platform.OS === 'ios'}
+          behavior="padding"
+          keyboardVerticalOffset={0}
+        >
 
         {errorMessage && !history && !messages.length ? (
           <View style={styles.stateContainer}>
@@ -387,8 +450,8 @@ export default function ChatScreen({ navigation }) {
           </View>
         ) : null}
 
-        <View style={[styles.composerShell, {
-          paddingBottom: Platform.OS === 'ios' ? Math.max(5, insets.bottom) : 5,
+        <View ref={composerRef} onLayout={measureKeyboardOverlap} style={[styles.composerShell, {
+          paddingBottom: keyboardVisible ? 5 : Math.max(5, insets.bottom),
         }]}>
           <View style={styles.inputRow}>
             <TextInput
@@ -422,7 +485,9 @@ export default function ChatScreen({ navigation }) {
           </View>
           <Text style={styles.composerCounter}>{composerCounter}</Text>
         </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }

@@ -6,27 +6,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.fundoPrincipal,
   },
-  header: {
+  toolbar: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 14,
+    paddingBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTextBlock: {
-    flex: 1,
-    minWidth: 0,
-  },
-  title: {
-    color: COLORS.histChatItemTitulo,
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  subtitle: {
-    marginTop: 4,
-    color: COLORS.histChatItemMensagem,
-    fontSize: 13,
+    gap: 10,
   },
   newButton: {
     width: 42,
@@ -37,9 +23,9 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.chatBotaoEnviar,
   },
   searchRow: {
+    flex: 1,
     minHeight: 44,
-    marginHorizontal: 16,
-    marginBottom: 10,
+    minWidth: 0,
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',

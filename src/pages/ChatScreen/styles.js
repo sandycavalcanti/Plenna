@@ -9,10 +9,18 @@ export const styles = StyleSheet.create({
   keyboardWrapper: {
     flex: 1,
   },
+  keyboardContent: {
+    flex: 1,
+    minHeight: 0,
+  },
+  keyboardContentInner: {
+    flex: 1,
+    minHeight: 0,
+  },
   header: {
-    minHeight: 66,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    minHeight: 72,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.chatHeaderFundo,
@@ -24,7 +32,7 @@ export const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 4,
+    marginRight: 6,
   },
   headerIdentity: {
     flex: 1,
@@ -33,9 +41,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerAvatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
