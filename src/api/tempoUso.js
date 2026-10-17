@@ -1,17 +1,8 @@
 import { apiClient } from './client';
 
-export async function sincronizarTempoUso(_payload, _config) {
-  // Bloqueio incondicional nesta etapa, inclusive em builds de produção.
-  if (__DEV__) {
-    console.log('RF017 LAB: envio de tempo de uso bloqueado.');
-  }
-
-  return {
-    recebidos: 0,
-    persistidos: 0,
-    bloqueadoNoLaboratorio: true,
-  };
-
+export async function sincronizarTempoUso(payload, config) {
+  const response = await apiClient.put('/tempo-uso/sync', payload, config);
+  return response.data;
 }
 
 export async function listarAplicativosTempoUso(config) {

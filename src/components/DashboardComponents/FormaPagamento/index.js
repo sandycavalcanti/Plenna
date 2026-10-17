@@ -111,7 +111,7 @@ export default function FormaPagamento({ gastosFormaPagamento = [] }) {
                 fill="none"
                 stroke={segment.color}
                 strokeWidth={DONUT_STROKE}
-                strokeDasharray={DONUT_CIRCUMFERENCE}
+                strokeDasharray={[DONUT_CIRCUMFERENCE, DONUT_CIRCUMFERENCE]}
                 strokeDashoffset={donutAnim.interpolate({
                   inputRange: [0, 1],
                   outputRange: [DONUT_CIRCUMFERENCE, segment.strokeDashoffset],

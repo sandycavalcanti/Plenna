@@ -4,6 +4,7 @@ import Svg, { Circle } from 'react-native-svg';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
+import { distribuicaoClassificacoes } from '../../../utils/distribuicaoClassificacoes';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const RING_SIZE = 136;
@@ -14,14 +15,14 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 export default function Impulsividade({
   data,
   impulsividade = [],
-  title = 'Compras impulsivas',
-  emptyMessage = 'Nenhuma compra disponível para análise',
+  title = 'Classificações registradas',
+  emptyMessage = 'Nenhuma compra confirmada registrada neste período',
   classificationKey = 'compra_classificacao',
   classificationValue = 'IMPULSIVA',
   totalKey = null,
-  centerLabel = 'impulsivas',
+  centerLabel = 'marcadas como impulsivas',
   centerValueMode = 'percentage',
-  infoTitle = 'Taxa de impulsividade',
+  infoTitle = 'Sobre estas marcações',
   highLabel = 'Impulsividade alta',
   mediumLabel = 'Impulsividade moderada',
   lowLabel = 'Impulsividade baixa',
@@ -47,6 +48,21 @@ export default function Impulsividade({
     );
   }
 
+
+  if(isArrayData) {
+    const distribution=distribuicaoClassificacoes(sourceData);
+    return <View style={styles.section}><ProfileCard title={title}>
+      <Text style={{fontSize:14,lineHeight:20,color:'#655A70',marginBottom:12}}>{distribution.total===0?emptyMessage:distribution.total+' compra(s) confirmadas neste período'}</Text>
+      {distribution.total>0&&distribution.groups.map(group=><View key={group.codigo} style={{marginBottom:14,gap:6}}>
+        <View style={{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:6}}><Text style={{flexShrink:1,color:'#594367',fontSize:14}}>{group.nome}</Text><Text style={{color:'#594367',fontWeight:'600'}}>{group.quantidade} · {group.percentual.toLocaleString('pt-BR',{maximumFractionDigits:1})}%</Text></View>
+        <View accessibilityRole="progressbar" accessibilityLabel={group.nome} accessibilityValue={{min:0,max:100,now:group.percentual,text:group.quantidade+' compras'}} style={{height:8,borderRadius:4,backgroundColor:'#F0EAF4'}}><View style={{height:8,borderRadius:4,width:group.percentual+'%',backgroundColor:group.cor}}/></View>
+      </View>)}
+      <Text style={{fontSize:12,lineHeight:18,color:'#655A70'}}>Marcações salvas nas compras. Não são diagnósticos nem avaliações automáticas do RF018.</Text>
+      {distribution.comprasSemValor>0&&<Text style={{fontSize:12,lineHeight:18,color:'#655A70'}}>Inclui compras sem valor informado; este gráfico conta compras, não gastos.</Text>}
+      {distribution.coberturaLegada&&<Text style={{fontSize:12,lineHeight:18,color:'#655A70'}}>Resposta anterior da API: a contagem pode omitir compras sem valor.</Text>}
+    </ProfileCard></View>;
+  }
+
   // Normaliza tanto listas quanto objetos resumidos vindos da API
   const totalQuantity = isArrayData ? sourceData.reduce((sum, item) => sum + Number(item?.quantidade || 0), 0) : Object.values(sourceData).reduce((sum, value) => sum + Number(value || 0), 0);
 
@@ -58,9 +74,9 @@ export default function Impulsividade({
   const progress = Math.max(0, Math.min(100, impulsivePercentage));
   const progressOffset = RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE;
 
-  const statusLabel = progress >= 50 ? highLabel : progress >= 25 ? mediumLabel : lowLabel;
+  const statusLabel = isArrayData ? 'Classificações registradas' : relevantQuantity > 0 ? 'Compras acima do limite registrado' : 'Sem excesso registrado';
 
-  const statusDescription = progress >= 50 ? highDescription : progress >= 25 ? mediumDescription : lowDescription;
+  const statusDescription = isArrayData ? 'O gráfico reúne classificações já registradas, não uma avaliação automática do RF018. Compras pendentes de classificação não comprovam ausência de sinais.' : 'Este gráfico conta compras com excesso registrado. Não mede proximidade do orçamento nem comprova a vigência histórica do limite atual.'
 
   const centerValue = centerValueMode === 'quantity' ? relevantQuantity : `${progress}%`;
 
