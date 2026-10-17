@@ -83,7 +83,7 @@ export default function Categoria({ gastosCategoria = [] }) {
   if (categories.length === 0) {
     return (
       <View style={styles.section}>
-        <ProfileCard title="Gastos por categoria">
+        <ProfileCard title="Gastos por categoria" variant="dashboard">
           <Text style={styles.emptyMessage}>Nenhuma categoria encontrada</Text>
         </ProfileCard>
       </View>
@@ -92,7 +92,7 @@ export default function Categoria({ gastosCategoria = [] }) {
 
   return (
     <View style={styles.section}>
-      <ProfileCard title="Gastos por categoria">
+      <ProfileCard title="Gastos por categoria" variant="dashboard">
         <View style={styles.summaryCard}>
           <View style={styles.summaryCopy}>
             <Text style={styles.summaryLabel}>Categoria principal</Text>

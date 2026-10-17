@@ -75,7 +75,7 @@ const items = Object.entries(agregado)
 
     return (
       <View style={styles.section}>
-        <ProfileCard title={title}>
+        <ProfileCard title={title} variant="dashboard">
           <Text style={styles.emptyMessage}>Nenhum dado de tempo disponível</Text>
         </ProfileCard>
       </View>
@@ -84,7 +84,7 @@ const items = Object.entries(agregado)
 
   return (
     <View style={styles.section}>
-      <ProfileCard title={title}>
+      <ProfileCard title={title} variant="dashboard">
         <View style={styles.summaryCard}>
           <View style={styles.summaryCopy}>
             <Text style={styles.summaryLabel}>Maior tempo registrado</Text>

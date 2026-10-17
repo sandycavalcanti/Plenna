@@ -3,8 +3,8 @@ import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   section: {
-    marginHorizontal: 16,
-    marginVertical: 10,
+    marginHorizontal: 0,
+    marginVertical: 6,
   },
 
   summaryCard: {
@@ -14,8 +14,7 @@ export const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     backgroundColor: COLORS.dashboardBoxMaiorTempo,
-    borderWidth: 1,
-    borderColor: COLORS.dashboardBoxMaiorTempoBorda,
+    borderWidth: 0,
     marginBottom: 8,
   },
 
@@ -55,8 +54,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: COLORS.dashboardBoxMaiorTempoBorda,
+    borderWidth: 0,
   },
 
   summaryBadgeText: {

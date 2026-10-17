@@ -3,8 +3,8 @@ import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   section: {
-    marginHorizontal: 18,
-    marginVertical: 10,
+    marginHorizontal: 0,
+    marginVertical: 6,
   },
 
   heroCard: {
@@ -46,8 +46,7 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#EEE6FA',
+    borderWidth: 0,
     marginTop: 10,
   },
 
@@ -121,19 +120,6 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.dadoDois,
   },
 
-  expandButton: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1.5,
-    borderColor: COLORS.dadoDois,
-    backgroundColor: '#FFFFFF',
-  },
   expandButton: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -56,7 +56,7 @@ export default function FormaPagamento({ gastosFormaPagamento = [] }) {
   if (items.length === 0) {
     return (
       <View style={styles.section}>
-        <ProfileCard title="Gastos por forma de pagamento">
+        <ProfileCard title="Gastos por forma de pagamento" variant="dashboard">
           <Text style={styles.emptyMessage}>Nenhum gasto por forma de pagamento disponível</Text>
         </ProfileCard>
       </View>
@@ -84,7 +84,7 @@ export default function FormaPagamento({ gastosFormaPagamento = [] }) {
 
   return (
     <View style={styles.section}>
-      <ProfileCard title="Gastos por forma de pagamento">
+      <ProfileCard title="Gastos por forma de pagamento" variant="dashboard">
         <View style={styles.summaryCard}>
           <View style={styles.summaryCopy}>
             <Text style={styles.summaryLabel}>Maior participação</Text>

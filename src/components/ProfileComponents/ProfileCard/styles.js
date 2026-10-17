@@ -9,6 +9,9 @@
 //Importação do módulo de estilos do React Native
 import { StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants';
+import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
+
+const { colors: DASHBOARD_COLORS, radius: DASHBOARD_RADIUS, shadows: DASHBOARD_SHADOWS } = DASHBOARD_THEME;
 
 /**
  * Objeto de estilos do componente
@@ -67,5 +70,40 @@ export default StyleSheet.create({
   // Container do conteúdo interno
   content: {
     gap: 10,
+  },
+
+  dashboardContainer: {
+    position: 'relative',
+    borderWidth: 0,
+    borderRadius: DASHBOARD_RADIUS.lg,
+    padding: 16,
+    paddingTop: 16,
+    marginTop: 6,
+    marginBottom: 12,
+    backgroundColor: DASHBOARD_COLORS.surface,
+    ...DASHBOARD_SHADOWS.card,
+  },
+
+  dashboardHeader: {
+    position: 'relative',
+    top: 0,
+    left: 0,
+    right: 0,
+    marginBottom: 12,
+  },
+
+  dashboardTitleWrapper: {
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+  },
+
+  dashboardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: DASHBOARD_COLORS.ink,
+  },
+
+  dashboardContent: {
+    gap: 12,
   },
 });

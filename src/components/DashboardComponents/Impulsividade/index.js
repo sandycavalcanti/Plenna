@@ -40,7 +40,7 @@ export default function Impulsividade({
   if ((!isArrayData && !isObjectData) || isEmptyArray || isEmptyObject) {
     return (
       <View style={styles.section}>
-        <ProfileCard title={title}>
+        <ProfileCard title={title} variant="dashboard">
           <Text style={styles.emptyMessage}>{emptyMessage}</Text>
         </ProfileCard>
       </View>
@@ -66,7 +66,7 @@ export default function Impulsividade({
 
   return (
     <View style={styles.section}>
-      <ProfileCard title={title}>
+      <ProfileCard title={title} variant="dashboard">
         <View style={styles.heroCard}>
           <View style={styles.ringWrap}>
             <View style={styles.ringShell}>
