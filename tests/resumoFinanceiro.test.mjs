@@ -6,7 +6,7 @@ const complete = { total:100, totalConhecido:100, qualidade:'COMPLETO', comprasS
 test('both screens consume backend summary; no financial sum from pending history',async()=>{
   for(const page of ['HomeScreen','DashboardScreen']) {
     const text=await readFile(new URL(`../src/pages/${page}/index.js`,import.meta.url),'utf8');
-    if (page === 'DashboardScreen') { assert.match(text,/useResumoMensal/);assert.match(text,/resumo=\{financeiro.resumo\}/); }
+    if (page === 'DashboardScreen') { assert.match(text,/getDashboardAnalytics/);assert.match(text,/period\?\.total_centavos/);assert.doesNotMatch(text,/fetchCompras/); }
     else { assert.match(text,/useResumoHome/);assert.doesNotMatch(text,/useAnaliseComportamento/);assert.match(text,/dados=\{financeiro.dados\}/);assert.doesNotMatch(text,/fetchCompras|AlertasHabito/); }
   }
   assert.equal(apresentarResumoFinanceiro(complete).total,100);

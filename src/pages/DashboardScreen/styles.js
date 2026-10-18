@@ -10,52 +10,6 @@ export const styles = StyleSheet.create({
     backgroundColor: T.background,
   },
 
-  header: {
-    paddingHorizontal: S.lg,
-    paddingTop: 10,
-    paddingBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: T.background,
-  },
-
-  brandBlock: {
-    flex: 1,
-    paddingRight: 10,
-  },
-
-  brand: {
-    fontSize: 25,
-    lineHeight: 29,
-    fontWeight: '800',
-    color: COLORS.perfilProfileCardTitulo,
-    letterSpacing: -0.5,
-  },
-
-  headerSubtitle: {
-    marginTop: 2,
-    fontSize: 11,
-    fontWeight: '600',
-    color: T.muted,
-  },
-
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-
-  headerIconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: R.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: T.surface,
-    ...SH.card,
-  },
-
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: S.lg,
@@ -101,12 +55,12 @@ export const styles = StyleSheet.create({
   },
 
   pageContent: {
-    paddingTop: 18,
+    paddingTop: 13,
     paddingHorizontal: S.lg,
   },
 
   pageIntro: {
-    marginBottom: 12,
+    marginBottom: 7,
   },
 
   pageEyebrow: {
@@ -119,8 +73,8 @@ export const styles = StyleSheet.create({
   pageTitle: {
     marginTop: 4,
     fontFamily: 'SugoDisplay',
-    fontSize: 29,
-    lineHeight: 34,
+    fontSize: 27,
+    lineHeight: 31,
     fontWeight: '500',
     color: COLORS.perfilProfileCardTitulo,
   },
@@ -134,20 +88,20 @@ export const styles = StyleSheet.create({
   },
 
   periodSelector: {
-    minHeight: 58,
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 13,
-    paddingHorizontal: 11,
-    paddingVertical: 8,
+    marginBottom: 11,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
     borderRadius: R.md,
     backgroundColor: T.surface,
     ...SH.card,
   },
 
   periodSelectorIcon: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: R.sm,
@@ -160,7 +114,7 @@ export const styles = StyleSheet.create({
   },
 
   periodSelectorLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
     color: T.muted,
@@ -169,183 +123,203 @@ export const styles = StyleSheet.create({
 
   periodSelectorValue: {
     marginTop: 2,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     color: T.ink,
   },
 
-  heroCard: {
+  financialSummaryCard: {
     marginBottom: 12,
-    padding: 16,
-    borderRadius: R.lg,
+    paddingHorizontal: 15,
+    paddingTop: 14,
+    paddingBottom: 13,
+    borderRadius: R.md,
     backgroundColor: T.surface,
-    borderWidth: 1,
-    borderColor: T.border,
     ...SH.card,
   },
 
-  heroCardWithin: {
-    borderLeftWidth: 4,
-    borderLeftColor: T.positive,
-  },
-
-  heroCardNear: {
-    borderLeftWidth: 4,
-    borderLeftColor: T.caution,
-  },
-
-  heroCardExceeded: {
-    borderLeftWidth: 4,
-    borderLeftColor: T.warning,
-    backgroundColor: T.dangerSurface,
-  },
-
-  heroCardUndefined: {
-    borderLeftWidth: 4,
-    borderLeftColor: T.navy,
-  },
-
-  heroTopLine: {
+  financialSummaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
 
-  heroEyebrow: {
+  financialSummaryEyebrow: {
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.7,
+    color: T.muted,
     textTransform: 'uppercase',
-    color: T.muted,
   },
 
-  heroPeriod: {
-    marginTop: 4,
-    fontSize: 12,
-    fontWeight: '600',
-    color: T.body,
-  },
-
-  heroIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: T.accentSoft,
-  },
-
-  heroValue: {
-    marginTop: 10,
-    fontSize: 31,
-    lineHeight: 37,
-    fontWeight: '800',
-    color: T.ink,
-    letterSpacing: -0.8,
-  },
-
-  heroFacts: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 13,
-  },
-
-  heroFact: {
-    flex: 1,
-  },
-
-  heroFactValue: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: T.ink,
-  },
-
-  heroFactLabel: {
-    marginTop: 2,
-    fontSize: 11,
-    fontWeight: '600',
-    color: T.muted,
-  },
-
-  heroFactDivider: {
-    width: 1,
-    height: 28,
-    marginHorizontal: 16,
-    backgroundColor: T.border,
-  },
-
-  budgetBlock: {
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: T.border,
-  },
-
-  budgetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  budgetHeaderCopy: {
-    flex: 1,
-  },
-
-  budgetLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: T.body,
-  },
-
-  budgetTarget: {
+  financialSummaryLabel: {
     marginTop: 2,
     fontSize: 16,
     fontWeight: '800',
     color: T.ink,
   },
 
-  budgetValue: {
-    fontSize: 12,
+  financialSummaryContext: {
+    maxWidth: '42%',
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '700',
+    color: T.muted,
+    textAlign: 'right',
+  },
+
+  financialSummaryValue: {
+    marginTop: 9,
+    fontSize: 29,
+    lineHeight: 35,
+    fontWeight: '800',
+    letterSpacing: -0.7,
+    color: T.ink,
+  },
+
+  financialSummaryValueSuffix: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0,
+    color: T.body,
+  },
+
+  financialBars: {
+    marginTop: 15,
+  },
+
+  financialBarRow: {
+    marginTop: 9,
+  },
+
+  financialComparisonRows: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+
+  financialBarHeader: {
+    flex: 1,
+    gap: 3,
+  },
+
+  financialBarHeaderEnd: {
+    alignItems: 'flex-end',
+  },
+
+  financialBarLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: T.body,
+  },
+
+  financialBarValue: {
+    fontSize: 13,
     fontWeight: '800',
     color: T.ink,
   },
 
-  budgetTrack: {
-    height: 8,
-    marginTop: 9,
-    borderRadius: 999,
+  financialBarTrack: {
+    height: 11,
+    marginTop: 8,
     overflow: 'hidden',
+    position: 'relative',
+    borderRadius: R.pill,
     backgroundColor: T.track,
   },
 
-  budgetFill: {
+  financialBarFill: {
     height: '100%',
-    borderRadius: 999,
+    borderRadius: R.pill,
     backgroundColor: T.accent,
   },
 
-  budgetStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 9,
-    gap: 5,
+  financialBarFillExcess: {
+    height: '100%',
+    position: 'absolute',
+    borderRadius: R.pill,
+    backgroundColor: T.warning,
   },
 
-  budgetStatusText: {
-    fontSize: 12,
+  financialBarLimitMarker: {
+    position: 'absolute',
+    top: -3,
+    width: 2,
+    height: 17,
+    borderRadius: R.pill,
+    backgroundColor: T.navy,
+  },
+
+  financialSummaryStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 14,
+    paddingTop: 11,
+    borderTopWidth: 1,
+    borderTopColor: T.border,
+  },
+
+  financialSummaryStatusCopy: {
+    flex: 1,
+  },
+
+  financialSummaryStatusTitle: {
+    fontSize: 13,
     fontWeight: '800',
   },
 
-  budgetExcess: {
-    marginLeft: 'auto',
-    fontSize: 11,
-    fontWeight: '700',
-    color: T.warning,
+  financialSummaryStatusText: {
+    marginTop: 2,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '600',
+    color: T.body,
   },
 
-  budgetCaption: {
-    marginTop: 7,
+  financialSummaryStatusExceeded: {
+    color: T.warning,
+    fontWeight: '800',
+  },
+
+  financialSummaryPercentBlock: {
+    maxWidth: '40%',
+    alignItems: 'flex-end',
+  },
+
+  financialSummaryPercentValue: {
+    fontSize: 19,
+    lineHeight: 23,
+    fontWeight: '800',
+  },
+
+  financialSummaryPercentLabel: {
+    marginTop: 2,
     fontSize: 11,
+    fontWeight: '600',
+    color: T.muted,
+    textAlign: 'right',
+  },
+
+  noLimitState: {
+    marginTop: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 11,
+    borderRadius: R.sm,
+    backgroundColor: T.surfaceMuted,
+  },
+
+  noLimitTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: T.body,
+  },
+
+  noLimitText: {
+    marginTop: 3,
+    fontSize: 12,
+    lineHeight: 17,
     fontWeight: '600',
     color: T.muted,
   },
@@ -379,65 +353,23 @@ export const styles = StyleSheet.create({
     color: '#777B96',
   },
 
-  metricGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 3,
+  periodIndicatorsSection: {
+    marginTop: 6,
+    marginBottom: 0,
+    marginHorizontal: 0,
   },
 
-  metricTile: {
-    width: '48.2%',
-    minHeight: 92,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderLeftWidth: 4,
-    borderRadius: R.md,
-    backgroundColor: T.surface,
+  periodIndicatorsCard: {
+    marginLeft: 0,
+    marginBottom: 0,
+    marginRight: 0,
     ...SH.card,
-    borderTopWidth: 1,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderTopColor: T.border,
-    borderRightColor: T.border,
-    borderBottomColor: T.border,
   },
 
-  metricIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: R.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-
-  metricCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-
-  metricLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: T.muted,
-  },
-
-  metricValue: {
-    marginTop: 3,
-    fontSize: 18,
-    fontWeight: '800',
-    color: T.ink,
-  },
-
-  metricCaption: {
-    marginTop: 2,
-    fontSize: 11,
-    fontWeight: '600',
-    color: T.muted,
+  periodIndicatorsContent: {
+    gap: 10,
+    paddingHorizontal: 5,
+    paddingVertical: 6,
   },
 
   stateCard: {
@@ -561,6 +493,33 @@ export const styles = StyleSheet.create({
     marginHorizontal: -4,
   },
 
+  evolutionChartCompact: {
+    height: 214,
+  },
+
+  singlePeriodSummary: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: R.sm,
+    backgroundColor: T.surfaceMuted,
+  },
+
+  singlePeriodLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: T.body,
+  },
+
+  singlePeriodValue: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: T.ink,
+  },
+
   pointTooltip: {
     alignSelf: 'flex-start',
     marginBottom: 8,
@@ -632,11 +591,37 @@ export const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  comparisonPeriods: {
+  comparisonSummaryPeriods: {
     marginTop: 4,
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.dadoDois,
+    color: T.muted,
+  },
+
+  comparisonPeriodTag: {
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    gap: 5,
+  },
+
+  comparisonPeriodDot: {
+    width: 8,
+    height: 8,
+    flexShrink: 0,
+    borderRadius: 4,
+  },
+
+  comparisonPeriodTagText: {
+    flexShrink: 1,
+    fontSize: 12,
+    fontWeight: '800',
+    color: T.navy,
+  },
+
+  comparisonPeriodTagTextCompact: {
+    fontSize: 11,
   },
 
   comparisonMetricRow: {
@@ -686,24 +671,19 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  comparisonVisualHint: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: T.muted,
-  },
-
   comparisonVisualRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 19,
     marginTop: 6,
     gap: 8,
   },
 
-  comparisonVisualLabel: {
-    width: 12,
+  comparisonVisualPeriodLabel: {
+    width: 48,
     fontSize: 11,
-    fontWeight: '800',
-    color: T.navy,
+    fontWeight: '700',
+    color: T.body,
   },
 
   comparisonVisualTrack: {
@@ -959,18 +939,52 @@ export const styles = StyleSheet.create({
     color: '#878BA3',
   },
 
-  periodPickerButton: {
-    maxWidth: 143,
+  periodEndRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 13,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: T.border,
+  },
+
+  periodEndCopy: {
+    flex: 1,
+  },
+
+  periodEndLabel: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: T.body,
+  },
+
+  periodEndHint: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '600',
+    color: T.muted,
+  },
+
+  periodEndButton: {
+    maxWidth: '58%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    borderRadius: R.sm,
     backgroundColor: T.surfaceMuted,
   },
 
-  periodPickerText: {
+  periodEndButtonPrefix: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: T.muted,
+  },
+
+  periodEndButtonValue: {
     flexShrink: 1,
     fontSize: 12,
     fontWeight: '800',
@@ -1005,13 +1019,6 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  controlFootnote: {
-    marginTop: 9,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#9295AC',
-  },
-
   comparePickerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1024,23 +1031,31 @@ export const styles = StyleSheet.create({
     minHeight: 65,
     justifyContent: 'center',
     paddingHorizontal: 11,
+    borderWidth: 1,
+    borderColor: T.border,
+    borderTopWidth: 4,
     borderRadius: 12,
     backgroundColor: T.surfaceMuted,
   },
 
-  comparePickerLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.dadoDois,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  comparePickerValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
   },
 
   comparePickerValue: {
-    marginTop: 5,
+    flex: 1,
     fontSize: 14,
     fontWeight: '800',
-    color: COLORS.dadoUm,
+    color: T.navy,
+  },
+
+  categoryBarMarker: {
+    width: 7,
+    height: 7,
+    flexShrink: 0,
+    borderRadius: 4,
   },
 
   validationText: {
@@ -1057,13 +1072,22 @@ export const styles = StyleSheet.create({
   },
 
   monthModal: {
-    maxHeight: '92%',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 28,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    backgroundColor: T.background,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 18,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    backgroundColor: T.surface,
+    ...SH.card,
+  },
+
+  sheetHandle: {
+    alignSelf: 'center',
+    width: 38,
+    height: 4,
+    marginBottom: 13,
+    borderRadius: R.pill,
+    backgroundColor: '#D8D5E3',
   },
 
   modalHeader: {
@@ -1093,12 +1117,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: T.surface,
+    backgroundColor: T.surfaceMuted,
   },
 
   pickerLabel: {
-    marginTop: 20,
-    marginBottom: 8,
+    marginTop: 15,
+    marginBottom: 7,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.7,
@@ -1106,48 +1130,61 @@ export const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  yearScroll: {
-    gap: 8,
-    paddingRight: 8,
+  yearControl: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 5,
+    borderRadius: R.sm,
+    backgroundColor: T.surfaceMuted,
   },
 
-  yearChip: {
-    minWidth: 64,
+  yearControlButton: {
+    width: 34,
+    height: 34,
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: R.md,
+    justifyContent: 'center',
+    borderRadius: R.sm,
     backgroundColor: T.surface,
   },
 
-  yearChipActive: {
-    backgroundColor: T.navy,
+  yearControlButtonDisabled: {
+    opacity: 0.3,
   },
 
-  yearChipText: {
-    fontSize: 12,
+  yearControlValue: {
+    fontSize: 17,
     fontWeight: '800',
-    color: T.navy,
+    color: T.ink,
   },
 
-  yearChipTextActive: {
-    color: '#FFFFFF',
+  singleYearRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+
+  singleYearValue: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: T.ink,
   },
 
   monthGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 7,
   },
 
   monthChip: {
-    width: '31.5%',
-    minHeight: 38,
+    width: '31.8%',
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
     borderRadius: R.sm,
-    backgroundColor: T.surface,
+    backgroundColor: T.surfaceMuted,
   },
 
   monthChipActive: {
@@ -1155,11 +1192,11 @@ export const styles = StyleSheet.create({
   },
 
   monthChipDisabled: {
-    opacity: 0.42,
+    opacity: 0.35,
   },
 
   monthChipText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: T.navy,
   },
@@ -1172,53 +1209,31 @@ export const styles = StyleSheet.create({
     color: T.muted,
   },
 
-  monthStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 24,
-  },
-
-  stepButton: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-  },
-
-  stepButtonDisabled: {
-    backgroundColor: '#F0EFF5',
-  },
-
   selectedMonthBlock: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 8,
+    marginTop: 13,
+    paddingHorizontal: 2,
   },
 
   selectedMonthText: {
-    marginTop: 7,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: COLORS.perfilProfileCardTitulo,
-    textAlign: 'center',
+    textAlign: 'left',
   },
 
   selectedMonthHint: {
-    marginTop: 4,
-    fontSize: 10,
+    marginTop: 3,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#9295AC',
-    textAlign: 'center',
+    color: T.muted,
+    textAlign: 'left',
   },
 
   modalDoneButton: {
     alignItems: 'center',
-    marginTop: 24,
-    paddingVertical: 13,
-    borderRadius: 13,
+    marginTop: 15,
+    paddingVertical: 12,
+    borderRadius: R.sm,
     backgroundColor: COLORS.customButtonFundo,
   },
 

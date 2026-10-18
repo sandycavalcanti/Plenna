@@ -1,10 +1,66 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Animated, Pressable, useWindowDimensions } from 'react-native';
+import { Animated, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
+import { obterJanelaDiaLocal } from '../../../utils/tempoUsoSync';
 import { resumirTempoHoje, formatarTempoUso } from '../../../utils/resumoTempoUso';
 import { apresentarResumoFinanceiro, apresentarEstadoOrcamento } from '../../../utils/resumoFinanceiro';
+
+function StatCard({ icon, iconColor, label, value, subtitle, cardStyle }) {
+  return (
+    <View
+      style={[
+        styles.statCard,
+        cardStyle,
+        {
+          borderTopColor: iconColor,
+          borderTopWidth: 4,
+        },
+      ]}>
+      <View style={[styles.statIconContainer, { backgroundColor: `${iconColor}20` }]}>
+        <MaterialCommunityIcons name={icon} size={28} color={iconColor} />
+      </View>
+      <View style={styles.statContent}>
+        <Text style={styles.statLabel}>{label}</Text>
+        <Text style={styles.statValue}>{value}</Text>
+        {subtitle ? <Text style={styles.statSubtitle}>{subtitle}</Text> : null}
+      </View>
+    </View>
+  );
+}
+
+export function ResumoMensalCarousel({
+  cards = [],
+  monthTitle = 'Resumo do mês',
+  onInteractionChange,
+  sectionStyle,
+  cardStyle,
+  scrollContentStyle,
+}) {
+  return (
+    <View style={[styles.section, sectionStyle]}>
+      <Text style={styles.monthTitle}>{monthTitle}</Text>
+      <ScrollView
+        horizontal
+        nestedScrollEnabled
+        directionalLockEnabled
+        showsHorizontalScrollIndicator={false}
+        style={styles.statsScroll}
+        contentContainerStyle={scrollContentStyle}
+        onTouchStart={() => onInteractionChange?.(true)}
+        onTouchEnd={() => onInteractionChange?.(false)}
+        onTouchCancel={() => onInteractionChange?.(false)}
+        onScrollBeginDrag={() => onInteractionChange?.(true)}
+        onScrollEndDrag={() => onInteractionChange?.(false)}
+        onMomentumScrollEnd={() => onInteractionChange?.(false)}>
+        {cards.map((card) => (
+          <StatCard key={card.key || card.label} {...card} cardStyle={cardStyle} />
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 
 export default function GastosTotais({
   resumo = null,

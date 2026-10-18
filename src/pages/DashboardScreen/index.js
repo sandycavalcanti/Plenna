@@ -18,6 +18,7 @@ import { useDataRefresh } from '../../hooks/useDataRefresh';
 import { useAnaliseComportamento } from '../../hooks/useAnaliseComportamento';
 import { logApiErrors } from '../../utils/error';
 import { obterJanelaDiaLocal } from '../../utils/tempoUsoSync';
+import { observarAtualizacaoTempoUso } from '../../utils/tempoUsoAtualizacao';
 import { styles } from './styles';
 
 const ANALYTICS_TIMEZONE = 'America/Sao_Paulo';
@@ -1006,6 +1007,10 @@ export default function DashboardScreen({ route }) {
     useCallback(() => {
       loadOverview();
       loadContext();
+      const unsubscribe = observarAtualizacaoTempoUso(() => {
+        loadContext();
+      });
+      return unsubscribe;
     }, [loadContext, loadOverview]),
   );
 

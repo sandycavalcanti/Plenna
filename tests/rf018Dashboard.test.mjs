@@ -42,10 +42,11 @@ test('component limits recommendations to two, preserves coverage warning and do
  const d=data();d.recomendacoes.recomendacoes=Array.from({length:3},(_,i)=>({...data().recomendacoes.recomendacoes[0],codigo:String(i),titulo:'Orientacao '+i}));
  const rendered=text(Component({dados:d}));assert.match(rendered,/Orientacao 1/);assert.doesNotMatch(rendered,/Orientacao 2/);assert.match(rendered,/apenas os registros/);assert.doesNotMatch(componentSource,/compra_valor|compra_desconto|reduce\(/);
 });
-test('Dashboard retains previous cards and uses same period for RF018 and monthly summary',async()=>{
+test('Dashboard preserves RF016 analytics and integrates RF018 for the selected period',async()=>{
  const s=await readFile(new URL('../src/pages/DashboardScreen/index.js',import.meta.url),'utf8');
- assert.match(s,/useAnaliseComportamento\(periodoMensalUTC\(dataSelecionada\)\)/);assert.match(s,/useResumoMensal\(periodoMensalUTC\(dataSelecionada\)\)/);
- for(const name of ['GastosTotais','Categoria','TempoApp','Impulsividade','FormaPagamento'])assert.ok(s.includes('<'+name));assert.match(s,/comportamento.refresh\(\)/);assert.match(s,/mudarMes\(-1\)/);
+ assert.match(s,/getDashboardAnalytics/);assert.match(s,/useAnaliseComportamento\(selectedMonth\)/);assert.match(s,/AnaliseComportamento/);
+ for(const name of ['Categoria','TempoApp','Impulsividade','FormaPagamento'])assert.ok(s.includes('<'+name));
+ assert.match(s,/comportamento\.refresh\(\)/);assert.match(s,/getDashboardAnalytics\(params/);assert.match(s,/incomingPeriod/);assert.match(s,/onLayout=\{mark\('tempo'\)\}/);
 });
 
 test('progressive explanations stay compact, preserve caveats and reset when month changes',()=>{
