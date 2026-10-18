@@ -1,3 +1,4 @@
+import { categoriaEhOutros } from '../../utils/categorias';
 import React, { useEffect, useState, useRef } from 'react';
 import { styles } from './styles';
 import { ActivityIndicator, Alert, BackHandler, FlatList, Modal, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
@@ -10,6 +11,9 @@ import { valorMonetarioParaNumero } from '../../components/CustomTextInput/curre
 import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
+import { distribuirSobraEmOutros, obterIdCategoriaOutros, validarCatalogoCategorias } from '../../utils/categorias';
+import { calcularOrcamento } from '../../utils/orcamento';
+import { registrarFalhaPreferencias, mensagemValidacaoPreferencias } from '../../utils/preferenciasDiagnostico';
 import { Ionicons } from '@expo/vector-icons';
 import { invalidateProtectedSession } from '../../services/security/protectedSession';
 import { tokenStorage } from '../../api/tokenStorage';
@@ -53,8 +57,11 @@ export default function SignUpScreen({ navigation, route }) {
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState('');
+  const catalogRequest = useRef(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [limiteGastoValor, setLimiteGastoValor] = useState(290);
+  const limiteGastoReferencia = useRef(290);
   const [quantidadeComprasMes, setQuantidadeComprasMes] = useState('');
   const [valorMaximoCompra, setValorMaximoCompra] = useState('');
   const [stepTwoTouched, setStepTwoTouched] = useState(false);
@@ -79,6 +86,10 @@ export default function SignUpScreen({ navigation, route }) {
 
     return () => sub.remove();
   }, []);
+
+  useEffect(() => {
+    if (step === 2 && categories.length === 0) listarCategorias();
+  }, [step]);
 
   useEffect(() => {
     if (step !== 2) {
@@ -134,17 +145,28 @@ export default function SignUpScreen({ navigation, route }) {
   }
 
   function obterSomaLimitesCategorias(categorias) {
-    return categorias.reduce((total, categoria) => total + (categoria.limite || 0), 0);
+    return categorias
+      .filter((categoria) => !categoriaEhOutros(categoria))
+      .reduce((total, categoria) => total + Math.round((Number(categoria.limite) || 0) * 100), 0) / 100;
+  }
+
+  function atualizarLimiteMensal(valor, metaBloqueada = false) {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero) || numero < 0) {
+      return;
+    }
+
+    // Somente uma escolha manual substitui a referencia do orcamento.
+    limiteGastoReferencia.current = numero;
+    setLimiteGastoValor(metaBloqueada
+      ? numero
+      : Math.max(numero, obterSomaLimitesCategorias(selectedCategories)));
   }
 
   function ajustarLimiteGastoParaCategorias(categorias) {
     const somaCategorias = obterSomaLimitesCategorias(categorias);
-
-    if (limiteGastoValor < somaCategorias) {
-      setLimiteGastoValor(somaCategorias);
-    }
+    setLimiteGastoValor(Math.max(limiteGastoReferencia.current, somaCategorias));
   }
-
   function ajustarLimiteMensalMinimo(valorCompra, categorias) {
   const valorMaximo = valorCompra
     ? valorMonetarioParaNumero(valorCompra)
@@ -179,7 +201,6 @@ export default function SignUpScreen({ navigation, route }) {
         },
       ];
 
-      ajustarLimiteGastoParaCategorias(nextCategories);
 
       return nextCategories;
     });
@@ -188,38 +209,61 @@ export default function SignUpScreen({ navigation, route }) {
   }
 
   function atualizarLimiteCategoria(categoriaId, novoValor, metaBloqueada) {
-    setStepTwoTouched(true);
+    const categoriaAtual = selectedCategories.find(
+      (item) => item.categoria_id === categoriaId
+    );
 
-    setSelectedCategories((prevCategories) => {
-      const nextCategories = prevCategories.map((item) =>
-        item.categoria_id === categoriaId
-          ? {
-              ...item,
-              limite: novoValor,
-            }
-          : item,
-      );
+    if (!categoriaAtual || categoriaEhOutros(categoriaAtual)) {
+      return;
+    }
 
-      if (!metaBloqueada) {
-        ajustarLimiteGastoParaCategorias(nextCategories);
-      }
+    const valorAnterior = Number(categoriaAtual.limite) || 0;
+    const valorSolicitado = Number(novoValor);
 
-      return nextCategories;
-    });
+    if (!Number.isFinite(valorSolicitado) || valorSolicitado < 0) {
+      return;
+    }
+
+    const somaOutrasCategorias = obterSomaLimitesCategorias(
+      selectedCategories.filter(
+        (item) => item.categoria_id !== categoriaId
+      )
+    );
+
+    const valorNovo = metaBloqueada && valorSolicitado > valorAnterior
+      ? Math.min(
+          valorSolicitado,
+          Math.max(
+            valorAnterior,
+            Math.round((Number(limiteGastoValor) - somaOutrasCategorias) * 100) / 100
+          )
+        )
+      : valorSolicitado;
+
+    const proximasCategorias = selectedCategories.map((item) =>
+      item.categoria_id === categoriaId
+        ? { ...item, limite: valorNovo }
+        : item
+    );
+
+    if (!metaBloqueada) {
+      ajustarLimiteGastoParaCategorias(proximasCategorias);
+    }
+
+    setSelectedCategories(proximasCategorias);
   }
 
-  function removerCategoria(categoriaId) {
+  function removerCategoria(categoriaId, metaBloqueada = false) {
     setStepTwoTouched(true);
 
-    setSelectedCategories((prevCategories) => {
-      const nextCategories = prevCategories.filter((item) => item.categoria_id !== categoriaId);
-
+    const nextCategories = selectedCategories.filter((item) => item.categoria_id !== categoriaId);
+    if (!metaBloqueada) {
       ajustarLimiteGastoParaCategorias(nextCategories);
-
-      return nextCategories;
-    });
+    }
+    setSelectedCategories(nextCategories);
   }
 async function CadastrarUsuario() {
+  let etapaCadastro = 'VALIDACAO';
   try {
     setStepOneAttempted(true);
 
@@ -228,32 +272,25 @@ async function CadastrarUsuario() {
       return;
     }
 
-    try {
-      await apiClient.get('/users/email/' + email.trim());
+    // A API valida unicidade no cadastro, sem endpoint de enumeracao.
 
-      Alert.alert('E-mail já cadastrado', 'Use outro e-mail.');
-      return;
-    } catch (error) {
-      logApiErrors(error, 'Erro ao verificar email', false);
-
-      if (error.response?.status !== 404) {
-        return;
-      }
-    }
-
-    const registerPayload = {
+   const registerPayload = {
       nome: nome.trim(),
       email: email.trim(),
       senha,
+      aceitouTermos: checkboxTermos,
     };
 
+    etapaCadastro = 'CADASTRO_USUARIO';
     await apiClient.post('/auth/register', registerPayload);
 
+    etapaCadastro = 'LOGIN';
     const loginResponse = await apiClient.post('/auth/login', {
       email: email.trim(),
       senha,
     });
 
+    etapaCadastro = 'SESSAO';
     await tokenStorage.setToken(loginResponse.data.token);
     // O cadastro também inicia uma nova sessão de usuário e não pode herdar
     // uma área de compras desbloqueada anteriormente neste processo.
@@ -265,85 +302,96 @@ async function CadastrarUsuario() {
       setStep(2);
     }
   } catch (error) {
-    logApiErrors(error, 'Erro ao cadastrar usuário');
+    registrarFalhaPreferencias(error, etapaCadastro, 'CADASTRO');
   }
 }
   function listarCategorias() {
+    if (catalogRequest.current) return catalogRequest.current;
     setCategoriesLoading(true);
-    apiClient
+    setCategoriesError('');
+    catalogRequest.current = apiClient
       .get('/categories')
       .then((response) => {
-        setCategories(response.data);
+        setCategories(validarCatalogoCategorias(response.data));
       })
-      .catch((error) => logApiErrors(error, 'Erro ao listar categorias'))
+      .catch((error) => {
+        setCategories([]);
+        setCategoriesError('Não foi possível carregar um catálogo válido de categorias. Tente novamente.');
+        registrarFalhaPreferencias(error, 'CATALOGO', 'CADASTRO');
+      })
       .finally(() => {
+        catalogRequest.current = null;
         setCategoriesLoading(false);
       });
+    return catalogRequest.current;
   }
 
-  async function AtualizarUsuario() {
+  async function AtualizarUsuario(metaBloqueada = false) {
+    let etapaSalvamento = 'VALIDACAO';
     try {
       setStepTwoAttempted(true);
-      if (stepTwoInvalido) {
+      if (metaBloqueada && stepTwoInvalido) {
         Alert.alert('Limites inválidos', 'A soma dos limites por categoria não pode ultrapassar o limite mensal de gasto.');
         return;
       }
-      const limiteMensal = Number(limiteGastoValor) || 0;
-      const categoriasBase = [...selectedCategories];
-      const somaCategorias = obterSomaLimitesCategorias(categoriasBase);
-      if (limiteMensal > somaCategorias) {
-        const sobra = limiteMensal - somaCategorias;
-        const indiceOutros = categoriasBase.findIndex((category) => category.categoria_id === 14);
-        if (indiceOutros >= 0) {
-          const limiteAtualOutros = Number(categoriasBase[indiceOutros].limite) || 0;
-          categoriasBase[indiceOutros] = {
-            ...categoriasBase[indiceOutros],
-            limite: limiteAtualOutros + sobra,
-          };
-        } else {
-          const categoriaOutros = categories.find((category) => category.categoria_id === 14);
-          categoriasBase.push({
-            categoria_id: 14,
-            categoria_nome: categoriaOutros?.categoria_nome || 'Outros',
-            limite: sobra,
-          });
+      if (categoriesLoading || categoriesError) {
+        throw Object.assign(new Error('Catálogo indisponível.'), { code: 'CATALOGO_INVALIDO' });
+      }
+      validarCatalogoCategorias(categories, selectedCategories);
+      const idOutros = obterIdCategoriaOutros(categories);
+
+      const resultadoOrcamento = calcularOrcamento({
+        limiteMensal: Number(limiteGastoValor),
+        valorMaximoCompra: valorMaximoCompra === '' || valorMaximoCompra == null ? 0 : Number(valorMaximoCompra),
+        categorias: selectedCategories,
+        metaBloqueada,
+        idCategoriaOutros: idOutros,
+      });
+
+      const limiteMensal = resultadoOrcamento.tetoMensal;
+
+      if (limiteMensal <= 0) {
+        throw new Error('Informe um orçamento mensal maior que zero.');
+      }
+
+      const categoriasBase = distribuirSobraEmOutros(
+        resultadoOrcamento.categoriasValidas,
+        categories,
+        resultadoOrcamento.sobraParaOutros
+      );
+
+      if (
+        categoriasBase.length === 0 ||
+        categoriasBase.some((categoria) => categoria.limite <= 0)
+      ) {
+        throw new Error('Defina preferências válidas antes de salvar.');
+      }
+      // Atualizar as metas do usuário antes das preferências por categoria.
+      // Se esta requisição falhar, interromper o fluxo.
+      const payload = {};
+
+      if (quantidadeComprasMes) {
+        const num = Number(quantidadeComprasMes.replace(/\D/g, ''));
+        if (!Number.isNaN(num)) payload.limiteCompra = num;
+      }
+
+      payload.metaValorMensal = limiteMensal;
+
+      if (valorMaximoCompra !== '' && valorMaximoCompra !== null) {
+        const valorAtencao = Number(valorMaximoCompra);
+        if (Number.isFinite(valorAtencao) && valorAtencao > 0) {
+          payload.metaValorCompra = valorAtencao;
         }
       }
 
-      // Primeiro, atualizar dados do usuário (quantidade de compras, meta mensal e maior valor por compra)
-      try {
-        const payload = {};
-
-        if (quantidadeComprasMes) {
-          const num = Number(quantidadeComprasMes.replace(/\D/g, ''));
-          if (!Number.isNaN(num)) payload.limiteCompra = num;
-        }
-
-        if (limiteMensal) {
-          payload.metaValorMensal = limiteMensal;
-        }
-
-        if (valorMaximoCompra) {
-          const valorMaximoCompraNumerico = valorMonetarioParaNumero(valorMaximoCompra);
-          if (!Number.isNaN(valorMaximoCompraNumerico)) {
-            payload.metaValorCompra = valorMaximoCompraNumerico;
-          }
-        }
-
-        if (limiteTempo.current !== undefined && limiteTempo.current !== null) {
-          payload.metaTempo = Number(limiteTempo.current);
-        }
-
-        // Enviar apenas se houver algo para atualizar
-        if (Object.keys(payload).length > 0) {
-          await apiClient.put('/users', payload);
-        }
-      } catch (error) {
-        // Não bloquear o fluxo principal por erro aqui, mas logar o erro
-        logApiErrors(error, 'Erro ao atualizar dados do usuário');
+      if (limiteTempo.current !== undefined && limiteTempo.current !== null) {
+        payload.metaTempo = Number(limiteTempo.current);
       }
 
+      etapaSalvamento = 'USUARIO';
+      await apiClient.put('/users', payload);
       // Em seguida, persistir preferências por categoria (substitui existentes para evitar duplicação)
+      etapaSalvamento = 'PREFERENCIAS';
       await apiClient.put('/preferencia/bulk', {
         preferencias: categoriasBase.map((category) => ({
           categoriaId: category.categoria_id,
@@ -360,15 +408,34 @@ async function CadastrarUsuario() {
         },
       ]);
     } catch (error) {
-      logApiErrors(error, 'Erro ao salvar metas');
+      registrarFalhaPreferencias(error, etapaSalvamento, 'CADASTRO');
+
+      if (etapaSalvamento === 'PREFERENCIAS') {
+        Alert.alert(
+          'Salvamento incompleto',
+          'As metas do usuário podem ter sido atualizadas, mas não foi possível salvar as preferências por categoria. Confira os dados antes de tentar novamente.'
+        );
+      } else if (etapaSalvamento === 'USUARIO') {
+        Alert.alert(
+          'Não foi possível concluir',
+          'Não foi possível confirmar a atualização das metas. Confira os dados antes de tentar novamente.'
+        );
+      } else {
+        Alert.alert(
+          'Confira suas preferências',
+          mensagemValidacaoPreferencias(error)
+        );
+      }
     }
   }
+
+
+
 
   async function vincularEmailGoogle() {
     try {
       const response = await apiClient.get('/email/connect');
       const authUrl = response.data.url;
-
       await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
     } catch (error) {
       logApiErrors(error, 'Erro ao vincular e-mail ao Google');
@@ -378,8 +445,14 @@ async function CadastrarUsuario() {
   return (
   <SafeAreaView style={{ flex: 1 }}>
     <KeyboardAvoidingView style={styles.container} behavior="padding">
-      {step === 1 && (
-        <View style={styles.overlay}>
+     {step === 1 && (
+  <ScrollView
+    style={styles.signupScroll}
+    contentContainerStyle={styles.signupScrollContent}
+    keyboardShouldPersistTaps="handled"
+    showsVerticalScrollIndicator={false}
+  >
+    <View style={styles.overlay}>
           <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
           <Text style={styles.titulo}>Cadastre-se!</Text>
 
@@ -446,7 +519,6 @@ async function CadastrarUsuario() {
               />
             </TouchableOpacity>
           </View>
-
           <TouchableOpacity
             style={styles.checkboxRow}
             onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)}
@@ -471,9 +543,10 @@ async function CadastrarUsuario() {
             </Text>
           </TouchableOpacity>
 
-          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
-        </View>
-      )}
+         <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
+    </View>
+  </ScrollView>
+)}
 
       {step === 2 && (
         <ScrollView
@@ -482,17 +555,18 @@ async function CadastrarUsuario() {
           keyboardShouldPersistTaps="handled"
         >
           <PreferencesForm
+            categories={categories}
+            categoriesLoading={categoriesLoading}
+            categoriesError={categoriesError}
+            onRecarregarCategorias={listarCategorias}
             quantidadeComprasMes={quantidadeComprasMes}
             onQuantidadeComprasChange={setQuantidadeComprasMes}
             valorMaximoCompra={valorMaximoCompra}
             onValorMaximoCompraChange={(valor) => {
               setValorMaximoCompra(valor);
-              ajustarLimiteMensalMinimo(valor, selectedCategories);
             }}
             limiteGastoValor={limiteGastoValor}
-            onLimiteGastoChange={(valor) => {
-              setLimiteGastoValor(valor);
-            }}
+            onLimiteGastoChange={atualizarLimiteMensal}
             limiteTempo={limiteTempo.current}
             onLimiteTempoChange={(valor) => {
               limiteTempo.current = valor;
