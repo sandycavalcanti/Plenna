@@ -777,7 +777,7 @@ function ComparisonControls({ mode, setMode, months, setMonths, evolutionEnd, co
                 </Text>
               </View>
             </TouchableOpacity>
-            <MaterialCommunityIcons name="compare-arrows" size={23} color={COLORS.dadoDois} />
+            <MaterialCommunityIcons name="compare-horizontal" size={23} color={COLORS.dadoDois} />
             <TouchableOpacity
               style={[styles.comparePickerButton, { borderTopColor: COMPARISON_COLORS.compared }]}
               onPress={() => onOpenPicker('monthB')}

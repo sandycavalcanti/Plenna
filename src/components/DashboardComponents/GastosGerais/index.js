@@ -54,9 +54,10 @@ export function ResumoMensalCarousel({
         onScrollBeginDrag={() => onInteractionChange?.(true)}
         onScrollEndDrag={() => onInteractionChange?.(false)}
         onMomentumScrollEnd={() => onInteractionChange?.(false)}>
-        {cards.map((card) => (
-          <StatCard key={card.key || card.label} {...card} cardStyle={cardStyle} />
-        ))}
+        {cards.map((card) => {
+          const { key: cardKey, ...cardProps } = card;
+          return <StatCard key={cardKey || card.label} {...cardProps} cardStyle={cardStyle} />;
+        })}
       </ScrollView>
     </View>
   );
