@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, AppState, FlatList, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiClient } from '../../api/client';
 import { logApiErrors } from '../../utils/error';
@@ -17,6 +17,7 @@ import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProt
  * adiciona o token existente em todas as requisições.
  */
 export default function PurchasesScreen() {
+  const navigation = useNavigation();
   const isFocused = useIsFocused();
   const protectedAccess = useProtectedAccess();
   // Estes estados distinguem carregamento inicial, erro, lista e exclusão.
@@ -407,6 +408,13 @@ export default function PurchasesScreen() {
           <Text style={styles.title}>Minhas compras</Text>
           <Text style={styles.subtitle}>Acompanhe e organize suas compras</Text>
         </View>
+        <TouchableOpacity
+          style={styles.headerAction}
+          onPress={() => navigation.navigate('Recurrences')}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir recorrências">
+          <MaterialCommunityIcons name="autorenew" size={20} color={COLORS.cadTitulo} />
+        </TouchableOpacity>
       </View>
 
       {/*

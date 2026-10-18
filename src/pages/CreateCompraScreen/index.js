@@ -57,6 +57,18 @@ function formatMoney(value) {
   })}`;
 }
 
+function formatDateOnly(date) {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function getSaveErrorMessage(error) {
+  const message = error?.response?.data?.message || error?.response?.data?.error;
+  return typeof message === 'string' && message.trim()
+    ? message
+    : 'Não foi possível salvar. Confira os dados e tente novamente.';
+}
+
 function monthTitle(date) {
   return new Intl.DateTimeFormat('pt-BR', {
     month: 'long',
@@ -229,14 +241,6 @@ export default function CreateCompraScreen() {
   async function handleSalvar() {
     if (saving) return;
 
-    if (purchaseMode === 'RECORRENTE') {
-      Alert.alert(
-        'Protótipo local',
-        'O cadastro de recorrências será ativado em uma fase futura. Nenhum dado foi salvo.',
-      );
-      return;
-    }
-
     setSaving(true);
     try {
       if (!items || items.length === 0) {
@@ -266,6 +270,34 @@ export default function CreateCompraScreen() {
         payloadItems.push({ categoriaId, nome, valor });
       }
 
+      if (purchaseMode === 'RECORRENTE') {
+        const formaPagamentoId = Number(selectedFormaPagamentoId || 0);
+        if (!formaPagamentoId || !formasPagamento.some((forma) => forma.forma_pagamento_id === formaPagamentoId)) {
+          Alert.alert('Forma de pagamento', 'Selecione uma forma de pagamento válida para a recorrência.');
+          return;
+        }
+
+        await apiClient.post('/recorrencias', {
+          formaPagamentoId,
+          compraFonte: fonte.trim() || null,
+          frequencia: recurrenceFrequency,
+          primeiraOcorrencia: formatDateOnly(firstOccurrenceDate),
+          dataFinal: endDateEnabled && endDate ? formatDateOnly(endDate) : null,
+          items: payloadItems.map((it) => ({
+            categoriaId: it.categoriaId,
+            nome: it.nome,
+            valor: it.valor,
+          })),
+        });
+
+        Alert.alert(
+          'Recorrência cadastrada',
+          `A primeira compra será registrada em ${formatDate(firstOccurrenceDate)}. Nenhuma compra foi criada agora.`,
+          [{ text: 'OK', onPress: () => navigation.goBack() }],
+        );
+        return;
+      }
+
       const payload = {
         formaPagamentoId: selectedFormaPagamentoId ?? formasPagamento[0]?.forma_pagamento_id ?? 1,
         compraHorario: new Date().toISOString(),
@@ -281,7 +313,8 @@ export default function CreateCompraScreen() {
       await apiClient.post('/compras', payload);
       navigation.goBack();
     } catch (error) {
-      logApiErrors(error, 'Erro ao salvar compra');
+      logApiErrors(error, purchaseMode === 'RECORRENTE' ? 'Erro ao salvar recorrência' : 'Erro ao salvar compra');
+      Alert.alert('Não foi possível salvar', getSaveErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -384,11 +417,11 @@ export default function CreateCompraScreen() {
           {purchaseMode === 'RECORRENTE' ? (
             <View style={styles.prototypeBanner}>
               <View style={styles.prototypeIcon}>
-                <MaterialCommunityIcons name="flask-outline" size={18} color={COLORS.dadoDois} />
+                <MaterialCommunityIcons name="calendar-check-outline" size={18} color={COLORS.dadoDois} />
               </View>
               <View style={styles.prototypeCopy}>
-                <Text style={styles.prototypeTitle}>Protótipo interativo</Text>
-                <Text style={styles.prototypeText}>Explore a programação localmente. Recorrências ainda não podem ser salvas.</Text>
+                <Text style={styles.prototypeTitle}>Programação recorrente</Text>
+                <Text style={styles.prototypeText}>A configuração será salva sem criar uma compra agora. A primeira ocorrência será gerada na data programada.</Text>
               </View>
             </View>
           ) : null}
@@ -582,12 +615,12 @@ export default function CreateCompraScreen() {
 
           <View style={styles.actionsCard}>
             <CustomButton
-              title={purchaseMode === 'RECORRENTE' ? 'Salvar recorrência' : saving ? 'Salvando...' : 'Salvar compra'}
+              title={saving ? 'Salvando...' : purchaseMode === 'RECORRENTE' ? 'Salvar recorrência' : 'Salvar compra'}
               onPress={handleSalvar}
-              disabled={saving || purchaseMode === 'RECORRENTE'}
+              disabled={saving}
               style={styles.saveButton}
             />
-            {purchaseMode === 'RECORRENTE' ? <Text style={styles.disabledSaveHint}>Salvar recorrências ficará disponível quando o backend estiver pronto.</Text> : null}
+            {purchaseMode === 'RECORRENTE' ? <Text style={styles.disabledSaveHint}>O cadastro salva apenas a programação. A compra será criada pelo backend na data prevista.</Text> : null}
           </View>
 
           <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={() => setCategoryModalVisible(false)}>

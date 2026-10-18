@@ -34,6 +34,14 @@ export const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  headerAction: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
+  },
   title: {
     fontFamily: 'SugoDisplay',
     fontSize: 29,
