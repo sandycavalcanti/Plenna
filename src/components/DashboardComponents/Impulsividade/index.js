@@ -4,6 +4,7 @@ import Svg, { Circle } from 'react-native-svg';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
+import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
 import { distribuicaoClassificacoes } from '../../../utils/distribuicaoClassificacoes';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -51,16 +52,85 @@ export default function Impulsividade({
 
   if(isArrayData) {
     const distribution=distribuicaoClassificacoes(sourceData);
-    return <View style={styles.section}><ProfileCard title={title}>
-      <Text style={{fontSize:14,lineHeight:20,color:'#655A70',marginBottom:12}}>{distribution.total===0?emptyMessage:distribution.total+' compra(s) confirmadas neste período'}</Text>
-      {distribution.total>0&&distribution.groups.map(group=><View key={group.codigo} style={{marginBottom:14,gap:6}}>
-        <View style={{flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',gap:6}}><Text style={{flexShrink:1,color:'#594367',fontSize:14}}>{group.nome}</Text><Text style={{color:'#594367',fontWeight:'600'}}>{group.quantidade} · {group.percentual.toLocaleString('pt-BR',{maximumFractionDigits:1})}%</Text></View>
-        <View accessibilityRole="progressbar" accessibilityLabel={group.nome} accessibilityValue={{min:0,max:100,now:group.percentual,text:group.quantidade+' compras'}} style={{height:8,borderRadius:4,backgroundColor:'#F0EAF4'}}><View style={{height:8,borderRadius:4,width:group.percentual+'%',backgroundColor:group.cor}}/></View>
-      </View>)}
-      <Text style={{fontSize:12,lineHeight:18,color:'#655A70'}}>Marcações salvas nas compras. Não são diagnósticos nem avaliações automáticas do RF018.</Text>
-      {distribution.comprasSemValor>0&&<Text style={{fontSize:12,lineHeight:18,color:'#655A70'}}>Inclui compras sem valor informado; este gráfico conta compras, não gastos.</Text>}
-      {distribution.coberturaLegada&&<Text style={{fontSize:12,lineHeight:18,color:'#655A70'}}>Resposta anterior da API: a contagem pode omitir compras sem valor.</Text>}
-    </ProfileCard></View>;
+    let currentOffset = 0;
+    const segments = distribution.groups
+      .filter((group) => group.quantidade > 0)
+      .map((group) => {
+        const segmentLength = (group.percentual / 100) * RING_CIRCUMFERENCE;
+        const offset = currentOffset;
+        currentOffset += segmentLength;
+        return {
+          ...group,
+          strokeDashoffset: RING_CIRCUMFERENCE - segmentLength,
+          offsetPosition: offset,
+        };
+      });
+
+    return (
+      <View style={styles.section}>
+        <ProfileCard title={title} variant="dashboard">
+          {distribution.total === 0 ? (
+            <Text style={styles.emptyMessage}>{emptyMessage}</Text>
+          ) : (
+            <View style={styles.distributionLayout}>
+              <View
+                style={styles.distributionChart}
+                accessible
+                accessibilityRole="image"
+                accessibilityLabel={`${distribution.total} compras confirmadas neste período`}
+              >
+                <Svg width={RING_SIZE} height={RING_SIZE} style={styles.distributionSvg}>
+                  <Circle
+                    cx={RING_SIZE / 2}
+                    cy={RING_SIZE / 2}
+                    r={RING_RADIUS}
+                    stroke={DASHBOARD_THEME.colors.track}
+                    strokeWidth={RING_STROKE}
+                    fill="transparent"
+                  />
+                  {segments.map((segment) => (
+                    <Circle
+                      key={segment.codigo}
+                      cx={RING_SIZE / 2}
+                      cy={RING_SIZE / 2}
+                      r={RING_RADIUS}
+                      stroke={segment.cor}
+                      strokeWidth={RING_STROKE}
+                      fill="transparent"
+                      strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
+                      strokeDashoffset={segment.strokeDashoffset}
+                      strokeLinecap="butt"
+                      rotation={-90 + (360 * segment.offsetPosition) / RING_CIRCUMFERENCE}
+                      origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
+                    />
+                  ))}
+                </Svg>
+                <View style={styles.distributionCenter}>
+                  <Text style={styles.distributionTotal}>{distribution.total}</Text>
+                  <Text style={styles.distributionTotalLabel}>confirmadas</Text>
+                </View>
+              </View>
+
+              <View style={styles.distributionLegend}>
+                {distribution.groups.map((group) => (
+                  <View key={group.codigo} style={styles.distributionLegendItem}>
+                    <View style={[styles.distributionLegendDot, { backgroundColor: group.cor }]} />
+                    <View style={styles.distributionLegendCopy}>
+                      <Text style={styles.distributionLegendLabel} numberOfLines={2}>
+                        {group.nome}
+                      </Text>
+                      <Text style={styles.distributionLegendValue}>
+                        {group.quantidade} · {group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+        </ProfileCard>
+      </View>
+    );
   }
 
   // Normaliza tanto listas quanto objetos resumidos vindos da API

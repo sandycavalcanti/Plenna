@@ -1,5 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants';
+import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
+
+const { colors: T } = DASHBOARD_THEME;
 
 export const styles = StyleSheet.create({
   section: {
@@ -9,6 +12,83 @@ export const styles = StyleSheet.create({
 
   heroCard: {
     padding: 5,
+  },
+
+  distributionLayout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+
+  distributionChart: {
+    width: 136,
+    height: 136,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  distributionSvg: {
+    position: 'absolute',
+  },
+
+  distributionCenter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  distributionTotal: {
+    fontSize: 25,
+    lineHeight: 29,
+    fontWeight: '800',
+    color: COLORS.perfilProfileCardTitulo,
+  },
+
+  distributionTotalLabel: {
+    marginTop: 2,
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '700',
+    color: T.body,
+    textTransform: 'uppercase',
+    letterSpacing: 0.35,
+  },
+
+  distributionLegend: {
+    flex: 1,
+    minWidth: 0,
+    gap: 12,
+  },
+
+  distributionLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  distributionLegendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+
+  distributionLegendCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  distributionLegendLabel: {
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '700',
+    color: COLORS.perfilProfileCardTitulo,
+  },
+
+  distributionLegendValue: {
+    marginTop: 2,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
+    color: T.body,
   },
 
   ringWrap: {

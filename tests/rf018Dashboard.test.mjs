@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { transformSync } from '@babel/core';
 const hookSource=await readFile(new URL('../src/hooks/useAnaliseComportamento.js',import.meta.url),'utf8');
 const componentSource=await readFile(new URL('../src/components/DashboardComponents/AnaliseComportamento/index.js',import.meta.url),'utf8');
+const testStyles=new Proxy({}, {get:()=>({})});
 const data=(extra={})=>({versaoContrato:1,analise:{periodo:'2026-10',avaliacao:{estado:'DADOS_INSUFICIENTES'},indicadores:{frequencia:{compras:1},financeiro:{comprasComValor:1,comprasSemValor:0},comparacao:{disponibilidade:'INDISPONIVEL'},categorias:{grupos:[{categoriaId:2,compras:1,participacao:1}],comprasSemCategoria:0}}},categorias:[{id:2,nome:'Outros'}],recomendacoes:{recomendacoes:[{codigo:'REVISAR_LIMITE_INDIVIDUAL',titulo:'Revise seu limite por compra',mensagem:'Confira seu planejamento atual.',referencias:['compra:1'],limitacoes:[]}]},...extra});
 function hook(get,periodo='2026-10') {
  let state,sessionId=1,controller=new AbortController();const effects=[];const ref={current:0};
@@ -15,7 +16,7 @@ function hook(get,periodo='2026-10') {
 const React={createElement:(type,props,...children)=>({type,props:props||{},children})};
 const code=transformSync(componentSource.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
 let opened=null;
-const Component=new Function('React','View','Text','ActivityIndicator','Pressable','ProfileCard','MaterialCommunityIcons','useState',`${code};return AnaliseComportamento;`)(React,'View','Text','ActivityIndicator','Pressable','ProfileCard','Icon',initial=>[opened,next=>{opened=next;}]);
+const Component=new Function('React','View','Text','ActivityIndicator','Pressable','ProfileCard','MaterialCommunityIcons','useState','COLORS','styles',`${code};return AnaliseComportamento;`)(React,'View','Text','ActivityIndicator','Pressable','ProfileCard','Icon',initial=>[opened,next=>{opened=next;}],{dadoTres:'#AFA1E8'},testStyles);
 const text=tree=>tree==null||tree===false?'':Array.isArray(tree)?tree.map(text).join(' '):typeof tree==='object'?text(tree.children):String(tree);
 test('hook calls authenticated client contract with selected period and accepts response',async()=>{
  const calls=[];const h=hook(async(...args)=>{calls.push(args);return{data:data()};});
@@ -36,11 +37,11 @@ test('component separates loading error empty and insufficient; retry is availab
  assert.match(text(Component({error:true,onRetry:()=>{}})),/Tentar novamente/);
  const empty=data();empty.analise.indicadores.frequencia.compras=0;empty.recomendacoes.recomendacoes=[];
  assert.match(text(Component({dados:empty})),/Nenhuma compra confirmada/);
- const rendered=text(Component({dados:data()}));assert.match(rendered,/avaliação de impulsividade disponível/);assert.match(rendered,/Outros/);assert.match(rendered,/Revise seu limite/);assert.doesNotMatch(rendered,/compra:1|Refer?ncias:/);
+ const rendered=text(Component({dados:data()}));assert.doesNotMatch(rendered,/Outubro de 2026/);assert.doesNotMatch(rendered,/avaliação de impulsividade disponível/);assert.match(rendered,/Outros/);assert.match(rendered,/Revise seu limite/);assert.match(rendered,/Ver mais/);assert.doesNotMatch(rendered,/compra:1|Refer?ncias:/);
 });
-test('component limits recommendations to two, preserves coverage warning and does not calculate money',()=>{
+test('component limits recommendations to two, removes redundant coverage copy and does not calculate money',()=>{
  const d=data();d.recomendacoes.recomendacoes=Array.from({length:3},(_,i)=>({...data().recomendacoes.recomendacoes[0],codigo:String(i),titulo:'Orientacao '+i}));
- const rendered=text(Component({dados:d}));assert.match(rendered,/Orientacao 1/);assert.doesNotMatch(rendered,/Orientacao 2/);assert.match(rendered,/apenas os registros/);assert.doesNotMatch(componentSource,/compra_valor|compra_desconto|reduce\(/);
+ const rendered=text(Component({dados:d}));assert.match(rendered,/Orientacao 1/);assert.doesNotMatch(rendered,/Orientacao 2/);assert.doesNotMatch(rendered,/apenas os registros/);assert.doesNotMatch(componentSource,/compra_valor|compra_desconto|reduce\(/);
 });
 test('Dashboard preserves RF016 analytics and integrates RF018 for the selected period',async()=>{
  const s=await readFile(new URL('../src/pages/DashboardScreen/index.js',import.meta.url),'utf8');
@@ -53,11 +54,15 @@ test('progressive explanations stay compact, preserve caveats and reset when mon
  opened=null;
  const d=data();
  let tree=Component({dados:d});const compact=text(tree);
- assert.match(compact,/avaliação de impulsividade disponível/);assert.match(compact,/apenas os registros/);assert.match(compact,/vig.ncia hist.rica/);
+ assert.doesNotMatch(compact,/avaliação de impulsividade disponível/);assert.doesNotMatch(compact,/apenas os registros/);assert.match(compact,/vig.ncia hist.rica/);
  assert.doesNotMatch(compact,/Confira seu planejamento atual/);
  const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
- const toggle=nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Entenda o resumo'));
+ const toggle=nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver mais'));
  assert.equal(toggle.props.accessibilityState.expanded,false);toggle.props.onPress();
+ const expandedTree=Component({dados:d});
+ assert.doesNotMatch(text(expandedTree),/Confira seu planejamento atual/);
+ const recommendation=nodes(expandedTree).find(n=>n.type==='Pressable'&&text(n).includes('Revise seu limite'));
+ recommendation.props.onPress();
  assert.match(text(Component({dados:d})),/Confira seu planejamento atual/);
  const next={...d,analise:{...d.analise,periodo:'2026-09'}};
  assert.doesNotMatch(text(Component({dados:next})),/Confira seu planejamento atual/);

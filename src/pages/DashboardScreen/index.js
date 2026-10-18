@@ -1087,7 +1087,6 @@ export default function DashboardScreen({ route }) {
       iconColor: COLORS.dashboardGastosGeraisAviso,
       icon: 'alert-circle-outline',
     },
-    { key: 'compras', label: 'Compras', value: String(period?.quantidade_compras || 0), subtitle: 'confirmadas no período', iconColor: COLORS.dadoUm, icon: 'cart-outline' },
     { key: 'descontos', label: 'Descontos', value: formatCents(period?.desconto_centavos || 0), subtitle: 'economia registrada', iconColor: COLORS.dadoDois, icon: 'sale' },
 
     {
@@ -1111,11 +1110,6 @@ export default function DashboardScreen({ route }) {
         contentContainerStyle={[styles.pageContent, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={overviewLoading} onRefresh={handleRefresh} tintColor={COLORS.dadoDois} />}>
-        <View style={styles.pageIntro}>
-          <Text style={styles.pageEyebrow}>CONSUMO</Text>
-          <Text style={styles.pageTitle}>Visão geral</Text>
-        </View>
-
         <PeriodSelector value={selectedMonth} onPress={() => setMonthPickerOpen(true)} label="Mês analisado" />
 
         <View onLayout={mark('financial')} style={styles.financialSummaryCard}>
@@ -1231,7 +1225,6 @@ export default function DashboardScreen({ route }) {
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={comparisonLoading} onRefresh={handleRefresh} tintColor={COLORS.dadoDois} />}>
       <View style={styles.pageIntro}>
-        <Text style={styles.pageEyebrow}>ANÁLISES</Text>
         <Text style={styles.pageTitle}>Comparativos</Text>
         <Text style={styles.pageSubtitle}>Encontre mudanças no seu comportamento de consumo.</Text>
       </View>
