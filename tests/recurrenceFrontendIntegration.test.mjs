@@ -46,3 +46,9 @@ test('datas da API são tratadas como datas civis locais', () => {
   assert.match(managementSource, /const match = String\(value\)\.match/);
   assert.match(managementSource, /new Date\(Number\(match\[1\]\), Number\(match\[2\]\) - 1, Number\(match\[3\]\), 12\)/);
 });
+
+test('falha na previsao nao impede a visualizacao dos detalhes', () => {
+  assert.doesNotMatch(managementSource, /Promise\.all\(\[\s*apiClient\.get\(`\/recorrencias\/\$\{recurrence\.id\}`/);
+  assert.match(managementSource, /upcomingErrorById/);
+  assert.match(managementSource, /Tentar novamente/);
+});

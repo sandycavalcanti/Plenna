@@ -22,10 +22,7 @@ import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import { valorMoedaParaNumero } from '../../components/CustomTextInput/currency';
 import { COLORS } from '../../constants/colors';
-import {
-  getRecurrencePreview,
-  RECURRENCE_FREQUENCIES,
-} from '../../utils/recurrencePreview';
+import { RECURRENCE_FREQUENCIES } from '../../utils/recurrencePreview';
 
 const classificacoes = ['PENDENTE', 'IMPULSIVA', 'NAO_IMPULSIVA'];
 
@@ -324,16 +321,6 @@ export default function CreateCompraScreen() {
     (total, item) => total + (valorMoedaParaNumero(item.valor) || 0),
     0,
   );
-  const recurrencePreview = getRecurrencePreview(
-    firstOccurrenceDate,
-    recurrenceFrequency,
-    5,
-    endDateEnabled ? endDate : null,
-  );
-  const selectedFrequencyLabel =
-    RECURRENCE_FREQUENCIES.find((frequency) => frequency.value === recurrenceFrequency)?.label ||
-    'Mensal';
-
   if (loading) {
     return (
       <View style={styles.loadingWrap}>
@@ -446,7 +433,6 @@ export default function CreateCompraScreen() {
                     <View style={styles.itemHeader}>
                       <View style={styles.itemTitleGroup}>
                         <View style={styles.itemIndexBadge}><Text style={styles.itemIndexText}>{index + 1}</Text></View>
-                        <Text style={styles.itemTitle}>Item {index + 1}</Text>
                       </View>
                       {items.length > 1 ? (
                         <TouchableOpacity
@@ -460,7 +446,7 @@ export default function CreateCompraScreen() {
                     </View>
 
                     <View style={styles.fieldGroup}>
-                      <Text style={styles.fieldLabel}>Nome do item</Text>
+                      <Text style={styles.fieldLabel}>Nome</Text>
                       <CustomTextInput
                         placeholder="Ex.: Mercado"
                         value={item.nome}
@@ -593,23 +579,6 @@ export default function CreateCompraScreen() {
                 </View>
               ) : null}
 
-              <View style={styles.previewBox}>
-                <View style={styles.previewHeader}>
-                  <View style={styles.previewIcon}><MaterialCommunityIcons name="calendar-clock-outline" size={17} color={COLORS.dadoDois} /></View>
-                  <View>
-                    <Text style={styles.previewTitle}>Próximas ocorrências</Text>
-                    <Text style={styles.previewSubtitle}>{selectedFrequencyLabel}</Text>
-                  </View>
-                </View>
-                {recurrencePreview.map((date, index) => (
-                  <View key={date.toISOString()} style={styles.previewRow}>
-                    <View style={styles.previewIndex}><Text style={styles.previewIndexText}>{index + 1}</Text></View>
-                    <Text style={styles.previewDate}>{formatDate(date)}</Text>
-                    <Text style={styles.previewStatus}>{index === 0 ? 'primeira' : 'programada'}</Text>
-                  </View>
-                ))}
-                <Text style={styles.previewFootnote}>O calendário mensal ajusta 29, 30 e 31 ao último dia disponível e mantém o dia original como referência.</Text>
-              </View>
             </View>
           ) : null}
 

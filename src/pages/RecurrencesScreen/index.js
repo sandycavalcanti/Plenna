@@ -146,6 +146,7 @@ export default function RecurrencesScreen() {
   const [recurrences, setRecurrences] = useState([]);
   const [detailsById, setDetailsById] = useState({});
   const [upcomingById, setUpcomingById] = useState({});
+  const [upcomingErrorById, setUpcomingErrorById] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -205,8 +206,11 @@ export default function RecurrencesScreen() {
         setRecurrences([]);
         setDetailsById({});
         setUpcomingById({});
+        setUpcomingErrorById({});
         setExpandedId(null);
         setEditor(null);
+        setCategories([]);
+        setFormasPagamento([]);
         setLoading(true);
         setErrorMessage(null);
       };
@@ -230,15 +234,27 @@ export default function RecurrencesScreen() {
     setDetailLoadingId(id);
     setUpcomingLoadingId(id);
     try {
-      const [detailResponse, upcomingResponse] = await Promise.all([
-        apiClient.get(`/recorrencias/${recurrence.id}`),
-        apiClient.get(`/recorrencias/${recurrence.id}/proximas`, { params: { limit: 5 } }),
-      ]);
+      const detailResponse = await apiClient.get(`/recorrencias/${recurrence.id}`);
       setDetailsById((current) => ({ ...current, [id]: detailResponse.data }));
-      setUpcomingById((current) => ({
-        ...current,
-        [id]: Array.isArray(upcomingResponse.data?.ocorrencias) ? upcomingResponse.data.ocorrencias : [],
-      }));
+
+      try {
+        const upcomingResponse = await apiClient.get(`/recorrencias/${recurrence.id}/proximas`, { params: { limit: 5 } });
+        setUpcomingById((current) => ({
+          ...current,
+          [id]: Array.isArray(upcomingResponse.data?.ocorrencias) ? upcomingResponse.data.ocorrencias : [],
+        }));
+        setUpcomingErrorById((current) => {
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
+      } catch (upcomingError) {
+        logApiErrors(upcomingError, 'Erro ao carregar próximas ocorrências');
+        setUpcomingErrorById((current) => ({
+          ...current,
+          [id]: getApiMessage(upcomingError, 'Não foi possível carregar as próximas datas.'),
+        }));
+      }
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar detalhes da recorrência');
       Alert.alert('Não foi possível carregar', getApiMessage(error, 'Tente novamente em alguns instantes.'));
@@ -257,9 +273,17 @@ export default function RecurrencesScreen() {
         ...current,
         [id]: Array.isArray(response.data?.ocorrencias) ? response.data.ocorrencias : [],
       }));
+      setUpcomingErrorById((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar próximas ocorrências');
-      Alert.alert('Não foi possível carregar', getApiMessage(error, 'Tente novamente em alguns instantes.'));
+      setUpcomingErrorById((current) => ({
+        ...current,
+        [id]: getApiMessage(error, 'Não foi possível carregar as próximas datas.'),
+      }));
     } finally {
       setUpcomingLoadingId(null);
     }
@@ -501,6 +525,16 @@ export default function RecurrencesScreen() {
     const id = String(recurrence.id);
     const upcoming = upcomingById[id] || [];
     if (upcomingLoadingId === id) return <ActivityIndicator size="small" color={COLORS.dadoDois} />;
+    if (upcomingErrorById[id]) {
+      return (
+        <View style={styles.upcomingBox}>
+          <Text style={styles.summaryLabel}>{upcomingErrorById[id]}</Text>
+          <TouchableOpacity style={styles.secondaryAction} onPress={() => loadUpcoming(recurrence)} activeOpacity={0.82}>
+            <Text style={styles.secondaryActionText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
     return (
       <View style={styles.upcomingBox}>
         <View style={styles.upcomingHeader}>
