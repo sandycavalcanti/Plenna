@@ -72,6 +72,20 @@ export const styles = StyleSheet.create({
     gap: 7,
     marginTop: 13,
   },
+  emailOriginBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  emailOriginBadgeText: {
+    color: COLORS.cadTitulo,
+    fontSize: 11,
+    fontWeight: '600',
+  },
   statusBadge: {
     // O status usa um tom positivo/lilás, separado visualmente da classificação.
     backgroundColor: COLORS.perfilPermissaoAvisoFundo,

@@ -10,6 +10,7 @@ import {
   obterAplicativosCompra, invalidarCatalogoAplicativosCompra,
 } from './aplicativosCompraService';
 import { tokenStorage } from '../api/tokenStorage';
+import { emitirAtualizacaoTempoUso } from '../utils/tempoUsoAtualizacao';
 
 let execucaoPendente = null;
 // Só metadados da última preparação; nenhum dado de uso ou token é persistido.
@@ -146,8 +147,10 @@ async function executarPreparacao(execucao) {
     throw error;
   }
   ultimaPreparacao = { id: execucao.id, em: Date.now() };
+  const sincronizado = !resultado?.bloqueadoNoLaboratorio;
+  if (sincronizado) emitirAtualizacaoTempoUso();
   return {
-    sincronizado: !resultado?.bloqueadoNoLaboratorio,
+    sincronizado,
     motivo: resultado?.bloqueadoNoLaboratorio ? 'envio_bloqueado_no_laboratorio' : null,
     quantidade: payload.registros.length,
     dataReferencia: referencia.getTime(),

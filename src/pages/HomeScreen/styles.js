@@ -52,13 +52,29 @@ export const styles = StyleSheet.create({
     position: 'relative',
   },
 
-  notificationDot: {
+  notificationButtonPending: {
+    backgroundColor: '#FFF2F7',
+    borderWidth: 1,
+    borderColor: 'rgba(192, 44, 122, 0.2)',
+  },
+
+  notificationBadge: {
     position: 'absolute',
-    top: 9,
-    right: 9,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: 4,
+    right: 3,
+    minWidth: 17,
+    height: 17,
+    paddingHorizontal: 3,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#C02C7A',
+  },
+
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    lineHeight: 12,
+    fontWeight: '800',
   },
 });

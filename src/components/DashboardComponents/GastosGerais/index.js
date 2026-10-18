@@ -1,122 +1,95 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, Animated } from 'react-native';
+import { Animated, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 import { obterJanelaDiaLocal } from '../../../utils/tempoUsoSync';
+import { resumirTempoHoje, formatarTempoUso } from '../../../utils/resumoTempoUso';
+import { apresentarResumoFinanceiro, apresentarEstadoOrcamento } from '../../../utils/resumoFinanceiro';
+
+function StatCard({ icon, iconColor, label, value, subtitle, cardStyle }) {
+  return (
+    <View
+      style={[
+        styles.statCard,
+        cardStyle,
+        {
+          borderTopColor: iconColor,
+          borderTopWidth: 4,
+        },
+      ]}>
+      <View style={[styles.statIconContainer, { backgroundColor: `${iconColor}20` }]}>
+        <MaterialCommunityIcons name={icon} size={28} color={iconColor} />
+      </View>
+      <View style={styles.statContent}>
+        <Text style={styles.statLabel}>{label}</Text>
+        <Text style={styles.statValue}>{value}</Text>
+        {subtitle ? <Text style={styles.statSubtitle}>{subtitle}</Text> : null}
+      </View>
+    </View>
+  );
+}
+
+export function ResumoMensalCarousel({
+  cards = [],
+  monthTitle = 'Resumo do mês',
+  onInteractionChange,
+  sectionStyle,
+  cardStyle,
+  scrollContentStyle,
+}) {
+  return (
+    <View style={[styles.section, sectionStyle]}>
+      <Text style={styles.monthTitle}>{monthTitle}</Text>
+      <ScrollView
+        horizontal
+        nestedScrollEnabled
+        directionalLockEnabled
+        showsHorizontalScrollIndicator={false}
+        style={styles.statsScroll}
+        contentContainerStyle={scrollContentStyle}
+        onTouchStart={() => onInteractionChange?.(true)}
+        onTouchEnd={() => onInteractionChange?.(false)}
+        onTouchCancel={() => onInteractionChange?.(false)}
+        onScrollBeginDrag={() => onInteractionChange?.(true)}
+        onScrollEndDrag={() => onInteractionChange?.(false)}
+        onMomentumScrollEnd={() => onInteractionChange?.(false)}>
+        {cards.map((card) => (
+          <StatCard key={card.key || card.label} {...card} cardStyle={cardStyle} />
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
 
 export default function GastosTotais({
-  compras = [],
-  meta = 0,
+  resumo = null,
+  resumoLoading = false,
+  resumoError = false,
   tempoUso = [],
+  cobertura = 'DESCONHECIDA',
   monthTitle = 'Resumo do mês',
 })  {
-  const { dataLocal: hoje } = obterJanelaDiaLocal();
-
-  const registrosHoje = tempoUso.filter(
-  (item) => item?.tempo_uso_data_local === hoje,
-);
-const totalSegundosHoje = registrosHoje.reduce((total, item) => {
-const segundos = Number(item?.tempo_uso_duracao_segundos);
-
-  if (Number.isFinite(segundos) && segundos > 0) {
-    return total + segundos;
-  }
-
-  const minutos = Number(item?.tempo_uso_minutos);
-
-  if (Number.isFinite(minutos) && minutos > 0) {
-    return total + minutos * 60;
-  }
-
-  return total;
-}, 0);
-
-const formatarTempoUso = (segundos) => {
-  if (segundos <= 0) return '--';
-
-  if (segundos < 60) {
-    return `${Math.round(segundos)}s`;
-  }
-
-  const minutos = Math.floor(segundos / 60);
-
-  if (minutos < 60) {
-    return `${minutos}m`;
-  }
-
-  const horas = Math.floor(minutos / 60);
-  const minutosRestantes = minutos % 60;
-
-  return minutosRestantes > 0
-    ? `${horas}h ${minutosRestantes}m`
-    : `${horas}h`;
-};
-
-const tempoHojeFormatado = formatarTempoUso(totalSegundosHoje);
-  const parsedMeta = Number(meta) || 0;
-
-  const gasto = compras.reduce((acc, c) => {
-    if (c == null) return acc;
-
-    if (typeof c === 'object') {
-      if ('compra_item_valor' in c) {
-        return acc + (Number(c.compra_item_valor) || 0);
-      }
-
-      if ('compra_valor' in c) {
-        return acc + (Number(c.compra_valor) || 0);
-      }
-    }
-
-    const n = Number(c) || 0;
-    return acc + n;
-  }, 0);
+  const { width, fontScale } = useWindowDimensions();
+  const cardWidth = Math.max(220, Math.min(width - 44, fontScale > 1.3 ? width - 44 : 300));
+  const [showNotes, setShowNotes] = useState(false);
+  const totalSegundosHoje = resumirTempoHoje(tempoUso);
+  const tempoHojeFormatado = formatarTempoUso(totalSegundosHoje);
+  const view = apresentarResumoFinanceiro(resumo, resumoLoading, resumoError);
+  const gasto = view.total ?? 0;
+  const parsedMeta = view.orcamento ?? 0;
   const animatedValue = useRef(new Animated.Value(0)).current;
   const [animatedGasto, setAnimatedGasto] = useState(0);
   const animatedMetaValue = useRef(new Animated.Value(0)).current;
   const [animatedMeta, setAnimatedMeta] = useState(0);
-  const porcentagem = parsedMeta > 0 ? Math.round(((gasto - parsedMeta) / parsedMeta) * 100) : 0;
-  const percentualAtingido = parsedMeta > 0 ? Math.round((gasto / parsedMeta) * 100) : 0;
-  const percentualAcima = parsedMeta > 0 ? Math.round(((gasto - parsedMeta) / parsedMeta) * 100) : 0;
-  const subtituloMeta = parsedMeta <= 0 ? 'Sem meta definida' : gasto > parsedMeta ? `${percentualAcima}% acima` : `${percentualAtingido}% atingido`;
-  const gastoFmt = Number(animatedGasto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const metaFmt = Number(animatedMeta || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const percentualMeta = parsedMeta > 0 ? (gasto / parsedMeta) * 100 : 0;
-
-  let statusTitulo = 'Dentro da meta';
-  let statusMensagem = '';
-  let statusCor = '#4CAF50';
-  let statusIcone = 'check-circle';
-
-  if (parsedMeta > 0) {
-    if (percentualMeta >= 100) {
-      statusTitulo = 'Meta excedida';
-      statusMensagem = `R$ ${(gasto - parsedMeta).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })} acima da meta`;
-
-      statusCor = '#E53935';
-      statusIcone = 'alert-circle';
-    } else if (percentualMeta >= 80) {
-      statusTitulo = 'Atenção';
-      statusMensagem = `${Math.round(percentualMeta)}% da meta utilizada`;
-
-      statusCor = '#FFB300';
-      statusIcone = 'alert';
-    } else {
-      statusTitulo = 'Dentro da meta';
-
-      statusMensagem = `Restam R$ ${(parsedMeta - gasto).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`;
-
-      statusCor = '#4CAF50';
-      statusIcone = 'check-circle';
-    }
-  }
+  const gastoFmt = Number(animatedGasto).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const metaFmt = Number(animatedMeta).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const statusTitulo = view.titulo;
+  const budgetState = apresentarEstadoOrcamento(resumo, resumoLoading, resumoError, cobertura);
+  const statusMensagem = `${view.mensagem} · ${budgetState.mensagem}`;
+  const statusCor = budgetState.cor;
+  const statusIcone = budgetState.estado === 'VERMELHO' ? 'alert-circle' : 'chart-donut';
+  const subtituloMeta = view.subtitulo;
   useEffect(() => {
     animatedValue.setValue(0);
     animatedMetaValue.setValue(0);
@@ -153,11 +126,12 @@ const tempoHojeFormatado = formatarTempoUso(totalSegundosHoje);
         styles.statCard,
         {
           borderTopColor: iconColor,
-          borderTopWidth: 4,
+          borderTopWidth: 3,
+          width: cardWidth,
         },
       ]}>
       <View style={[styles.statIconContainer, { backgroundColor: `${iconColor}20` }]}>
-        <MaterialCommunityIcons name={icon} size={28} color={iconColor} />
+        <MaterialCommunityIcons name={icon} size={22} color={iconColor} />
       </View>
       <View style={styles.statContent}>
         <Text style={styles.statLabel}>{label}</Text>
@@ -171,16 +145,19 @@ const tempoHojeFormatado = formatarTempoUso(totalSegundosHoje);
     <View style={styles.section}>
       <Text style={styles.monthTitle}>{monthTitle}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsScroll}>
-        <StatCard icon={statusIcone} iconColor={statusCor} label={statusTitulo} value={`R$ ${gastoFmt}`} subtitle={statusMensagem} />
-        <StatCard icon="target" iconColor={COLORS.dadoTres} label="Meta" value={`R$ ${metaFmt}`} subtitle={subtituloMeta} />
+        <StatCard icon={statusIcone} iconColor={statusCor} label={statusTitulo} value={view.total === null ? '--' : `R$ ${gastoFmt}`} subtitle={budgetState.mensagem} />
+        <StatCard icon="target" iconColor={COLORS.dadoTres} label="Orçamento mensal" value={view.orcamento === null ? '--' : `R$ ${metaFmt}`} subtitle={subtituloMeta} />
         <StatCard
           icon="clock-outline"
           iconColor={COLORS.customButtonFundo}
-          label="Tempo em sites"
+          label="Tempo em aplicativos"
           value={tempoHojeFormatado}
           subtitle={totalSegundosHoje > 0 ? 'Hoje' : 'Sem dados registrados'}
 />
       </ScrollView>
+      <Text style={styles.coverageNote}>{view.mensagem}. Os registros podem não incluir todos os gastos.</Text>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: showNotes }} onPress={() => setShowNotes(!showNotes)} style={styles.notesButton}><Text style={styles.notesLink}>Sobre estes dados</Text></Pressable>
+      {showNotes && <Text style={styles.coverageNote}>{statusMensagem}. Limites atuais, sem comprovação da vigência histórica.</Text>}
     </View>
   );
 }

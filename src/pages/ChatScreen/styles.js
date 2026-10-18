@@ -6,96 +6,89 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.chatFundo,
   },
-
   keyboardWrapper: {
     flex: 1,
   },
-
-  composerShell: {
-    backgroundColor: COLORS.chatContainerEnviarFundo,
-    paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 12,
+  keyboardContent: {
+    flex: 1,
+    minHeight: 0,
   },
-
   header: {
-    paddingTop: 10,
-    paddingBottom: 12,
+    minHeight: 72,
     paddingHorizontal: 14,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: COLORS.chatHeaderFundo,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.chatHeaderBorda,
   },
-
-  headerLeft: {
+  headerButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
+  headerIdentity: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.chatIconeRoboFundo,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.chatIconeRoboFundo,
     borderWidth: 1,
     borderColor: COLORS.chatIconeRoboBorda,
-    marginRight: 10,
   },
-
+  headerTextBlock: {
+    flex: 1,
+    minWidth: 0,
+  },
   headerTitle: {
     color: COLORS.chatDestinatarioNome,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-
   headerSubtitle: {
-    marginTop: 1,
+    marginTop: 2,
     color: COLORS.chatDestinatarioStatus,
     fontSize: 12,
   },
-
-  headerAction: {
-    width: 34,
-    height: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
   list: {
     flex: 1,
   },
-
   messages: {
+    flexGrow: 1,
     paddingHorizontal: 14,
-    paddingTop: 14,
+    paddingTop: 16,
     paddingBottom: 18,
   },
-
+  emptyMessages: {
+    justifyContent: 'center',
+  },
   messageRow: {
     width: '100%',
     marginBottom: 12,
   },
-
-  messageRowAi: {
+  messageRowAssistant: {
     alignItems: 'flex-start',
   },
-
   messageRowUser: {
     alignItems: 'flex-end',
   },
-
-  message: {
+  messageBubble: {
+    maxWidth: '84%',
+    paddingHorizontal: 13,
     paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    maxWidth: '82%',
+    borderRadius: 17,
   },
-
   userMessage: {
     backgroundColor: COLORS.chatRemetenteMensagemFundo,
     borderBottomRightRadius: 6,
@@ -105,65 +98,159 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
-
-  aiMessage: {
+  assistantMessage: {
     backgroundColor: COLORS.chatDestinatarioMensagemFundo,
     borderBottomLeftRadius: 6,
     borderWidth: 1,
     borderColor: COLORS.chatDestinatarioMensagemBorda,
   },
-
+  typingRow: {
+    width: '100%',
+    marginBottom: 12,
+    alignItems: 'flex-start',
+  },
+  typingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 9,
+  },
+  typingDots: {
+    minWidth: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  typingDot: {
+    width: 7,
+    height: 7,
+    marginHorizontal: 3,
+    borderRadius: 4,
+    backgroundColor: COLORS.chatBotaoEnviar,
+  },
   messageText: {
     color: COLORS.chatDestinatarioMensagemTexto,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 21,
   },
-
   userMessageText: {
     color: COLORS.chatRemetenteMensagemTexto,
   },
-
-  inputArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 0,
-    marginTop: 4,
-    marginBottom: 0,
-    paddingVertical: 8,
-    gap: 8,
+  messageTime: {
+    alignSelf: 'flex-end',
+    marginTop: 5,
+    color: COLORS.chatDestinatarioStatus,
+    fontSize: 10,
   },
-
-  iconButton: {
-    width: 32,
-    height: 32,
+  userMessageTime: {
+    color: 'rgba(255,255,255,0.75)',
+  },
+  stateContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 32,
   },
-
-  chatInputWrap: {
+  emptyState: {
+    alignItems: 'center',
+    paddingHorizontal: 28,
+  },
+  stateTitle: {
+    marginTop: 12,
+    color: COLORS.chatDestinatarioNome,
+    fontSize: 17,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  stateText: {
+    marginTop: 7,
+    color: COLORS.chatDestinatarioStatus,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 12,
+    backgroundColor: COLORS.chatBotaoEnviar,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  errorBanner: {
+    minHeight: 40,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3F3',
+    borderTopWidth: 1,
+    borderTopColor: '#F0C8C8',
+  },
+  errorText: {
+    flex: 1,
+    marginLeft: 7,
+    color: COLORS.loginEsqueciSenha,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  errorRetryButton: {
+    marginLeft: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  errorRetryText: {
+    color: COLORS.chatBotaoEnviar,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  composerShell: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 5,
+    backgroundColor: COLORS.chatContainerEnviarFundo,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.chatContainerEnviarBorda,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  chatInput: {
     flex: 1,
     minWidth: 0,
-  },
-
-  chatInput: {
-    width: '100%',
-    marginBottom: 0,
-    height: 40,
-    paddingHorizontal: 12,
-    paddingVertical: 0,
-    borderRadius: 14,
+    maxHeight: 120,
+    paddingHorizontal: 13,
+    paddingTop: 11,
+    paddingBottom: 9,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.chatTextInputBorda,
     backgroundColor: COLORS.chatTextInputFundo,
     color: COLORS.chatTextInputTexto,
-    textAlignVertical: 'center',
+    fontSize: 15,
+    lineHeight: 20,
   },
-
   sendButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
+    width: 44,
+    height: 44,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.chatBotaoEnviar,
+  },
+  sendButtonDisabled: {
+    opacity: 0.45,
+  },
+  composerCounter: {
+    alignSelf: 'flex-end',
+    marginTop: 3,
+    marginRight: 4,
+    color: COLORS.chatDestinatarioStatus,
+    fontSize: 10,
   },
 });

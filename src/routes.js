@@ -23,10 +23,13 @@ import EditProfileScreen from './pages/EditProfileScreen';
 import EditPreferencesScreen from './pages/EditPreferencesScreen';
 import CreateCompraScreen from './pages/CreateCompraScreen';
 import PurchasesScreen from './pages/PurchasesScreen';
+import NotificationsScreen from './pages/NotificationsScreen';
 
 import { COLORS } from './constants';
 
 import { useTempoUsoSync } from './hooks/useTempoUsoSync';
+import { useNotificationRegistration } from './hooks/useNotificationRegistration';
+import { consumePendingNotificationIntent, notificationNavigationRef } from './services/notifications/notificationNavigation';
 
 const linking = {
   prefixes: [
@@ -265,6 +268,7 @@ function CustomTabBar({
 
 function TabRoutes() {
   useTempoUsoSync();
+  useNotificationRegistration();
 
   return (
     <Tab.Navigator
@@ -301,9 +305,11 @@ function TabRoutes() {
 export default function Routes() {
   return (
     <NavigationContainer
+      ref={notificationNavigationRef}
       theme={MyTheme}
       linking={linking}
       fallback={<SplashScreen />}
+      onReady={() => consumePendingNotificationIntent(notificationNavigationRef)}
     >
       <Stack.Navigator
         screenOptions={{
@@ -353,6 +359,16 @@ export default function Routes() {
         <Stack.Screen
           name="CreateCompra"
           component={CreateCompraScreen}
+        />
+
+        <Stack.Screen
+          name="Purchases"
+          component={PurchasesScreen}
+        />
+
+        <Stack.Screen
+          name="Notifications"
+          component={NotificationsScreen}
         />
 
         <Stack.Screen

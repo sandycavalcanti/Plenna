@@ -3,8 +3,8 @@ import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   section: {
-    marginHorizontal: 16,
-    marginVertical: 10,
+    marginHorizontal: 0,
+    marginVertical: 6,
   },
 
   summaryCard: {
@@ -14,8 +14,7 @@ export const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     backgroundColor: COLORS.dashboardBoxMaiorTempo,
-    borderWidth: 1,
-    borderColor: COLORS.dashboardBoxMaiorTempoBorda,
+    borderWidth: 0,
   },
 
   summaryCopy: {
@@ -54,8 +53,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: COLORS.dashboardBoxMaiorTempoBorda,
+    borderWidth: 0,
   },
 
   summaryBadgeValue: {
@@ -144,13 +142,13 @@ export const styles = StyleSheet.create({
   },
 
   categoryLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#2F356B',
   },
 
   categoryValue: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: '#2F356B',
     marginBottom: 6,

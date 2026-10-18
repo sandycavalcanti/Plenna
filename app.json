@@ -21,6 +21,7 @@
         "foregroundImage": "./assets/img/adaptive-icon.png"
       },
       "package": "com.Plenna",
+      "googleServicesFile": "./google-services.json",
       "icon": "./assets/img/icon.png",
       "iconBackgroundColor": "#E6F4FE"
     },
@@ -34,6 +35,14 @@
     "plugins": [
       "expo-font",
       "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "plenna-alerts",
+          "color": "#C97BA0",
+          "icon": "./assets/notification-icon.png"
+        }
+      ],
       [
         "expo-local-authentication",
         {

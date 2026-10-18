@@ -5,9 +5,14 @@
 // (Splash, Login e as telas com a barra inferior).
 // Separar assim deixa o App.js mais limpo e organizado.
 import React, { useEffect } from 'react';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Routes from './src/routes';
 import { useFonts } from 'expo-font';
 import { subscribeToProtectedAppState } from './src/services/security/protectedSession';
+import {
+  configureForegroundNotificationHandler,
+  setupNotificationResponseHandling,
+} from './src/services/notifications/notificationService';
 
 export default function App() {
   useEffect(() => {
@@ -15,6 +20,11 @@ export default function App() {
     // protegida mesmo quando Purchases não está atualmente em foco. Assim,
     // voltar do background nunca reutiliza um desbloqueio antigo.
     return subscribeToProtectedAppState();
+  }, []);
+
+  useEffect(() => {
+    configureForegroundNotificationHandler();
+    return setupNotificationResponseHandling();
   }, []);
 
   const [fontsLoaded] = useFonts({
@@ -26,5 +36,9 @@ export default function App() {
     return null;
   }
 
-  return <Routes />;
+  return (
+    <KeyboardProvider>
+      <Routes />
+    </KeyboardProvider>
+  );
 }

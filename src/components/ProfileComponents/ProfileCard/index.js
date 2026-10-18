@@ -18,15 +18,17 @@ import { COLORS } from '../../../constants';
  * Responsabilidade: Estruturar visualmente seções com título, ação de edição
  * e renderização de conteúdo filho (children)
  */
-export default function ProfileCard({ title, children, onEdit, onRemove, onToggleCollapse, isCollapsed = false, style }) {
+export default function ProfileCard({ title, children, onEdit, onRemove, onToggleCollapse, isCollapsed = false, style, variant = 'default' }) {
+  const isDashboard = variant === 'dashboard';
+
   return (
     // Container principal do card
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, isDashboard && styles.dashboardContainer, style]}>
       {/* Cabeçalho com título e ação de edição */}
-      <View style={styles.header}>
+      <View style={[styles.header, isDashboard && styles.dashboardHeader]}>
         {/* Título da seção */}
-        <View style={styles.titleWrapper}>
-          <Text style={styles.title}>{title}</Text>
+        <View style={[styles.titleWrapper, isDashboard && styles.dashboardTitleWrapper]}>
+          <Text style={[styles.title, isDashboard && styles.dashboardTitle]}>{title}</Text>
         </View>
 
         {/* Botões de ação */}
@@ -52,7 +54,7 @@ export default function ProfileCard({ title, children, onEdit, onRemove, onToggl
       </View>
 
       {/* Conteúdo dinâmico do card */}
-      <View style={styles.content}>{children}</View>
+      <View style={[styles.content, isDashboard && styles.dashboardContent]}>{children}</View>
     </View>
   );
 }

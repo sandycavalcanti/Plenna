@@ -77,6 +77,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
   const statusLabel = getStatusLabel(purchase.compra_status);
   const classificationLabel = getClassificationLabel(purchase.compra_classificacao);
   const isPending = purchase.compra_status === 'AGUARDANDO_CONFIRMACAO';
+  const isEmailOrigin = purchase.compra_email === true;
 
   /** Formata a data ISO da API sem expor o formato técnico ao usuário. */
   function formatDate(value) {
@@ -211,6 +212,12 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
       </View>
       {/* Badges traduzem os enums sem alterar os dados recebidos da API. */}
       <View style={styles.badgesRow}>
+        {isEmailOrigin ? (
+          <View style={styles.emailOriginBadge} accessibilityLabel="Via e-mail">
+            <MaterialCommunityIcons name="email-outline" size={14} color={COLORS.cadTitulo} />
+            <Text style={styles.emailOriginBadgeText}>Via e-mail</Text>
+          </View>
+        ) : null}
 
         {purchase.compra_classificacao ? (
           <View style={[

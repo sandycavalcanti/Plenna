@@ -3,8 +3,8 @@ import { COLORS } from '../../../constants';
 
 export const styles = StyleSheet.create({
   section: {
-    marginHorizontal: 16,
-    marginVertical: 10,
+    marginHorizontal: 0,
+    marginVertical: 6,
   },
 
   chartWrapper: {
@@ -43,8 +43,7 @@ export const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     backgroundColor: COLORS.dashboardBoxMaiorTempo,
-    borderWidth: 1,
-    borderColor: COLORS.dashboardBoxMaiorTempoBorda,
+    borderWidth: 0,
     marginBottom: 8,
   },
 
@@ -85,8 +84,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: COLORS.dashboardBoxMaiorTempoBorda,
+    borderWidth: 0,
   },
 
 
@@ -114,13 +112,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 11,
-    borderWidth: 1,
-    borderColor: '#F0E6F4',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 0,
   },
 
   legendTopRow: {

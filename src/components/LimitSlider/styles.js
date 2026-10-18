@@ -57,4 +57,34 @@ export const styles = StyleSheet.create({
   valueTextCompact: {
     fontSize: 16,
   },
+  moneyRow: {
+    flexDirection: 'column-reverse',
+    alignItems: 'stretch',
+  },
+  moneySlider: {
+    flex: 0,
+    width: '100%',
+    height: 44,
+    marginRight: 0,
+  },
+  moneyPill: {
+    borderRadius: 10,
+    alignItems: 'stretch',
+  },
+  moneyFocused: {
+    borderColor: COLORS.cadCaixaPreferenciasTitulo,
+  },
+  moneyInput: {
+    minHeight: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    paddingHorizontal: 8,
+    fontSize: 18,
+  },
+  inputError: {
+    color: COLORS.loginEsqueciSenha,
+    fontSize: 12,
+    maxWidth: 180,
+  },
 });

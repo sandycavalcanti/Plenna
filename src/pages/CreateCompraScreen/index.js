@@ -23,7 +23,6 @@ export default function CreateCompraScreen() {
 
   const [items, setItems] = useState([{ nome: '', valor: '', categoriaId: null }]);
   const [fonte, setFonte] = useState('');
-  const [compraEmail, setCompraEmail] = useState(true);
   const [classificacao, setClassificacao] = useState('PENDENTE');
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [categoryPickerForIndex, setCategoryPickerForIndex] = useState(null);
@@ -131,8 +130,7 @@ export default function CreateCompraScreen() {
       const payload = {
         formaPagamentoId: selectedFormaPagamentoId ?? formasPagamento[0]?.forma_pagamento_id ?? 1,
         compraHorario: new Date().toISOString(),
-        compraFonte: fonte || '',
-        compraEmail: compraEmail,
+        compraFonte: fonte.trim() || null,
         compraClassificacao: classificacao,
         items: payloadItems.map((it) => ({ categoriaId: it.categoriaId, nome: it.nome, valor: it.valor })),
       };
