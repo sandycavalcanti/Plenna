@@ -435,7 +435,6 @@ function EvolutionChart({ periods, accountStartMonth, evolutionEnd, requestedMon
       <View style={styles.chartHeader}>
         <View>
           <Text style={styles.chartTitle}>Evolução dos gastos</Text>
-          <Text style={styles.chartSubtitle}>{chartType === 'line' ? 'Tendência mensal' : 'Total por mês'}</Text>
         </View>
         <TouchableOpacity
           style={styles.chartToggle}
@@ -536,15 +535,13 @@ function EvolutionChart({ periods, accountStartMonth, evolutionEnd, requestedMon
           ))}
         </View>
       </View>
-      <Text style={styles.chartFootnote}>Meses sem compras aparecem como zero.</Text>
     </View>
   );
 }
 
 function ComparisonSummary({ comparison }) {
   const total = comparison?.total;
-  const quantity = comparison?.quantidade_compras;
-  if (!total || !quantity) return null;
+  if (!total) return null;
   const baseMonth = comparison.periodo_base;
   const comparedMonth = comparison.periodo_comparado;
   const difference = Number(total.diferenca || 0);
@@ -555,9 +552,6 @@ function ComparisonSummary({ comparison }) {
     <View style={styles.comparisonSummary}>
       <View style={styles.comparisonSummaryHeader}>
         <Text style={styles.chartTitle}>Resumo da comparação</Text>
-        <Text style={styles.comparisonSummaryPeriods}>
-          {monthLabel(baseMonth)} × {monthLabel(comparedMonth)}
-        </Text>
       </View>
       <View style={styles.comparisonMetricRow}>
         <View style={styles.comparisonMetric}>
@@ -598,12 +592,6 @@ function ComparisonSummary({ comparison }) {
           <Text style={styles.percentPillText}>{formatPercent(total.variacao_percentual)}</Text>
         </View>
       </View>
-      <View style={styles.purchaseCountRow}>
-        <MaterialCommunityIcons name="cart-outline" size={18} color={COLORS.dadoUm} />
-        <Text style={styles.purchaseCountText}>
-          {quantity.base} compras em {monthShortLabel(baseMonth)} · {quantity.comparado} em {monthShortLabel(comparedMonth)}
-        </Text>
-      </View>
     </View>
   );
 }
@@ -634,7 +622,6 @@ function PaymentComparisonChart({ periods }) {
       <View style={styles.chartHeader}>
         <View>
           <Text style={styles.chartTitle}>Formas de pagamento</Text>
-          <Text style={styles.chartSubtitle}>Distribuição comparada</Text>
         </View>
         <View style={styles.legendInline}>
           <ComparisonPeriodTag month={baseMonth} color={COMPARISON_COLORS.base} compact />
@@ -642,27 +629,20 @@ function PaymentComparisonChart({ periods }) {
         </View>
       </View>
       {visibleRows.map((row) => {
-        const difference = row.compared - row.base;
-        const variation = row.base === 0 ? null : (difference / row.base) * 100;
         return (
           <View key={row.label} style={styles.categoryComparisonRow}>
             <View style={styles.categoryComparisonHeader}>
               <Text style={styles.categoryComparisonName} numberOfLines={1}>
                 {row.label}
               </Text>
-              <Text style={styles.categoryComparisonVariation} numberOfLines={2}>
-                {formatSignedCents(difference)} · {formatPercent(variation)}
-              </Text>
             </View>
             <View style={styles.categoryBarRow}>
-              <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.base }]} />
               <View style={styles.categoryBarTrack}>
                 <View style={[styles.categoryBarFill, { width: `${(row.base / max) * 100}%`, backgroundColor: COMPARISON_COLORS.base }]} />
               </View>
               <Text style={styles.categoryBarValue}>{formatCents(row.base)}</Text>
             </View>
             <View style={styles.categoryBarRow}>
-              <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.compared }]} />
               <View style={styles.categoryBarTrack}>
                 <View style={[styles.categoryBarFill, { width: `${(row.compared / max) * 100}%`, backgroundColor: COMPARISON_COLORS.compared }]} />
               </View>
@@ -702,7 +682,6 @@ function CategoryComparisonChart({ categories, periods }) {
       <View style={styles.chartHeader}>
         <View>
           <Text style={styles.chartTitle}>Categorias</Text>
-          <Text style={styles.chartSubtitle}>Comparação por gasto bruto</Text>
         </View>
         <View style={styles.legendInline}>
           <ComparisonPeriodTag month={baseMonth} color={COMPARISON_COLORS.base} compact />
@@ -715,19 +694,14 @@ function CategoryComparisonChart({ categories, periods }) {
             <Text style={styles.categoryComparisonName} numberOfLines={1}>
               {category.categoria_nome}
             </Text>
-            <Text style={styles.categoryComparisonVariation} numberOfLines={2}>
-              Δ {formatSignedCents(category.diferenca_centavos)} · {formatPercent(category.variacao_percentual)}
-            </Text>
           </View>
           <View style={styles.categoryBarRow}>
-            <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.base }]} />
             <View style={styles.categoryBarTrack}>
               <View style={[styles.categoryBarFill, { width: `${(category.base_total_centavos / max) * 100}%`, backgroundColor: COMPARISON_COLORS.base }]} />
             </View>
             <Text style={styles.categoryBarValue}>{formatCents(category.base_total_centavos)}</Text>
           </View>
           <View style={styles.categoryBarRow}>
-            <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.compared }]} />
             <View style={styles.categoryBarTrack}>
               <View style={[styles.categoryBarFill, { width: `${(category.comparado_total_centavos / max) * 100}%`, backgroundColor: COMPARISON_COLORS.compared }]} />
             </View>
@@ -762,7 +736,6 @@ function ComparisonControls({ mode, setMode, months, setMonths, evolutionEnd, co
           <View style={styles.controlHeader}>
             <View>
               <Text style={styles.controlTitle}>Janela de evolução</Text>
-              <Text style={styles.controlSubtitle}>Escolha quantos meses visualizar</Text>
             </View>
           </View>
           <View style={styles.segmentedControl}>
@@ -791,7 +764,6 @@ function ComparisonControls({ mode, setMode, months, setMonths, evolutionEnd, co
       ) : (
         <View style={styles.controlCard}>
           <Text style={styles.controlTitle}>Escolha os períodos</Text>
-          <Text style={styles.controlSubtitle}>Meses diferentes e até anos diferentes</Text>
           <View style={styles.comparePickerRow}>
             <TouchableOpacity
               style={[styles.comparePickerButton, { borderTopColor: COMPARISON_COLORS.base }]}
@@ -1202,13 +1174,6 @@ export default function DashboardScreen({ route }) {
           emptyMessage="Nenhuma compra disponível para análise"
           centerLabel="acima do limite"
           centerValueMode="quantity"
-          infoTitle="Limite de compras"
-          highLabel="Acima do limite"
-          mediumLabel="Próximo do limite"
-          lowLabel="Dentro do limite"
-          highDescription="Existem compras acima do valor limite definido para o período."
-          mediumDescription="O volume de compras está se aproximando do limite definido."
-          lowDescription="As compras estão dentro do limite definido para o período."
           totalKey="acima_limite"
         />
         <View onLayout={mark('tempo')}>

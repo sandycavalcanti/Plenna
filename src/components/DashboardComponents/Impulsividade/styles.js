@@ -15,14 +15,15 @@ export const styles = StyleSheet.create({
   },
 
   distributionLayout: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
 
   distributionChart: {
     width: 136,
     height: 136,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -54,37 +55,43 @@ export const styles = StyleSheet.create({
   },
 
   distributionLegend: {
-    flex: 1,
-    minWidth: 0,
+    width: '100%',
     gap: 12,
   },
 
   distributionLegendItem: {
+    gap: 6,
+  },
+
+  distributionLegendHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-
-  distributionLegendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-
-  distributionLegendCopy: {
-    flex: 1,
-    minWidth: 0,
+    justifyContent: 'space-between',
+    gap: 10,
   },
 
   distributionLegendLabel: {
+    flex: 1,
+    minWidth: 0,
     fontSize: 13,
     lineHeight: 17,
     fontWeight: '700',
     color: COLORS.perfilProfileCardTitulo,
   },
 
+  distributionLegendTrack: {
+    height: 8,
+    overflow: 'hidden',
+    borderRadius: 999,
+    backgroundColor: T.track,
+  },
+
+  distributionLegendFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+
   distributionLegendValue: {
-    marginTop: 2,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
@@ -96,6 +103,61 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+  },
+
+  limitContext: {
+    width: '100%',
+    marginTop: 2,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: T.border,
+    gap: 7,
+  },
+
+  limitContextHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+
+  limitContextTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: T.ink,
+  },
+
+  limitContextTotal: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: T.body,
+  },
+
+  limitContextTrack: {
+    height: 8,
+    overflow: 'hidden',
+    borderRadius: 999,
+    backgroundColor: T.track,
+  },
+
+  limitContextFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: COLORS.dadoDois,
+  },
+
+  limitContextLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+
+  limitContextLabel: {
+    flex: 1,
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '600',
+    color: T.body,
   },
 
   ringShell: {
@@ -121,26 +183,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  infoBlock: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 0,
-    marginTop: 10,
-  },
-
-  statusPill: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F4ECFB',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginBottom: 10,
-  },
-
   chartPercent: {
     fontSize: 28,
     lineHeight: 32,
@@ -149,69 +191,15 @@ export const styles = StyleSheet.create({
   },
 
   chartCenterLabel: {
+    maxWidth: 112,
     fontSize: 12,
+    lineHeight: 16,
     fontWeight: '700',
     color: '#6D74A8',
+    textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,
-  },
-
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.dadoDois,
-    marginRight: 8,
-  },
-
-  statusPillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#7B4C65',
-  },
-
-  infoTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#2F356B',
-  },
-
-  infoDescription: {
-    marginTop: 4,
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#6F748D',
-    fontWeight: '500',
-  },
-
-  meterTrack: {
-    height: 10,
-    borderRadius: 999,
-    backgroundColor: '#EFEAF8',
-    marginTop: 12,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-
-  meterFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: COLORS.dadoDois,
-  },
-
-  expandButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 5,
-    gap: 6,
-  },
-
-  expandButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.dadoDois,
   },
 
   emptyMessage: {

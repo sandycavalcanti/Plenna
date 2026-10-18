@@ -33,20 +33,23 @@ export default function CardFinanceiroHome({dados,loading,error,onRetry}) {
     {(f.qualidade==='PARCIAL'||f.qualidade==='INSUFICIENTE') && <Text style={styles.note}>{f.comprasSemValor} compra(s) sem valor informado. O total conhecido pode estar incompleto.</Text>}
     <Text style={styles.note}>Somente registros disponíveis; outros gastos podem não aparecer. Orçamento atual não comprova vigência histórica.</Text>
     <Pressable accessibilityRole="button" accessibilityState={{expanded}} onPress={()=>setExpanded(!expanded)} style={styles.touch}><MaterialCommunityIcons name="information-outline" size={20} color="#76658A" accessible={false}/><Text style={styles.link}>Entenda as cores</Text><MaterialCommunityIcons name={expanded?'chevron-up':'chevron-down'} size={20} color="#76658A" accessible={false}/></Pressable>
-    {expanded && <View>{[['#267344','Utilização inicial','Verde: abaixo de 50%'],['#926500','Acompanhe seu orçamento','Amarelo: 50% até menos de 75%'],['#A64C14','Perto do orçamento','Laranja: 75% até 100%'],['#B32646','Orçamento ultrapassado','Vermelho: acima de 100%']].map(([cor,nome,faixa])=><View key={cor} style={{flexDirection:'row',alignItems:'center',gap:8,paddingVertical:6}}><MaterialCommunityIcons name="circle" size={10} color={cor} accessible={false}/><View style={{flex:1}}><Text style={styles.link}>{nome}</Text><Text style={styles.note}>{faixa}</Text></View></View>)}<Text style={styles.note}>As cores consideram o valor conhecido. Gastos ausentes podem alterar o percentual. As cores descrevem orçamento, nunca impulsividade.</Text></View>}
+    {expanded && <View style={styles.colorList}>{[['#267344','Utilização inicial','Verde: abaixo de 50%'],['#926500','Acompanhe seu orçamento','Amarelo: 50% até menos de 75%'],['#A64C14','Perto do orçamento','Laranja: 75% até 100%'],['#B32646','Orçamento ultrapassado','Vermelho: acima de 100%']].map(([cor,nome,faixa])=><View key={cor} style={styles.colorRow}><MaterialCommunityIcons name="circle" size={9} color={cor} accessible={false}/><View style={styles.colorCopy}><Text style={styles.link}>{nome}</Text><Text style={styles.note}>{faixa}</Text></View></View>)}</View>}
   </View>;
 }
 const styles=StyleSheet.create({
- card:{backgroundColor:'#FFFFFF',borderRadius:20,padding:12},
- title:{fontSize:19,fontWeight:'700',color:'#4A4E7A',textAlign:'center'},
- gauge:{width:'100%',maxWidth:220,aspectRatio:240/140,alignSelf:'center'},
- percent:{fontSize:28,fontWeight:'800',textAlign:'center'},
- caption:{fontSize:14,color:'#4A4E7A',textAlign:'center'},
- state:{fontSize:14,textAlign:'center',marginVertical:8},
- metrics:{flexDirection:'row',flexWrap:'wrap',gap:10,marginVertical:10},
- metric:{flexGrow:1,flexBasis:140,alignItems:'center',padding:10,backgroundColor:'#FAF7FC',borderRadius:14},
- amount:{fontSize:18,fontWeight:'700',color:'#4A4E7A',textAlign:'center'},
- note:{fontSize:12,color:'#76658A',marginVertical:4},
- touch:{minHeight:48,flexDirection:'row',flexWrap:'wrap',alignItems:'center',justifyContent:'center',gap:6},
- link:{color:'#76658A',fontSize:14,fontWeight:'600'},
+ card:{backgroundColor:'#FFFFFF',borderRadius:20,paddingHorizontal:12,paddingTop:10,paddingBottom:10},
+ title:{marginBottom:2,fontSize:19,fontWeight:'700',color:'#4A4E7A',textAlign:'center'},
+ gauge:{width:'100%',maxWidth:210,aspectRatio:240/132,alignSelf:'center',marginTop:-2,marginBottom:-9},
+ percent:{fontSize:27,lineHeight:31,fontWeight:'800',textAlign:'center'},
+ caption:{fontSize:13,lineHeight:17,color:'#4A4E7A',textAlign:'center'},
+ state:{fontSize:13,lineHeight:18,textAlign:'center',marginVertical:4},
+ metrics:{flexDirection:'row',gap:8,marginTop:8,marginBottom:8},
+ metric:{flex:1,minWidth:0,alignItems:'center',justifyContent:'center',paddingHorizontal:8,paddingVertical:8,backgroundColor:'#FAF7FC',borderRadius:14},
+ amount:{fontSize:18,lineHeight:22,fontWeight:'700',color:'#4A4E7A',textAlign:'center'},
+ note:{fontSize:11,lineHeight:16,color:'#76658A',marginVertical:2},
+ touch:{minHeight:38,marginTop:4,paddingVertical:5,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,borderTopWidth:1,borderTopColor:'#EEE8F2',borderRadius:10,backgroundColor:'#FAF7FC'},
+ link:{color:'#76658A',fontSize:13,fontWeight:'600'},
+ colorList:{marginTop:2},
+ colorRow:{flexDirection:'row',alignItems:'center',gap:8,paddingVertical:4},
+ colorCopy:{flex:1,minWidth:0},
 });

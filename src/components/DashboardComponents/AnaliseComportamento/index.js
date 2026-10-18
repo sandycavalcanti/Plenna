@@ -37,7 +37,7 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
     content = <Text style={styles.note}>Análise indisponível.</Text>;
   } else {
     const { analise, recomendacoes, categorias = [] } = dados;
-    const { frequencia, categorias: concentration, financeiro, comparacao } = analise.indicadores;
+    const { frequencia, categorias: concentration, financeiro } = analise.indicadores;
     const labels = new Map(categorias.map((categoria) => [categoria.id, categoria.nome]));
     const groups = concentration?.grupos ?? [];
     const recommendations = recomendacoes?.recomendacoes ?? [];
@@ -72,14 +72,6 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
             {financeiro.comprasSemValor} compra(s) sem valor. Os totais conhecidos podem estar incompletos.
           </Text>
         )}
-        <Text style={styles.note}>
-          {comparacao.disponibilidade === 'INDISPONIVEL'
-            ? 'Ainda não há dados suficientes para comparar os períodos.'
-            : comparacao.diferenca === 0
-              ? 'A quantidade de compras registradas é igual à do período anterior.'
-              : `${Math.abs(comparacao.diferenca)} compra(s) ${comparacao.diferenca > 0 ? 'a mais' : 'a menos'} que no período anterior.`}
-        </Text>
-
         {groups.length > 0 && (
           <View style={styles.groupSection}>
             <Text style={styles.sectionHeading}>Suas categorias</Text>

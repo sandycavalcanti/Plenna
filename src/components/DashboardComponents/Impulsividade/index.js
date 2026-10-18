@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
 import { distribuicaoClassificacoes } from '../../../utils/distribuicaoClassificacoes';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const RING_SIZE = 136;
 const RING_STROKE = 12;
@@ -23,15 +22,7 @@ export default function Impulsividade({
   totalKey = null,
   centerLabel = 'marcadas como impulsivas',
   centerValueMode = 'percentage',
-  infoTitle = 'Sobre estas marcações',
-  highLabel = 'Impulsividade alta',
-  mediumLabel = 'Impulsividade moderada',
-  lowLabel = 'Impulsividade baixa',
-  highDescription = 'O comportamento de compra está mais concentrado em decisões impulsivas.',
-  mediumDescription = 'Existe um nível intermediário de compras impulsivas no período.',
-  lowDescription = 'A maior parte das compras está fora do padrão impulsivo.',
 } = {}) {
-  const [expanded, setExpanded] = useState(false);
   const sourceData = data ?? impulsividade;
   const isArrayData = Array.isArray(sourceData);
   const isObjectData = !isArrayData && sourceData !== null && typeof sourceData === 'object';
@@ -114,14 +105,16 @@ export default function Impulsividade({
               <View style={styles.distributionLegend}>
                 {distribution.groups.map((group) => (
                   <View key={group.codigo} style={styles.distributionLegendItem}>
-                    <View style={[styles.distributionLegendDot, { backgroundColor: group.cor }]} />
-                    <View style={styles.distributionLegendCopy}>
-                      <Text style={styles.distributionLegendLabel} numberOfLines={2}>
+                    <View style={styles.distributionLegendHeader}>
+                      <Text style={styles.distributionLegendLabel} numberOfLines={1}>
                         {group.nome}
                       </Text>
                       <Text style={styles.distributionLegendValue}>
                         {group.quantidade} · {group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
                       </Text>
+                    </View>
+                    <View style={styles.distributionLegendTrack}>
+                      <View style={[styles.distributionLegendFill, { width: `${group.percentual}%`, backgroundColor: group.cor }]} />
                     </View>
                   </View>
                 ))}
@@ -143,10 +136,7 @@ export default function Impulsividade({
   const impulsivePercentage = totalQuantity > 0 ? Math.round((relevantQuantity / totalQuantity) * 100) : 0;
   const progress = Math.max(0, Math.min(100, impulsivePercentage));
   const progressOffset = RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE;
-
-  const statusLabel = isArrayData ? 'Classificações registradas' : relevantQuantity > 0 ? 'Compras acima do limite registrado' : 'Sem excesso registrado';
-
-  const statusDescription = isArrayData ? 'O gráfico reúne classificações já registradas, não uma avaliação automática do RF018. Compras pendentes de classificação não comprovam ausência de sinais.' : 'Este gráfico conta compras com excesso registrado. Não mede proximidade do orçamento nem comprova a vigência histórica do limite atual.'
+  const withinLimitQuantity = Math.max(0, totalQuantity - relevantQuantity);
 
   const centerValue = centerValueMode === 'quantity' ? relevantQuantity : `${progress}%`;
 
@@ -155,7 +145,12 @@ export default function Impulsividade({
       <ProfileCard title={title} variant="dashboard">
         <View style={styles.heroCard}>
           <View style={styles.ringWrap}>
-            <View style={styles.ringShell}>
+            <View
+              style={styles.ringShell}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel={`${relevantQuantity} compras acima do limite neste período`}
+            >
               <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ringSvg}>
                 <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke="#EAE3F7" strokeWidth={RING_STROKE} fill="transparent" />
                 <Circle
@@ -179,27 +174,19 @@ export default function Impulsividade({
               </View>
             </View>
           </View>
-
-          {expanded && (
-            <View style={styles.infoBlock}>
-              <View style={styles.statusPill}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusPillText}>{statusLabel}</Text>
-              </View>
-
-              <Text style={styles.infoTitle}>{infoTitle}</Text>
-              <Text style={styles.infoDescription}>{statusDescription}</Text>
-
-              <View style={styles.meterTrack}>
-                <View style={[styles.meterFill, { width: `${progress}%` }]} />
-              </View>
+          <View style={styles.limitContext}>
+            <View style={styles.limitContextHeader}>
+              <Text style={styles.limitContextTitle}>Distribuição do período</Text>
+              <Text style={styles.limitContextTotal}>{totalQuantity} compras</Text>
             </View>
-          )}
-
-          <TouchableOpacity style={styles.expandButton} onPress={() => setExpanded(!expanded)}>
-            <Text style={styles.expandButtonText}>{expanded ? 'Recolher' : 'Ver mais'}</Text>
-            <MaterialCommunityIcons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.dadoDois} />
-          </TouchableOpacity>
+            <View style={styles.limitContextTrack}>
+              <View style={[styles.limitContextFill, { width: `${progress}%` }]} />
+            </View>
+            <View style={styles.limitContextLabels}>
+              <Text style={styles.limitContextLabel}>{relevantQuantity} acima do limite</Text>
+              <Text style={styles.limitContextLabel}>{withinLimitQuantity} dentro do limite</Text>
+            </View>
+          </View>
         </View>
       </ProfileCard>
     </View>

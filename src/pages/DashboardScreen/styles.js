@@ -471,13 +471,6 @@ export const styles = StyleSheet.create({
     color: COLORS.perfilProfileCardTitulo,
   },
 
-  chartSubtitle: {
-    marginTop: 3,
-    fontSize: 13,
-    fontWeight: '500',
-    color: T.muted,
-  },
-
   chartToggle: {
     width: 38,
     height: 38,
@@ -572,13 +565,6 @@ export const styles = StyleSheet.create({
     fontSize: 10,
   },
 
-  chartFootnote: {
-    marginTop: 13,
-    fontSize: 11,
-    fontWeight: '600',
-    color: T.muted,
-  },
-
   comparisonSummary: {
     marginTop: 14,
     padding: 15,
@@ -589,13 +575,6 @@ export const styles = StyleSheet.create({
 
   comparisonSummaryHeader: {
     marginBottom: 14,
-  },
-
-  comparisonSummaryPeriods: {
-    marginTop: 4,
-    fontSize: 12,
-    fontWeight: '600',
-    color: T.muted,
   },
 
   comparisonPeriodTag: {
@@ -759,20 +738,6 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  purchaseCountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 14,
-    gap: 7,
-  },
-
-  purchaseCountText: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#777B96',
-  },
-
   legendInline: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -816,15 +781,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: '#3B4068',
-  },
-
-  categoryComparisonVariation: {
-    maxWidth: '52%',
-    flexShrink: 1,
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#878BA3',
-    textAlign: 'right',
   },
 
   expandButton: {
@@ -931,12 +887,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: COLORS.perfilProfileCardTitulo,
-  },
-
-  controlSubtitle: {
-    marginTop: 3,
-    fontSize: 13,
-    color: '#878BA3',
   },
 
   periodEndRow: {
@@ -1049,13 +999,6 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: T.navy,
-  },
-
-  categoryBarMarker: {
-    width: 7,
-    height: 7,
-    flexShrink: 0,
-    borderRadius: 4,
   },
 
   validationText: {
