@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { COLORS } from '../../constants';
 import { styles } from './styles';
+import MoneyInput from '../MoneyInput';
+import { validarValorMonetario } from '../../utils/orcamento';
 
 export default function LimitSlider({
   title,
@@ -21,9 +23,14 @@ export default function LimitSlider({
   disabled = false,
   testID,
   textValue,
+  moneyEditing = false,
+  registerMoneyEditor,
+  beforeSliderChange,
 }) {
   const safeMin = Number.isFinite(min) ? min : 0;
-  const safeMax = Number.isFinite(max) && max >= safeMin ? max : safeMin;
+  const visualMax = Number.isFinite(max) && max >= safeMin ? max : safeMin;
+  const safeMax = moneyEditing && !horas && Number.isFinite(value) ? Math.max(visualMax, value) : visualMax;
+  const financialMax = Number.isFinite(maxAllowedValue) ? Math.max(safeMin, maxAllowedValue) : null;
   const safeStep = Number.isFinite(step) && step > 0 ? step : 1;
   const limitSliderMax = Number.isFinite(maxAllowedValue) ? (maxAllowedValue >= 0 ? Math.min(maxAllowedValue, safeMax) : 0) : safeMax;
 
@@ -44,6 +51,10 @@ export default function LimitSlider({
   const [internalValue, setInternalValue] = useState(normalizeValue(initialValue ?? safeMin));
   const [inputText, setInputText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const gesture = useRef(null);
+  const latestSliderChange = useRef(null);
+  const sliderRef = useRef(null);
+  const latestValue = useRef(null);
 
   useEffect(() => {
     if (!isControlled) {
@@ -175,7 +186,7 @@ export default function LimitSlider({
 
       const numericValue = parseFormattedInput(formatted);
 
-      const boundedValue = Math.min(Math.max(numericValue, safeMin), nextMax);
+      const boundedValue = Math.min(Math.max(numericValue, safeMin), Math.max(safeMin, limitSliderMax));
 
       if (textValue && typeof textValue === 'object') {
         textValue.current = boundedValue;
@@ -189,7 +200,7 @@ export default function LimitSlider({
         onValueChange(boundedValue);
       }
     },
-    [formatInputText, parseFormattedInput, textValue, isControlled, onValueChange, safeMin],
+    [formatInputText, parseFormattedInput, textValue, isControlled, onValueChange, safeMin, limitSliderMax],
   );
 
   const handleTextInputFocus = useCallback(() => {
@@ -224,7 +235,8 @@ export default function LimitSlider({
         parsed = safeMin;
       }
 
-      parsed = Math.max(safeMin, Math.min(parsed, safeMax));
+      if (moneyEditing) parsed = Math.round(parsed * 100) / 100;
+      parsed = Math.max(safeMin, Math.min(parsed, Math.max(safeMin, limitSliderMax)));
 
       if (textValue && typeof textValue === 'object') {
         textValue.current = parsed;
@@ -235,43 +247,101 @@ export default function LimitSlider({
       }
 
       if (typeof onValueChange === 'function') {
-        onValueChange(parsed);
+        const error = onValueChange(parsed);
+        if (typeof error === 'string') sliderRef.current?.setNativeProps?.({ value: latestValue.current });
       }
     },
-    [safeMin, safeMax, textValue, isControlled, onValueChange],
+    [safeMin, limitSliderMax, textValue, isControlled, onValueChange, moneyEditing],
   );
+  useLayoutEffect(() => {
+    latestSliderChange.current = disabled ? () => {} : handleSliderChange;
+    latestValue.current = currentValue;
+  });
+  useLayoutEffect(() => {
+    // O slider nativo não é controlado e sua implementação omite value=0.
+    if (moneyEditing) sliderRef.current?.setNativeProps?.({ value: currentValue });
+  }, [moneyEditing, currentValue, safeMax]);
+
+  async function changeSlider(nextValue) {
+    if (beforeSliderChange) {
+      const ready = gesture.current || beforeSliderChange();
+      if (!await ready) {
+        sliderRef.current?.setNativeProps?.({ value: latestValue.current });
+        return;
+      }
+    }
+    latestSliderChange.current(nextValue);
+  }
+
+  function confirmMoney(nextValue) {
+    try {
+      validarValorMonetario(nextValue);
+    } catch (error) {
+      return error.message;
+    }
+    if (financialMax !== null && nextValue > financialMax) {
+      return `O limite disponível para esta categoria é R$ ${financialMax.toFixed(2)}.`;
+    }
+    // Digitação confirma o valor financeiro, sem passar pelo limitador visual do gesto.
+    const error = onValueChange?.(nextValue);
+    if (typeof error === 'string') return error;
+    if (textValue && typeof textValue === 'object') textValue.current = nextValue;
+    if (!isControlled) setInternalValue(nextValue);
+  }
+
   return (
     <View style={[styles.container, compact && styles.containerCompact]}>
       <Text style={[styles.title, compact && styles.titleCompact]}>{title}</Text>
 
-      <View style={styles.row}>
+      <View style={[styles.row, moneyEditing && !horas && styles.moneyRow]}>
         <Slider
-          style={[styles.slider, compact && styles.sliderCompact]}
+          ref={sliderRef}
+          style={[styles.slider, compact && styles.sliderCompact, moneyEditing && !horas && styles.moneySlider]}
           minimumValue={safeMin}
           maximumValue={safeMax}
           step={safeStep}
           value={currentValue}
           upperLimit={limitSliderMax}
-          onValueChange={handleSliderChange}
+          onSlidingStart={() => {
+            gesture.current = beforeSliderChange ? beforeSliderChange() : null;
+          }}
+          onValueChange={changeSlider}
+          onSlidingComplete={() => { gesture.current = null; }}
           minimumTrackTintColor={COLORS.limitSliderThumbEsquerda}
           maximumTrackTintColor={COLORS.limitSliderThumbDireita}
           thumbTintColor={COLORS.limitSliderThumb}
-          disabled={disabled}
+          disabled={disabled || (moneyEditing && safeMax === safeMin)}
           testID={testID}
         />
 
-        <View style={[styles.valuePill, compact && styles.valuePillCompact]}>
+        <View style={[styles.valuePill, compact && styles.valuePillCompact, moneyEditing && !horas && styles.moneyPill]}>
+          {moneyEditing && !horas ? (
+            <MoneyInput
+              value={currentValue}
+              onConfirm={confirmMoney}
+              registerEditor={registerMoneyEditor}
+              onFinishEditing={beforeSliderChange}
+              accessibilityLabel={title}
+              editable={!disabled}
+              inputStyle={[styles.valueText, compact && styles.valueTextCompact, styles.moneyInput]}
+              focusStyle={styles.moneyFocused}
+              errorStyle={styles.inputError}
+            />
+          ) : (
           <TextInput
             style={[styles.valueText, compact && styles.valueTextCompact]}
             value={isEditing ? inputText : displayValue}
             onChangeText={handleTextInputChange}
             onFocus={handleTextInputFocus}
+            selectTextOnFocus
             onBlur={handleTextInputBlur}
             placeholder={displayValue}
             placeholderTextColor={COLORS.cadCaixaPreferenciasValorTexto}
             keyboardType="numeric"
+            editable={!disabled}
             maxLength={10}
           />
+          )}
         </View>
       </View>
     </View>

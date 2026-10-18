@@ -1,0 +1,20 @@
+import { StyleSheet } from 'react-native';
+export const styles = StyleSheet.create({
+  section: { paddingHorizontal: 18, paddingBottom: 20, gap: 10 },
+  heading: { fontSize: 18, fontWeight: '700', color: '#564477', marginTop: 6 },
+  selectors: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  selector: { flexGrow: 1, flexBasis: 96, padding: 10, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E6DDED', minHeight: 48, gap: 5, shadowColor: '#514265', shadowOffset: { width: 0, height: 2 }, shadowOpacity: .05, shadowRadius: 5, elevation: 0 },
+  active: { borderColor: '#B15388', borderWidth: 1, borderTopWidth: 3 },
+  label: { fontSize: 14, fontWeight: '600', color: '#594367', flexShrink: 1 },
+  value: { fontSize: 16, fontWeight: '700', color: '#8B2863' },
+  detail: { padding: 14, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 7, borderWidth: 1, borderColor: '#EBE3EF' },
+  detailHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  amount: { fontSize: 22, fontWeight: '700', color: '#8B2863', flexShrink: 1 },
+  body: { fontSize: 14, color: '#4C4356', lineHeight: 20 },
+  note: { fontSize: 13, color: '#655A70', lineHeight: 18, flexShrink: 1 },
+  summary: { fontSize: 14, color: '#655A70', lineHeight: 20 },
+  link: { color: '#893467', fontWeight: '600', fontSize: 14, paddingVertical: 9, minHeight: 48 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  disclosure: { flexDirection: 'row', alignItems: 'center', gap: 7, minHeight: 48 },
+  track: { height: 6, borderRadius: 6, backgroundColor: '#EEE8F1' },
+});

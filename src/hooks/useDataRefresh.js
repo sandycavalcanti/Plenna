@@ -34,56 +34,61 @@ export function useDataRefresh() {
   }, []);
 
   // Buscar tempo de uso
-  const fetchTempoUso = useCallback(async () => {
+  const fetchTempoUso = useCallback(async (options = {}) => {
     try {
       const response = await apiClient.get('/tempo-uso');
       return response.data;
     } catch (error) {
-      logApiErrors(error, 'Erro ao buscar tempo de uso');
+      console.error('TEMPO_USO_FETCH_FAILED');
+      if (options.throwOnError) throw error;
       return [];
     }
   }, []);
 
   // Buscar gastos por categoria
-  const fetchGastosCategoria = useCallback(async () => {
+  const fetchGastosCategoria = useCallback(async (periodo, options = {}) => {
     try {
-      const response = await apiClient.get('/dashboard/gastos-categoria');
+      const response = await apiClient.get('/dashboard/gastos-categoria', { params: { periodo } });
       return response.data;
     } catch (error) {
       logApiErrors(error, 'Erro ao buscar gastos por categoria');
+      if (options.throwOnError) throw error;
       return [];
     }
   }, []);
 
   // Buscar impulsividade
-  const fetchImpulsividade = useCallback(async () => {
+  const fetchImpulsividade = useCallback(async (periodo, options = {}) => {
     try {
-      const response = await apiClient.get('/dashboard/impulsividade');
+      const response = await apiClient.get('/dashboard/impulsividade', { params: { periodo } });
       return response.data;
     } catch (error) {
       logApiErrors(error, 'Erro ao buscar impulsividade');
+      if (options.throwOnError) throw error;
       return null;
     }
   }, []);
 
   // Buscar gastos por forma de pagamento
-  const fetchGastosFormaPagamento = useCallback(async () => {
+  const fetchGastosFormaPagamento = useCallback(async (periodo, options = {}) => {
     try {
-      const response = await apiClient.get('/dashboard/gastos-forma-pagamento');
+      const response = await apiClient.get('/dashboard/gastos-forma-pagamento', { params: { periodo } });
       return response.data;
     } catch (error) {
       logApiErrors(error, 'Erro ao buscar gastos por forma de pagamento');
+      if (options.throwOnError) throw error;
       return null;
     }
   }, []);
 
   // Buscar limite de compras
-  const fetchLimiteCompra = useCallback(async () => {
+  const fetchLimiteCompra = useCallback(async (periodo, options = {}) => {
     try {
-      const response = await apiClient.get('/dashboard/limite-compras');
+      const response = await apiClient.get('/dashboard/limite-compras', { params: { periodo } });
       return response.data;
     } catch (error) {
       logApiErrors(error, 'Erro ao buscar limite de compras');
+      if (options.throwOnError) throw error;
       return null;
     }
   }, []);

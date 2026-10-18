@@ -42,8 +42,10 @@ export default function BudgetPreferences({ gastoIdealMensal, gastoIdealCompra, 
 
       {/* Caixa de gasto máximo por compra */}
       <View style={styles.mainBox}>
-        <Text style={styles.label}>Gasto máximo por compra</Text>
-        <Text style={styles.value}>{formatarValorMonetarioParaTela(gastoIdealCompra) || 'R$ 0,00'}</Text>
+        <Text style={styles.label}>Valor de atenção por compra</Text>
+        <Text style={styles.value}>{gastoIdealCompra != null && Number(gastoIdealCompra) > 0
+          ? formatarValorMonetarioParaTela(gastoIdealCompra)
+          : 'Valor de atenção não definido'}</Text>
       </View>
 
       {/* Linhas dinâmicas com categorias de gastos */}

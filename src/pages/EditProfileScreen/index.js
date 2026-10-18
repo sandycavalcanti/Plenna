@@ -131,7 +131,6 @@ export default function EditProfileScreen() {
     telefone: '',
     dataNascimento: '',
     limiteCompra: '',
-    metaValorCompra: '',
     metaTempo: '',
     gatilhoConsumo: '',
     tempoTela: '',
@@ -156,7 +155,6 @@ export default function EditProfileScreen() {
         telefone: dados.usuario_telefone || '',
         dataNascimento: dataBancoParaEntrada(dados.usuario_data_nascimento || ''),
         limiteCompra: dados.usuario_limite_compra || '',
-        metaValorCompra: dados.usuario_meta_valor_compra || '',
         metaTempo: dados.usuario_meta_tempo || '',
         gatilhoConsumo: dados.usuario_gatilho_consumo || '',
         tempoTela: dados.usuario_tempo_tela || '',
@@ -195,7 +193,6 @@ export default function EditProfileScreen() {
         payload.dataNascimento = dataNascimentoBanco;
       }
       if (user.limiteCompra !== undefined && String(user.limiteCompra).trim() !== '') payload.limiteCompra = parseNumber(String(user.limiteCompra));
-      if (user.metaValorCompra !== undefined && String(user.metaValorCompra).trim() !== '') payload.metaValorCompra = parseNumber(String(user.metaValorCompra));
       if (user.metaTempo !== undefined && String(user.metaTempo).trim() !== '') payload.metaTempo = Number(user.metaTempo);
       if (user.gatilhoConsumo !== undefined) payload.gatilhoConsumo = user.gatilhoConsumo;
       if (user.tempoTela !== undefined) payload.tempoTela = user.tempoTela;

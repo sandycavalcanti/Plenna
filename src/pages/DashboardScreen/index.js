@@ -1,15 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Circle, Defs, LinearGradient, Line, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -19,15 +9,23 @@ import Categoria from '../../components/DashboardComponents/Categoria';
 import FormaPagamento from '../../components/DashboardComponents/FormaPagamento';
 import Impulsividade from '../../components/DashboardComponents/Impulsividade';
 import TempoApp from '../../components/DashboardComponents/TempoApp';
+import AnaliseComportamento from '../../components/DashboardComponents/AnaliseComportamento';
+import { ResumoMensalCarousel } from '../../components/DashboardComponents/GastosGerais';
 import { COLORS } from '../../constants/colors';
 import { DASHBOARD_THEME } from '../../constants/dashboardTheme';
 import { getDashboardAnalytics } from '../../api/dashboard';
 import { useDataRefresh } from '../../hooks/useDataRefresh';
+import { useAnaliseComportamento } from '../../hooks/useAnaliseComportamento';
 import { logApiErrors } from '../../utils/error';
+import { obterJanelaDiaLocal } from '../../utils/tempoUsoSync';
 import { styles } from './styles';
 
 const ANALYTICS_TIMEZONE = 'America/Sao_Paulo';
 const DASHBOARD_COLORS = DASHBOARD_THEME.colors;
+const COMPARISON_COLORS = {
+  base: COLORS.dadoTres,
+  compared: COLORS.dadoDois,
+};
 
 function getCurrentMonth() {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -57,6 +55,10 @@ function parseMonth(month) {
   return { year, month: monthNumber };
 }
 
+function isValidMonth(month) {
+  return /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(String(month || ''));
+}
+
 function shiftMonth(month, amount) {
   const parsed = parseMonth(month);
   const date = new Date(Date.UTC(parsed.year, parsed.month - 1 + amount, 1));
@@ -64,8 +66,7 @@ function shiftMonth(month, amount) {
 }
 
 function compareMonths(left, right) {
-  return parseMonth(left).year * 12 + parseMonth(left).month
-    - (parseMonth(right).year * 12 + parseMonth(right).month);
+  return parseMonth(left).year * 12 + parseMonth(left).month - (parseMonth(right).year * 12 + parseMonth(right).month);
 }
 
 function monthLabel(month) {
@@ -75,7 +76,9 @@ function monthLabel(month) {
     timeZone: ANALYTICS_TIMEZONE,
     month: 'long',
     year: 'numeric',
-  }).format(value).replace(/^./, (letter) => letter.toUpperCase());
+  })
+    .format(value)
+    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function monthShortLabel(month) {
@@ -84,8 +87,23 @@ function monthShortLabel(month) {
   const shortMonth = new Intl.DateTimeFormat('pt-BR', {
     timeZone: ANALYTICS_TIMEZONE,
     month: 'short',
-  }).format(value).replace('.', '');
+  })
+    .format(value)
+    .replace('.', '');
   return `${shortMonth.slice(0, 3)}/${String(year).slice(-2)}`;
+}
+
+function ComparisonPeriodTag({ month, color, compact = false }) {
+  if (!month) return null;
+
+  return (
+    <View style={styles.comparisonPeriodTag}>
+      <View style={[styles.comparisonPeriodDot, { backgroundColor: color }]} />
+      <Text style={[styles.comparisonPeriodTagText, compact && styles.comparisonPeriodTagTextCompact]} numberOfLines={1}>
+        {compact ? monthShortLabel(month) : monthLabel(month)}
+      </Text>
+    </View>
+  );
 }
 
 function monthName(monthNumber) {
@@ -93,7 +111,9 @@ function monthName(monthNumber) {
   return new Intl.DateTimeFormat('pt-BR', {
     timeZone: ANALYTICS_TIMEZONE,
     month: 'long',
-  }).format(value).replace(/^./, (letter) => letter.toUpperCase());
+  })
+    .format(value)
+    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function formatCents(cents) {
@@ -101,6 +121,31 @@ function formatCents(cents) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function formatDailyDuration(totalMinutes) {
+  const minutes = Math.max(0, Math.round(Number(totalMinutes) || 0));
+  if (minutes <= 0) return '--';
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) return `${remainingMinutes}m`;
+  if (remainingMinutes === 0) return `${hours}h`;
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+function getDailyUsageMinutes(records) {
+  const { dataLocal: today } = obterJanelaDiaLocal();
+
+  return records.reduce((total, item) => {
+    if (item?.tempo_uso_data_local !== today || !item?.tempo_uso_nome) return total;
+
+    const seconds = Number(item?.tempo_uso_duracao_segundos);
+    const minutes = Number.isFinite(seconds) && seconds > 0 ? seconds / 60 : Number(item?.tempo_uso_minutos);
+
+    return Number.isFinite(minutes) && minutes > 0 ? total + minutes : total;
+  }, 0);
 }
 
 function formatReais(value) {
@@ -149,21 +194,6 @@ function isCanceled(error) {
   return error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError';
 }
 
-function MetricTile({ icon, label, value, caption, color = COLORS.dadoDois }) {
-  return (
-    <View style={[styles.metricTile, { borderLeftColor: color }]}>
-      <View style={[styles.metricIcon, { backgroundColor: `${color}20` }]}>
-        <MaterialCommunityIcons name={icon} size={20} color={color} />
-      </View>
-      <View style={styles.metricCopy}>
-        <Text style={styles.metricLabel}>{label}</Text>
-        <Text style={styles.metricValue} numberOfLines={1}>{value}</Text>
-        {caption ? <Text style={styles.metricCaption}>{caption}</Text> : null}
-      </View>
-    </View>
-  );
-}
-
 function PeriodSelector({ value, onPress, label = 'Período' }) {
   return (
     <TouchableOpacity style={styles.periodSelector} onPress={onPress} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel={`${label}: ${monthLabel(value)}`}>
@@ -190,16 +220,29 @@ function MonthPickerModal({ visible, value, maxMonth, minMonth, title, onChange,
 
   const { year: selectedYear, month: selectedMonthNumber } = parseMonth(draftValue);
   const { year: maxYear } = parseMonth(maxMonth);
-  const firstYear = minMonth
-    ? parseMonth(minMonth).year
-    : Math.min(selectedYear, maxYear - 7);
-  const years = Array.from({ length: maxYear - firstYear + 1 }, (_, index) => maxYear - index);
+  const firstYear = minMonth ? parseMonth(minMonth).year : Math.max(maxYear - 7, 2000);
+  const years = Array.from({ length: maxYear - firstYear + 1 }, (_, index) => firstYear + index);
   const months = Array.from({ length: 12 }, (_, index) => index + 1);
+
+  const boundedMonthForYear = (year, desiredMonth) => {
+    let candidate = `${year}-${String(desiredMonth).padStart(2, '0')}`;
+    if (compareMonths(candidate, maxMonth) > 0) candidate = maxMonth;
+    if (minMonth && compareMonths(candidate, minMonth) < 0) candidate = minMonth;
+    return candidate;
+  };
 
   const chooseMonth = (monthNumber) => {
     const candidate = `${selectedYear}-${String(monthNumber).padStart(2, '0')}`;
     const isBeforeAccount = minMonth && compareMonths(candidate, minMonth) < 0;
     if (compareMonths(candidate, maxMonth) <= 0 && !isBeforeAccount) setDraftValue(candidate);
+  };
+
+  const changeYear = (amount) => {
+    const currentIndex = years.indexOf(selectedYear);
+    const nextIndex = Math.min(Math.max(currentIndex + amount, 0), years.length - 1);
+    if (nextIndex !== currentIndex) {
+      setDraftValue(boundedMonthForYear(years[nextIndex], selectedMonthNumber));
+    }
   };
 
   const applySelection = () => {
@@ -208,9 +251,10 @@ function MonthPickerModal({ visible, value, maxMonth, minMonth, title, onChange,
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <View style={styles.monthModal}>
+          <View style={styles.sheetHandle} />
           <View style={styles.modalHeader}>
             <View>
               <Text style={styles.modalEyebrow}>Período</Text>
@@ -221,26 +265,39 @@ function MonthPickerModal({ visible, value, maxMonth, minMonth, title, onChange,
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.pickerLabel}>Ano</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.yearScroll}>
-            {years.map((year) => (
-              <TouchableOpacity
-                key={year}
-                style={[styles.yearChip, selectedYear === year && styles.yearChipActive]}
-                onPress={() => setDraftValue(`${year}-${String(selectedMonthNumber).padStart(2, '0')}`)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: selectedYear === year }}>
-                <Text style={[styles.yearChipText, selectedYear === year && styles.yearChipTextActive]}>{year}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {years.length > 1 ? (
+            <>
+              <Text style={styles.pickerLabel}>Ano</Text>
+              <View style={styles.yearControl}>
+                <TouchableOpacity
+                  style={[styles.yearControlButton, years.indexOf(selectedYear) === 0 && styles.yearControlButtonDisabled]}
+                  onPress={() => changeYear(-1)}
+                  disabled={years.indexOf(selectedYear) === 0}
+                  accessibilityLabel="Ano anterior">
+                  <MaterialCommunityIcons name="chevron-left" size={20} color={COLORS.dadoUm} />
+                </TouchableOpacity>
+                <Text style={styles.yearControlValue}>{selectedYear}</Text>
+                <TouchableOpacity
+                  style={[styles.yearControlButton, years.indexOf(selectedYear) === years.length - 1 && styles.yearControlButtonDisabled]}
+                  onPress={() => changeYear(1)}
+                  disabled={years.indexOf(selectedYear) === years.length - 1}
+                  accessibilityLabel="Próximo ano">
+                  <MaterialCommunityIcons name="chevron-right" size={20} color={COLORS.dadoUm} />
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <View style={styles.singleYearRow}>
+              <Text style={styles.pickerLabel}>Ano</Text>
+              <Text style={styles.singleYearValue}>{selectedYear}</Text>
+            </View>
+          )}
 
           <Text style={styles.pickerLabel}>Mês</Text>
           <View style={styles.monthGrid}>
             {months.map((monthNumber) => {
               const candidate = `${selectedYear}-${String(monthNumber).padStart(2, '0')}`;
-              const disabled = compareMonths(candidate, maxMonth) > 0
-                || (minMonth && compareMonths(candidate, minMonth) < 0);
+              const disabled = compareMonths(candidate, maxMonth) > 0 || (minMonth && compareMonths(candidate, minMonth) < 0);
               const selected = selectedMonthNumber === monthNumber;
               return (
                 <TouchableOpacity
@@ -250,18 +307,15 @@ function MonthPickerModal({ visible, value, maxMonth, minMonth, title, onChange,
                   disabled={disabled}
                   accessibilityRole="radio"
                   accessibilityState={{ selected, disabled }}>
-                  <Text style={[styles.monthChipText, selected && styles.monthChipTextActive, disabled && styles.monthChipTextDisabled]}>
-                    {monthName(monthNumber)}
-                  </Text>
+                  <Text style={[styles.monthChipText, selected && styles.monthChipTextActive, disabled && styles.monthChipTextDisabled]}>{monthName(monthNumber)}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
           <View style={styles.selectedMonthBlock}>
-            <MaterialCommunityIcons name="calendar-month-outline" size={20} color={COLORS.dadoDois} />
             <Text style={styles.selectedMonthText}>{monthLabel(draftValue)}</Text>
-            <Text style={styles.selectedMonthHint}>Meses futuros ficam indisponíveis</Text>
+            <Text style={styles.selectedMonthHint}>Meses futuros e anteriores à conta ficam bloqueados.</Text>
           </View>
 
           <TouchableOpacity style={styles.modalDoneButton} onPress={applySelection} activeOpacity={0.85}>
@@ -309,31 +363,71 @@ function EmptyComparison({ message = 'Ainda não há dados para comparar.' }) {
   );
 }
 
-function EvolutionChart({ periods }) {
-  const max = Math.max(...periods.map((period) => Number(period.total_centavos || 0)), 1);
+function getVisibleEvolutionPeriods(periods, accountStartMonth, evolutionEnd, requestedMonths) {
+  const lastMonth = evolutionEnd || periods[periods.length - 1]?.periodo;
+  if (!lastMonth) return [];
+
+  const requestedWindow = Number(requestedMonths);
+  const windowLength = Number.isFinite(requestedWindow) && requestedWindow > 0 ? requestedWindow : periods.length || 1;
+  const windowStart = shiftMonth(lastMonth, -(windowLength - 1));
+
+  return periods
+    .filter((period) => {
+      if (!period?.periodo) return false;
+      if (compareMonths(period.periodo, windowStart) < 0) return false;
+      if (compareMonths(period.periodo, lastMonth) > 0) return false;
+      if (accountStartMonth && compareMonths(period.periodo, accountStartMonth) < 0) return false;
+      return true;
+    })
+    .sort((left, right) => compareMonths(left.periodo, right.periodo));
+}
+
+function EvolutionChart({ periods, accountStartMonth, evolutionEnd, requestedMonths }) {
+  const visiblePeriods = getVisibleEvolutionPeriods(periods, accountStartMonth, evolutionEnd, requestedMonths);
+  const max = Math.max(...visiblePeriods.map((period) => Number(period.total_centavos || 0)), 1);
   const { width } = useWindowDimensions();
   const [activePoint, setActivePoint] = useState(null);
   const [chartType, setChartType] = useState('line');
-  const chartWidth = Math.max(width - 62, 280);
-  const chartHeight = 236;
-  const plotLeft = 48;
-  const plotTop = 20;
+  const visiblePeriodKey = visiblePeriods.map((period) => period.periodo).join('|');
+  useEffect(() => {
+    setActivePoint((current) => (current && visiblePeriods.some((period) => period.periodo === current.period.periodo) ? current : null));
+  }, [visiblePeriodKey]);
+
+  const isCompactChart = visiblePeriods.length <= 2;
+  const chartWidth = Math.max(width - 48, 280);
+  const chartHeight = isCompactChart ? 214 : 236;
+  const plotLeft = visiblePeriods.length <= 2 ? 40 : 48;
+  const plotTop = isCompactChart ? 24 : 20;
   const plotRight = chartWidth - 10;
-  const plotBottom = 184;
+  const plotBottom = isCompactChart ? 166 : 184;
   const plotWidth = plotRight - plotLeft;
   const plotHeight = plotBottom - plotTop;
-  const points = periods.map((period, index) => {
+  const pointInset = visiblePeriods.length === 1 ? 0 : visiblePeriods.length === 2 ? Math.min(42, plotWidth * 0.16) : visiblePeriods.length === 3 ? Math.min(18, plotWidth * 0.06) : 0;
+  const pointLeft = plotLeft + pointInset;
+  const pointRight = plotRight - pointInset;
+  const points = visiblePeriods.map((period, index) => {
     const total = Number(period.total_centavos || 0);
-    const x = periods.length === 1
-      ? plotLeft + plotWidth / 2
-      : plotLeft + (index * plotWidth) / (periods.length - 1);
+    const x = visiblePeriods.length === 1 ? plotLeft + plotWidth / 2 : pointLeft + (index * (pointRight - pointLeft)) / (visiblePeriods.length - 1);
     const y = plotBottom - (total / max) * plotHeight;
     return { period, total, x, y };
   });
-  const linePath = buildSmoothPath(points);
-  const areaPath = points.length
-    ? `${linePath} L ${points[points.length - 1].x} ${plotBottom} L ${points[0].x} ${plotBottom} Z`
-    : '';
+  const periodCount = Math.max(visiblePeriods.length, 1);
+  const barGap = visiblePeriods.length <= 3 ? 16 : visiblePeriods.length <= 6 ? 8 : 4;
+  const barMaxWidth = visiblePeriods.length === 1 ? 24 : visiblePeriods.length === 2 ? 26 : visiblePeriods.length === 3 ? 28 : 28;
+  const barSlotWidth = (plotWidth - barGap * (periodCount - 1)) / periodCount;
+  const barWidth = Math.max(12, Math.min(barMaxWidth, barSlotWidth));
+  const barGroupWidth = barWidth * visiblePeriods.length + barGap * Math.max(visiblePeriods.length - 1, 0);
+  const barGroupLeft = plotLeft + (plotWidth - barGroupWidth) / 2;
+  const barPoints = points.map((point, index) => ({
+    ...point,
+    x: barGroupLeft + index * (barWidth + barGap) + barWidth / 2,
+  }));
+  const linePath = points.length === 2 ? `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}` : points.length > 2 ? buildSmoothPath(points) : '';
+  const areaPath = points.length > 2 ? `${linePath} L ${points[points.length - 1].x} ${plotBottom} L ${points[0].x} ${plotBottom} Z` : '';
+
+  if (!visiblePeriods.length) {
+    return <EmptyComparison message="Não há meses disponíveis desde a criação da conta neste período." />;
+  }
 
   return (
     <View style={styles.chartCard}>
@@ -351,13 +445,18 @@ function EvolutionChart({ periods }) {
           <MaterialCommunityIcons name={chartType === 'line' ? 'chart-bar' : 'chart-timeline-variant'} size={21} color={COLORS.dadoUm} />
         </TouchableOpacity>
       </View>
-      {activePoint ? (
+      {visiblePeriods.length === 1 ? (
+        <View style={styles.singlePeriodSummary}>
+          <Text style={styles.singlePeriodLabel}>{monthLabel(visiblePeriods[0].periodo)}</Text>
+          <Text style={styles.singlePeriodValue}>{formatCents(visiblePeriods[0].total_centavos)}</Text>
+        </View>
+      ) : activePoint ? (
         <View style={styles.pointTooltip}>
           <Text style={styles.pointTooltipLabel}>{monthLabel(activePoint.period.periodo)}</Text>
           <Text style={styles.pointTooltipValue}>{formatCents(activePoint.total)}</Text>
         </View>
       ) : null}
-      <View style={styles.evolutionChart}>
+      <View style={[styles.evolutionChart, isCompactChart && styles.evolutionChartCompact]}>
         <Svg width={chartWidth} height={chartHeight}>
           <Defs>
             <LinearGradient id="dashboardEvolutionArea" x1="0" y1="0" x2="0" y2="1">
@@ -379,48 +478,59 @@ function EvolutionChart({ periods }) {
           })}
           {chartType === 'line' && areaPath ? <Path d={areaPath} fill="url(#dashboardEvolutionArea)" /> : null}
           {chartType === 'line' && linePath ? <Path d={linePath} fill="none" stroke={COLORS.dadoDois} strokeWidth="3" strokeLinecap="round" /> : null}
-          {chartType === 'bar' ? points.map((point) => {
-            const barWidth = Math.max(10, Math.min(30, plotWidth / Math.max(points.length * 1.7, 1)));
-            const barHeight = Math.max(point.total > 0 ? plotBottom - point.y : 3, 3);
-            return (
-              <Rect
-                key={`bar-${point.period.periodo}`}
-                x={point.x - barWidth / 2}
-                y={plotBottom - barHeight}
-                width={barWidth}
-                height={barHeight}
-                rx={barWidth / 2}
-                fill={point.total > 0 ? COLORS.dadoDois : '#DCDDEA'}
-                opacity={activePoint?.period.periodo === point.period.periodo ? 1 : 0.82}
-              />
-            );
-          }) : null}
-          {chartType === 'line' ? points.map((point) => (
-            <Circle
-              key={`point-${point.period.periodo}`}
-              cx={point.x}
-              cy={point.y}
-              r={activePoint?.period.periodo === point.period.periodo ? 6 : 4}
-              fill="#FFFFFF"
-              stroke={COLORS.dadoDois}
-              strokeWidth="3"
-            />
-          )) : null}
+          {chartType === 'bar'
+            ? barPoints.map((point) => {
+                const barHeight = Math.max(point.total > 0 ? plotBottom - point.y : 3, 3);
+                return (
+                  <Rect
+                    key={`bar-${point.period.periodo}`}
+                    x={point.x - barWidth / 2}
+                    y={plotBottom - barHeight}
+                    width={barWidth}
+                    height={barHeight}
+                    rx={barWidth / 2}
+                    fill={point.total > 0 ? COLORS.dadoDois : '#DCDDEA'}
+                    opacity={activePoint?.period.periodo === point.period.periodo ? 1 : 0.82}
+                  />
+                );
+              })
+            : null}
+          {chartType === 'line'
+            ? points.map((point) => (
+                <Circle
+                  key={`point-${point.period.periodo}`}
+                  cx={point.x}
+                  cy={point.y}
+                  r={activePoint?.period.periodo === point.period.periodo ? 6 : 4}
+                  fill="#FFFFFF"
+                  stroke={COLORS.dadoDois}
+                  strokeWidth="3"
+                />
+              ))
+            : null}
         </Svg>
         <View style={styles.evolutionTouchLayer}>
-          {points.map((point) => (
+          {(chartType === 'bar' ? barPoints : points).map((point) => (
             <TouchableOpacity
               key={`touch-${point.period.periodo}`}
               style={[styles.evolutionTouchPoint, { left: point.x - 16, top: point.y - 16 }]}
               onPress={() => setActivePoint(point)}
               accessibilityRole="button"
-              accessibilityLabel={`${monthLabel(point.period.periodo)}: ${formatCents(point.total)}`} />
+              accessibilityLabel={`${monthLabel(point.period.periodo)}: ${formatCents(point.total)}`}
+            />
           ))}
         </View>
-        <View style={[styles.evolutionLabels, { left: plotLeft, width: plotWidth }]}>
-          {periods.map((period) => (
-            <Text key={period.periodo} style={[styles.evolutionLabel, periods.length > 6 && styles.evolutionLabelCompact]}>
-              {periods.length > 6 ? monthShortLabel(period.periodo).split('/')[0] : monthShortLabel(period.periodo)}
+        <View
+          style={[
+            styles.evolutionLabels,
+            {
+              left: chartType === 'bar' ? barGroupLeft : pointLeft,
+              width: chartType === 'bar' ? barGroupWidth : pointRight - pointLeft,
+            },
+          ]}>
+          {visiblePeriods.map((period) => (
+            <Text key={period.periodo} style={[styles.evolutionLabel, visiblePeriods.length > 8 && styles.evolutionLabelCompact]}>
+              {monthShortLabel(period.periodo)}
             </Text>
           ))}
         </View>
@@ -434,6 +544,8 @@ function ComparisonSummary({ comparison }) {
   const total = comparison?.total;
   const quantity = comparison?.quantidade_compras;
   if (!total || !quantity) return null;
+  const baseMonth = comparison.periodo_base;
+  const comparedMonth = comparison.periodo_comparado;
   const difference = Number(total.diferenca || 0);
   const differenceTone = difference > 0 ? 'increase' : difference < 0 ? 'decrease' : 'neutral';
   const differenceLabel = difference > 0 ? 'Aumento' : difference < 0 ? 'Redução' : 'Sem alteração';
@@ -442,32 +554,33 @@ function ComparisonSummary({ comparison }) {
     <View style={styles.comparisonSummary}>
       <View style={styles.comparisonSummaryHeader}>
         <Text style={styles.chartTitle}>Resumo da comparação</Text>
-        <Text style={styles.comparisonPeriods}>{monthLabel(comparison.periodo_base)} × {monthLabel(comparison.periodo_comparado)}</Text>
+        <Text style={styles.comparisonSummaryPeriods}>
+          {monthLabel(baseMonth)} × {monthLabel(comparedMonth)}
+        </Text>
       </View>
       <View style={styles.comparisonMetricRow}>
         <View style={styles.comparisonMetric}>
-          <Text style={styles.comparisonMetricLabel}>Período A</Text>
+          <Text style={styles.comparisonMetricLabel}>{monthLabel(baseMonth)}</Text>
           <Text style={styles.comparisonMetricValue}>{formatCents(total.base)}</Text>
         </View>
         <View style={styles.comparisonMetricDivider} />
         <View style={styles.comparisonMetric}>
-          <Text style={styles.comparisonMetricLabel}>Período B</Text>
+          <Text style={styles.comparisonMetricLabel}>{monthLabel(comparedMonth)}</Text>
           <Text style={styles.comparisonMetricValue}>{formatCents(total.comparado)}</Text>
         </View>
       </View>
       <View style={styles.comparisonVisualBlock}>
         <View style={styles.comparisonVisualHeader}>
           <Text style={styles.comparisonMetricLabel}>Distribuição do gasto total</Text>
-          <Text style={styles.comparisonVisualHint}>A × B</Text>
         </View>
         <View style={styles.comparisonVisualRow}>
-          <Text style={styles.comparisonVisualLabel}>A</Text>
+          <Text style={styles.comparisonVisualPeriodLabel}>{monthShortLabel(baseMonth)}</Text>
           <View style={styles.comparisonVisualTrack}>
             <View style={[styles.comparisonVisualFillA, { width: `${Math.max((Number(total.base || 0) / Math.max(Number(total.base || 0), Number(total.comparado || 0), 1)) * 100, 2)}%` }]} />
           </View>
         </View>
         <View style={styles.comparisonVisualRow}>
-          <Text style={styles.comparisonVisualLabel}>B</Text>
+          <Text style={styles.comparisonVisualPeriodLabel}>{monthShortLabel(comparedMonth)}</Text>
           <View style={styles.comparisonVisualTrack}>
             <View style={[styles.comparisonVisualFillB, { width: `${Math.max((Number(total.comparado || 0) / Math.max(Number(total.base || 0), Number(total.comparado || 0), 1)) * 100, 2)}%` }]} />
           </View>
@@ -487,7 +600,7 @@ function ComparisonSummary({ comparison }) {
       <View style={styles.purchaseCountRow}>
         <MaterialCommunityIcons name="cart-outline" size={18} color={COLORS.dadoUm} />
         <Text style={styles.purchaseCountText}>
-          {quantity.base} compras no período A · {quantity.comparado} no período B
+          {quantity.base} compras em {monthShortLabel(baseMonth)} · {quantity.comparado} em {monthShortLabel(comparedMonth)}
         </Text>
       </View>
     </View>
@@ -497,6 +610,8 @@ function ComparisonSummary({ comparison }) {
 function PaymentComparisonChart({ periods }) {
   const [expanded, setExpanded] = useState(false);
   const rowsByLabel = new Map();
+  const baseMonth = periods?.[0]?.periodo;
+  const comparedMonth = periods?.[1]?.periodo;
 
   (periods || []).slice(0, 2).forEach((period, periodIndex) => {
     (period.formas_pagamento || []).forEach((item) => {
@@ -507,9 +622,7 @@ function PaymentComparisonChart({ periods }) {
     });
   });
 
-  const rows = [...rowsByLabel.values()].sort((left, right) => (
-    right.base + right.compared - left.base - left.compared
-  ));
+  const rows = [...rowsByLabel.values()].sort((left, right) => right.base + right.compared - left.base - left.compared);
   if (!rows.length) return <EmptyComparison message="Nenhuma forma de pagamento apareceu nos períodos escolhidos." />;
 
   const visibleRows = expanded ? rows : rows.slice(0, 4);
@@ -523,8 +636,8 @@ function PaymentComparisonChart({ periods }) {
           <Text style={styles.chartSubtitle}>Distribuição comparada</Text>
         </View>
         <View style={styles.legendInline}>
-          <View style={styles.legendInlineItem}><View style={[styles.legendDot, { backgroundColor: COLORS.dadoTres }]} /><Text style={styles.legendInlineText}>A</Text></View>
-          <View style={styles.legendInlineItem}><View style={[styles.legendDot, { backgroundColor: COLORS.dadoDois }]} /><Text style={styles.legendInlineText}>B</Text></View>
+          <ComparisonPeriodTag month={baseMonth} color={COMPARISON_COLORS.base} compact />
+          <ComparisonPeriodTag month={comparedMonth} color={COMPARISON_COLORS.compared} compact />
         </View>
       </View>
       {visibleRows.map((row) => {
@@ -533,19 +646,25 @@ function PaymentComparisonChart({ periods }) {
         return (
           <View key={row.label} style={styles.categoryComparisonRow}>
             <View style={styles.categoryComparisonHeader}>
-              <Text style={styles.categoryComparisonName} numberOfLines={1}>{row.label}</Text>
+              <Text style={styles.categoryComparisonName} numberOfLines={1}>
+                {row.label}
+              </Text>
               <Text style={styles.categoryComparisonVariation} numberOfLines={2}>
                 {formatSignedCents(difference)} · {formatPercent(variation)}
               </Text>
             </View>
             <View style={styles.categoryBarRow}>
-              <Text style={styles.categoryBarLabel}>A</Text>
-              <View style={styles.categoryBarTrack}><View style={[styles.categoryBarFill, { width: `${(row.base / max) * 100}%`, backgroundColor: COLORS.dadoTres }]} /></View>
+              <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.base }]} />
+              <View style={styles.categoryBarTrack}>
+                <View style={[styles.categoryBarFill, { width: `${(row.base / max) * 100}%`, backgroundColor: COMPARISON_COLORS.base }]} />
+              </View>
               <Text style={styles.categoryBarValue}>{formatCents(row.base)}</Text>
             </View>
             <View style={styles.categoryBarRow}>
-              <Text style={styles.categoryBarLabel}>B</Text>
-              <View style={styles.categoryBarTrack}><View style={[styles.categoryBarFill, { width: `${(row.compared / max) * 100}%`, backgroundColor: COLORS.dadoDois }]} /></View>
+              <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.compared }]} />
+              <View style={styles.categoryBarTrack}>
+                <View style={[styles.categoryBarFill, { width: `${(row.compared / max) * 100}%`, backgroundColor: COMPARISON_COLORS.compared }]} />
+              </View>
               <Text style={styles.categoryBarValue}>{formatCents(row.compared)}</Text>
             </View>
           </View>
@@ -561,7 +680,7 @@ function PaymentComparisonChart({ periods }) {
   );
 }
 
-function CategoryComparisonChart({ categories }) {
+function CategoryComparisonChart({ categories, periods }) {
   const [expanded, setExpanded] = useState(false);
   if (!categories?.length) {
     return <EmptyComparison message="Nenhuma categoria apareceu nos períodos escolhidos." />;
@@ -574,6 +693,8 @@ function CategoryComparisonChart({ categories }) {
   });
   const visibleCategories = expanded ? orderedCategories : orderedCategories.slice(0, 5);
   const max = Math.max(...visibleCategories.flatMap((category) => [category.base_total_centavos, category.comparado_total_centavos]), 1);
+  const baseMonth = periods?.[0]?.periodo;
+  const comparedMonth = periods?.[1]?.periodo;
 
   return (
     <View style={styles.chartCard}>
@@ -583,29 +704,31 @@ function CategoryComparisonChart({ categories }) {
           <Text style={styles.chartSubtitle}>Comparação por gasto bruto</Text>
         </View>
         <View style={styles.legendInline}>
-          <View style={styles.legendInlineItem}><View style={[styles.legendDot, { backgroundColor: COLORS.dadoTres }]} /><Text style={styles.legendInlineText}>A</Text></View>
-          <View style={styles.legendInlineItem}><View style={[styles.legendDot, { backgroundColor: COLORS.dadoDois }]} /><Text style={styles.legendInlineText}>B</Text></View>
+          <ComparisonPeriodTag month={baseMonth} color={COMPARISON_COLORS.base} compact />
+          <ComparisonPeriodTag month={comparedMonth} color={COMPARISON_COLORS.compared} compact />
         </View>
       </View>
       {visibleCategories.map((category) => (
         <View key={category.categoria_id} style={styles.categoryComparisonRow}>
           <View style={styles.categoryComparisonHeader}>
-            <Text style={styles.categoryComparisonName} numberOfLines={1}>{category.categoria_nome}</Text>
+            <Text style={styles.categoryComparisonName} numberOfLines={1}>
+              {category.categoria_nome}
+            </Text>
             <Text style={styles.categoryComparisonVariation} numberOfLines={2}>
               Δ {formatSignedCents(category.diferenca_centavos)} · {formatPercent(category.variacao_percentual)}
             </Text>
           </View>
           <View style={styles.categoryBarRow}>
-            <Text style={styles.categoryBarLabel}>A</Text>
+            <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.base }]} />
             <View style={styles.categoryBarTrack}>
-              <View style={[styles.categoryBarFill, { width: `${(category.base_total_centavos / max) * 100}%`, backgroundColor: COLORS.dadoTres }]} />
+              <View style={[styles.categoryBarFill, { width: `${(category.base_total_centavos / max) * 100}%`, backgroundColor: COMPARISON_COLORS.base }]} />
             </View>
             <Text style={styles.categoryBarValue}>{formatCents(category.base_total_centavos)}</Text>
           </View>
           <View style={styles.categoryBarRow}>
-            <Text style={styles.categoryBarLabel}>B</Text>
+            <View style={[styles.categoryBarMarker, { backgroundColor: COMPARISON_COLORS.compared }]} />
             <View style={styles.categoryBarTrack}>
-              <View style={[styles.categoryBarFill, { width: `${(category.comparado_total_centavos / max) * 100}%`, backgroundColor: COLORS.dadoDois }]} />
+              <View style={[styles.categoryBarFill, { width: `${(category.comparado_total_centavos / max) * 100}%`, backgroundColor: COMPARISON_COLORS.compared }]} />
             </View>
             <Text style={styles.categoryBarValue}>{formatCents(category.comparado_total_centavos)}</Text>
           </View>
@@ -613,9 +736,7 @@ function CategoryComparisonChart({ categories }) {
       ))}
       {orderedCategories.length > 5 ? (
         <TouchableOpacity style={styles.expandButton} onPress={() => setExpanded((current) => !current)} activeOpacity={0.8}>
-          <Text style={styles.expandButtonText}>
-            {expanded ? 'Mostrar principais' : `Ver todas as categorias (${orderedCategories.length})`}
-          </Text>
+          <Text style={styles.expandButtonText}>{expanded ? 'Mostrar principais' : `Ver todas as categorias (${orderedCategories.length})`}</Text>
           <MaterialCommunityIcons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.dadoDois} />
         </TouchableOpacity>
       ) : null}
@@ -623,16 +744,7 @@ function CategoryComparisonChart({ categories }) {
   );
 }
 
-function ComparisonControls({
-  mode,
-  setMode,
-  months,
-  setMonths,
-  evolutionEnd,
-  compareMonthA,
-  compareMonthB,
-  onOpenPicker,
-}) {
+function ComparisonControls({ mode, setMode, months, setMonths, evolutionEnd, compareMonthA, compareMonthB, onOpenPicker }) {
   return (
     <>
       <View style={styles.modeSwitch}>
@@ -651,10 +763,6 @@ function ComparisonControls({
               <Text style={styles.controlTitle}>Janela de evolução</Text>
               <Text style={styles.controlSubtitle}>Escolha quantos meses visualizar</Text>
             </View>
-            <TouchableOpacity style={styles.periodPickerButton} onPress={() => onOpenPicker('evolutionEnd')}>
-              <MaterialCommunityIcons name="calendar-range" size={17} color={COLORS.dadoUm} />
-              <Text style={styles.periodPickerText}>{monthLabel(evolutionEnd)}</Text>
-            </TouchableOpacity>
           </View>
           <View style={styles.segmentedControl}>
             {[6, 12].map((option) => (
@@ -663,21 +771,51 @@ function ComparisonControls({
               </TouchableOpacity>
             ))}
           </View>
-          <Text style={styles.controlFootnote}>Período final: {monthLabel(evolutionEnd)}</Text>
+          <View style={styles.periodEndRow}>
+            <View style={styles.periodEndCopy}>
+              <Text style={styles.periodEndLabel}>Período final</Text>
+              <Text style={styles.periodEndHint}>Exibir a janela até</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.periodEndButton}
+              onPress={() => onOpenPicker('evolutionEnd')}
+              accessibilityRole="button"
+              accessibilityLabel={`Período final: até ${monthLabel(evolutionEnd)}`}>
+              <Text style={styles.periodEndButtonPrefix}>Até</Text>
+              <Text style={styles.periodEndButtonValue}>{monthLabel(evolutionEnd)}</Text>
+              <MaterialCommunityIcons name="calendar-month-outline" size={17} color={COLORS.dadoUm} />
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
         <View style={styles.controlCard}>
           <Text style={styles.controlTitle}>Escolha os períodos</Text>
           <Text style={styles.controlSubtitle}>Meses diferentes e até anos diferentes</Text>
           <View style={styles.comparePickerRow}>
-            <TouchableOpacity style={styles.comparePickerButton} onPress={() => onOpenPicker('monthA')}>
-              <Text style={styles.comparePickerLabel}>Período A</Text>
-              <Text style={styles.comparePickerValue}>{monthLabel(compareMonthA)}</Text>
+            <TouchableOpacity
+              style={[styles.comparePickerButton, { borderTopColor: COMPARISON_COLORS.base }]}
+              onPress={() => onOpenPicker('monthA')}
+              accessibilityRole="button"
+              accessibilityLabel={`Selecionar ${monthLabel(compareMonthA)}`}>
+              <View style={styles.comparePickerValueRow}>
+                <View style={[styles.comparisonPeriodDot, { backgroundColor: COMPARISON_COLORS.base }]} />
+                <Text style={styles.comparePickerValue} numberOfLines={1}>
+                  {monthLabel(compareMonthA)}
+                </Text>
+              </View>
             </TouchableOpacity>
             <MaterialCommunityIcons name="compare-arrows" size={23} color={COLORS.dadoDois} />
-            <TouchableOpacity style={styles.comparePickerButton} onPress={() => onOpenPicker('monthB')}>
-              <Text style={styles.comparePickerLabel}>Período B</Text>
-              <Text style={styles.comparePickerValue}>{monthLabel(compareMonthB)}</Text>
+            <TouchableOpacity
+              style={[styles.comparePickerButton, { borderTopColor: COMPARISON_COLORS.compared }]}
+              onPress={() => onOpenPicker('monthB')}
+              accessibilityRole="button"
+              accessibilityLabel={`Selecionar ${monthLabel(compareMonthB)}`}>
+              <View style={styles.comparePickerValueRow}>
+                <View style={[styles.comparisonPeriodDot, { backgroundColor: COMPARISON_COLORS.compared }]} />
+                <Text style={styles.comparePickerValue} numberOfLines={1}>
+                  {monthLabel(compareMonthB)}
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
           {compareMonthA === compareMonthB ? <Text style={styles.validationText}>Escolha dois meses diferentes para comparar.</Text> : null}
@@ -687,12 +825,17 @@ function ComparisonControls({
   );
 }
 
-export default function DashboardScreen({ navigation }) {
+export default function DashboardScreen({ route }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { width } = useWindowDimensions();
   const isFocused = useIsFocused();
   const { fetchTempoUso, fetchUsuario } = useDataRefresh();
+  const incomingPeriod = route?.params?.periodo;
+  const routeIndicator = route?.params?.indicador;
   const pagerRef = useRef(null);
+  const overviewScrollRef = useRef(null);
+  const overviewSectionPositionsRef = useRef({});
+  const pendingOverviewSectionRef = useRef(null);
   const overviewAbortRef = useRef(null);
   const contextAbortRef = useRef(null);
   const comparisonAbortRef = useRef(null);
@@ -702,7 +845,7 @@ export default function DashboardScreen({ navigation }) {
 
   const currentMonth = useMemo(() => getCurrentMonth(), []);
   const [activeTab, setActiveTab] = useState(0);
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedMonth, setSelectedMonth] = useState(() => (isValidMonth(incomingPeriod) && compareMonths(incomingPeriod, currentMonth) <= 0 ? incomingPeriod : currentMonth));
   const [overviewData, setOverviewData] = useState(null);
   const [tempoUso, setTempoUso] = useState([]);
   const [usuario, setUsuario] = useState(null);
@@ -716,27 +859,68 @@ export default function DashboardScreen({ navigation }) {
   const [comparisonData, setComparisonData] = useState(null);
   const [comparisonLoading, setComparisonLoading] = useState(true);
   const [comparisonError, setComparisonError] = useState(null);
+  const [isMetricCarouselActive, setIsMetricCarouselActive] = useState(false);
   const [pickerTarget, setPickerTarget] = useState(null);
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const maxMonth = currentMonth;
+  const accountStartMonth = getMonthInTimezone(usuario?.usuario_data_criacao);
+  const comportamento = useAnaliseComportamento(selectedMonth);
+  const overviewSection = routeIndicator === 'tempo'
+    ? 'tempo'
+    : routeIndicator === 'categorias'
+      ? 'categories'
+      : routeIndicator === 'compras'
+        ? 'indicators'
+        : routeIndicator === 'orientacoes'
+          ? 'rf018'
+          : routeIndicator === 'gastos'
+            ? 'financial'
+            : null;
+
+  useEffect(() => {
+    if (!isValidMonth(incomingPeriod) || compareMonths(incomingPeriod, currentMonth) > 0) return;
+    if (accountStartMonth && compareMonths(incomingPeriod, accountStartMonth) < 0) return;
+    setSelectedMonth((current) => (current === incomingPeriod ? current : incomingPeriod));
+    setEvolutionEnd((current) => (current === incomingPeriod ? current : incomingPeriod));
+    setCompareMonthB((current) => (current === incomingPeriod ? current : incomingPeriod));
+    const previousMonth = shiftMonth(incomingPeriod, -1);
+    setCompareMonthA((current) => (current === previousMonth ? current : previousMonth));
+  }, [accountStartMonth, currentMonth, incomingPeriod]);
+
+  useEffect(() => {
+    if (activeTab !== 0 || !overviewSection) return;
+    pendingOverviewSectionRef.current = overviewSection;
+    const y = overviewSectionPositionsRef.current[overviewSection];
+    if (typeof y === 'number') {
+      overviewScrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+      pendingOverviewSectionRef.current = null;
+    }
+  }, [activeTab, overviewSection, selectedMonth]);
+
+  const markOverviewSection = useCallback((section) => (event) => {
+    const y = event.nativeEvent.layout.y;
+    overviewSectionPositionsRef.current[section] = y;
+    if (pendingOverviewSectionRef.current === section) {
+      overviewScrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+      pendingOverviewSectionRef.current = null;
+    }
+  }, []);
+  const mark = markOverviewSection;
 
   const openPicker = useCallback((target) => setPickerTarget(target), []);
   const closePicker = useCallback(() => setPickerTarget(null), []);
 
-  const pickerValue = pickerTarget === 'evolutionEnd'
-    ? evolutionEnd
-    : pickerTarget === 'monthA'
-      ? compareMonthA
-      : pickerTarget === 'monthB'
-        ? compareMonthB
-        : selectedMonth;
+  const pickerValue = pickerTarget === 'evolutionEnd' ? evolutionEnd : pickerTarget === 'monthA' ? compareMonthA : pickerTarget === 'monthB' ? compareMonthB : selectedMonth;
 
-  const handlePickerChange = useCallback((value) => {
-    if (pickerTarget === 'evolutionEnd') setEvolutionEnd(value);
-    else if (pickerTarget === 'monthA') setCompareMonthA(value);
-    else if (pickerTarget === 'monthB') setCompareMonthB(value);
-    else setSelectedMonth(value);
-  }, [pickerTarget]);
+  const handlePickerChange = useCallback(
+    (value) => {
+      if (pickerTarget === 'evolutionEnd') setEvolutionEnd(value);
+      else if (pickerTarget === 'monthA') setCompareMonthA(value);
+      else if (pickerTarget === 'monthB') setCompareMonthB(value);
+      else setSelectedMonth(value);
+    },
+    [pickerTarget],
+  );
 
   const handleOverviewMonthChange = useCallback((value) => {
     setSelectedMonth(value);
@@ -803,9 +987,7 @@ export default function DashboardScreen({ navigation }) {
     setComparisonError(null);
     setComparisonData(null);
 
-    const params = comparisonMode === 'evolution'
-      ? { mode: 'evolution', months: evolutionMonths, end: evolutionEnd }
-      : { mode: 'compare', monthA: compareMonthA, monthB: compareMonthB };
+    const params = comparisonMode === 'evolution' ? { mode: 'evolution', months: evolutionMonths, end: evolutionEnd } : { mode: 'compare', monthA: compareMonthA, monthB: compareMonthB };
 
     try {
       const data = await getDashboardAnalytics(params, { signal: controller.signal });
@@ -831,61 +1013,52 @@ export default function DashboardScreen({ navigation }) {
     if (isFocused && activeTab === 1) loadComparison();
   }, [activeTab, isFocused, loadComparison]);
 
-  useEffect(() => () => {
-    overviewAbortRef.current?.abort();
-    contextAbortRef.current?.abort();
-    comparisonAbortRef.current?.abort();
-  }, []);
+  useEffect(
+    () => () => {
+      overviewAbortRef.current?.abort();
+      contextAbortRef.current?.abort();
+      comparisonAbortRef.current?.abort();
+    },
+    [],
+  );
 
   useEffect(() => {
     pagerRef.current?.scrollTo({ x: activeTab * width, animated: false });
   }, [activeTab, width]);
 
-  const selectTab = useCallback((index) => {
-    setActiveTab(index);
-    pagerRef.current?.scrollTo({ x: index * width, animated: true });
-  }, [width]);
+  const selectTab = useCallback(
+    (index) => {
+      setActiveTab(index);
+      pagerRef.current?.scrollTo({ x: index * width, animated: true });
+    },
+    [width],
+  );
 
-  const handlePagerEnd = useCallback((event) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / Math.max(width, 1));
-    if (index !== activeTab) setActiveTab(index);
-  }, [activeTab, width]);
+  const handlePagerEnd = useCallback(
+    (event) => {
+      const index = Math.round(event.nativeEvent.contentOffset.x / Math.max(width, 1));
+      if (index !== activeTab) setActiveTab(index);
+    },
+    [activeTab, width],
+  );
 
   const handleRefresh = useCallback(() => {
     if (activeTab === 0) {
       loadOverview();
       loadContext();
+      comportamento.refresh();
     } else {
       loadComparison();
     }
-  }, [activeTab, loadComparison, loadContext, loadOverview]);
+  }, [activeTab, comportamento.refresh, loadComparison, loadContext, loadOverview]);
 
   const period = overviewData?.periodos?.[0] || null;
   const metaValue = Number(usuario?.usuario_meta_valor_mensal || 0);
   const metaCents = Math.round(metaValue * 100);
   const totalCents = Number(period?.total_centavos || 0);
   const metaUsagePercent = metaCents > 0 ? (totalCents / metaCents) * 100 : 0;
-  const metaProgress = Math.min(metaUsagePercent, 100);
-  const metaStatus = metaCents <= 0
-    ? 'undefined'
-    : metaUsagePercent > 100
-      ? 'exceeded'
-      : metaUsagePercent >= 80
-        ? 'near'
-        : 'within';
+  const metaStatus = metaCents <= 0 ? 'undefined' : metaUsagePercent > 100 ? 'exceeded' : metaUsagePercent >= 80 ? 'near' : 'within';
   const metaExcessCents = metaCents > 0 ? Math.max(totalCents - metaCents, 0) : 0;
-  const metaStatusCopy = {
-    undefined: 'Meta ainda não definida',
-    exceeded: 'Meta excedida',
-    near: 'Próximo da meta',
-    within: 'Dentro da meta',
-  }[metaStatus];
-  const metaStatusIcon = {
-    undefined: 'information-outline',
-    exceeded: 'alert-circle-outline',
-    near: 'progress-clock',
-    within: 'check-circle-outline',
-  }[metaStatus];
   const metaStatusColor = {
     undefined: COLORS.dadoUm,
     exceeded: COLORS.dashboardGastosGeraisAviso,
@@ -894,7 +1067,33 @@ export default function DashboardScreen({ navigation }) {
   }[metaStatus];
   const limitData = period?.compras_acima_limite || { acima_limite: 0, dentro_limite: 0 };
   const isHistoricalMonth = selectedMonth !== currentMonth;
-  const accountStartMonth = getMonthInTimezone(usuario?.usuario_data_criacao);
+  const dailyUsageMinutes = getDailyUsageMinutes(tempoUso);
+  const financialScaleCents = Math.max(totalCents, metaCents, 1);
+  const spentWithinLimitWidth = metaCents > 0 ? (Math.min(totalCents, metaCents) / financialScaleCents) * 100 : 0;
+  const spentExcessWidth = metaCents > 0 ? (Math.max(totalCents - metaCents, 0) / financialScaleCents) * 100 : 0;
+  const limitWidth = metaCents > 0 ? (metaCents / financialScaleCents) * 100 : 0;
+  const usagePercentValue = metaCents > 0 ? `${metaUsagePercent.toFixed(2).replace('.', ',')}%` : null;
+  const metricCards = [
+    {
+      key: 'acima-limite',
+      label: 'Acima do limite',
+      value: String(limitData.acima_limite || 0),
+      subtitle: `${limitData.dentro_limite || 0} dentro do limite`,
+      iconColor: COLORS.dashboardGastosGeraisAviso,
+      icon: 'alert-circle-outline',
+    },
+    { key: 'compras', label: 'Compras', value: String(period?.quantidade_compras || 0), subtitle: 'confirmadas no período', iconColor: COLORS.dadoUm, icon: 'cart-outline' },
+    { key: 'descontos', label: 'Descontos', value: formatCents(period?.desconto_centavos || 0), subtitle: 'economia registrada', iconColor: COLORS.dadoDois, icon: 'sale' },
+
+    {
+      key: 'tempo-sites',
+      label: 'Tempo em sites',
+      value: formatDailyDuration(dailyUsageMinutes),
+      subtitle: dailyUsageMinutes > 0 ? 'registrado hoje' : 'nenhum registro hoje',
+      iconColor: COLORS.customButtonFundo,
+      icon: 'clock-outline',
+    },
+  ];
 
   const renderOverview = () => {
     if (overviewLoading && !overviewData) return <LoadingState />;
@@ -902,52 +1101,64 @@ export default function DashboardScreen({ navigation }) {
 
     return (
       <ScrollView
+        ref={overviewScrollRef}
         style={styles.pageScroll}
         contentContainerStyle={[styles.pageContent, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={overviewLoading} onRefresh={handleRefresh} tintColor={COLORS.dadoDois} />}>
         <View style={styles.pageIntro}>
-          <Text style={styles.pageEyebrow}>VISÃO GERAL</Text>
-          <Text style={styles.pageTitle}>Visão financeira</Text>
-          <Text style={styles.pageSubtitle}>Seu panorama financeiro, com dados do período selecionado.</Text>
+          <Text style={styles.pageEyebrow}>CONSUMO</Text>
+          <Text style={styles.pageTitle}>Visão geral</Text>
         </View>
 
         <PeriodSelector value={selectedMonth} onPress={() => setMonthPickerOpen(true)} label="Mês analisado" />
 
-        <View style={[styles.heroCard, styles[`heroCard${metaStatus[0].toUpperCase()}${metaStatus.slice(1)}`]]}>
-          <View style={styles.heroTopLine}>
+        <View onLayout={mark('financial')} style={styles.financialSummaryCard}>
+          <View style={styles.financialSummaryHeader}>
             <View>
-              <Text style={styles.heroEyebrow}>Gasto total</Text>
-              <Text style={styles.heroPeriod}>{period?.periodo ? monthLabel(period.periodo) : 'Período selecionado'}</Text>
+              <Text style={styles.financialSummaryEyebrow}>Resumo financeiro</Text>
+              <Text style={styles.financialSummaryLabel}>Gastos do mês</Text>
             </View>
-            <View style={[styles.heroIcon, { backgroundColor: `${metaStatusColor}18` }]}>
-              <MaterialCommunityIcons name="wallet-outline" size={23} color={metaStatusColor} />
-            </View>
+            {isHistoricalMonth ? <Text style={styles.financialSummaryContext}>Configuração atual</Text> : null}
           </View>
-          <Text style={styles.heroValue}>{formatCents(totalCents)}</Text>
-          <View style={styles.heroFacts}>
-            <View style={styles.heroFact}><Text style={styles.heroFactValue}>{period?.quantidade_compras || 0}</Text><Text style={styles.heroFactLabel}>compras</Text></View>
-            <View style={styles.heroFactDivider} />
-            <View style={styles.heroFact}><Text style={styles.heroFactValue}>{formatCents(period?.desconto_centavos || 0)}</Text><Text style={styles.heroFactLabel}>descontos</Text></View>
-          </View>
-          <View style={styles.budgetBlock}>
-            <View style={styles.budgetHeader}>
-              <View style={styles.budgetHeaderCopy}>
-                <Text style={styles.budgetLabel}>Limite mensal{isHistoricalMonth ? ' · configuração atual' : ''}</Text>
-                <Text style={styles.budgetTarget}>{metaCents > 0 ? formatReais(metaValue) : 'Cadastre um limite'}</Text>
+          <Text style={styles.financialSummaryValue}>
+            {formatCents(totalCents)} <Text style={styles.financialSummaryValueSuffix}>gastos</Text>
+          </Text>
+
+          {metaCents > 0 ? (
+            <View style={styles.financialBars}>
+              <View style={styles.financialBarRow}>
+                <View style={styles.financialComparisonRows}>
+                  <View style={styles.financialBarHeader}>
+                    <Text style={styles.financialBarLabel}>Limite mensal</Text>
+                    <Text style={styles.financialBarValue}>{formatReais(metaValue)}</Text>
+                  </View>
+                  <View style={[styles.financialBarHeader, styles.financialBarHeaderEnd]}>
+                    <Text style={styles.financialBarLabel}>Gastos do mês</Text>
+                    <Text style={styles.financialBarValue}>{formatCents(totalCents)}</Text>
+                  </View>
+                </View>
+                <View style={styles.financialBarTrack}>
+                  <View style={[styles.financialBarFill, { width: `${spentWithinLimitWidth}%` }]} />
+                  {spentExcessWidth > 0 ? <View style={[styles.financialBarFillExcess, { left: `${spentWithinLimitWidth}%`, width: `${spentExcessWidth}%` }]} /> : null}
+                  <View style={[styles.financialBarLimitMarker, { left: `${Math.min(limitWidth, 98)}%` }]} />
+                </View>
               </View>
             </View>
-            <View style={styles.budgetTrack}><View style={[styles.budgetFill, { width: `${metaProgress}%`, backgroundColor: metaStatusColor }]} /></View>
-            <View style={styles.budgetStatusRow}>
-              <MaterialCommunityIcons name={metaStatusIcon} size={16} color={metaStatusColor} />
-              <Text style={[styles.budgetStatusText, { color: metaStatusColor }]}>{metaStatusCopy}</Text>
-              {metaExcessCents > 0 ? <Text style={styles.budgetExcess}>{formatCents(metaExcessCents)} acima da meta</Text> : null}
+          ) : (
+            <View style={styles.noLimitState}>
+              <Text style={styles.noLimitTitle}>Limite mensal não configurado</Text>
+              <Text style={styles.noLimitText}>O gasto é exibido sem comparação ou percentual de limite.</Text>
             </View>
-            <Text style={styles.budgetCaption}>
-              {metaCents > 0
-                ? `${Math.round((totalCents / metaCents) * 100)}% do limite utilizado${isHistoricalMonth ? ' · configuração atual' : ''}`
-                : 'Cadastre um limite para acompanhar sua evolução.'}
-            </Text>
+          )}
+
+          <View style={styles.financialSummaryStatus}>
+            {usagePercentValue ? (
+              <View style={styles.financialSummaryPercentBlock}>
+                <Text style={[styles.financialSummaryPercentValue, { color: metaStatusColor }]}>{usagePercentValue}</Text>
+                <Text style={styles.financialSummaryPercentLabel}>do limite utilizado</Text>
+              </View>
+            ) : null}
           </View>
         </View>
 
@@ -961,14 +1172,29 @@ export default function DashboardScreen({ navigation }) {
           </View>
         ) : null}
 
-        <View style={styles.metricGrid}>
-          <MetricTile icon="cart-check" label="Compras" value={String(period?.quantidade_compras || 0)} caption="confirmadas" color={COLORS.dadoUm} />
-          <MetricTile icon="sale" label="Descontos" value={formatCents(period?.desconto_centavos || 0)} caption="no período" color={COLORS.dadoDois} />
-          <MetricTile icon="alert-circle-outline" label="Acima do limite" value={String(limitData.acima_limite || 0)} caption={`${limitData.dentro_limite || 0} dentro`} color={COLORS.dashboardGastosGeraisAviso} />
-          <MetricTile icon="database-outline" label="Com valor" value={String(period?.quantidade_compras_com_valor || 0)} caption="valores conhecidos" color={COLORS.dadoTres} />
+        <View onLayout={mark('indicators')}>
+          <ResumoMensalCarousel
+            monthTitle="Indicadores do período"
+            cards={metricCards}
+            sectionStyle={styles.periodIndicatorsSection}
+            cardStyle={styles.periodIndicatorsCard}
+            scrollContentStyle={styles.periodIndicatorsContent}
+            onInteractionChange={setIsMetricCarouselActive}
+          />
         </View>
 
-        <Categoria gastosCategoria={period?.categorias || []} />
+        <View onLayout={mark('rf018')}>
+          <AnaliseComportamento
+            dados={comportamento.dados}
+            loading={comportamento.loading}
+            error={comportamento.error}
+            onRetry={comportamento.refresh}
+          />
+        </View>
+
+        <View onLayout={mark('categories')}>
+          <Categoria gastosCategoria={period?.categorias || []} />
+        </View>
         <FormaPagamento gastosFormaPagamento={period?.formas_pagamento || []} />
         <Impulsividade data={period?.impulsividade || []} />
         <Impulsividade
@@ -986,7 +1212,9 @@ export default function DashboardScreen({ navigation }) {
           lowDescription="As compras estão dentro do limite definido para o período."
           totalKey="acima_limite"
         />
-        <TempoApp tempoUso={tempoUso} title="Tempo de uso · Hoje" />
+        <View onLayout={mark('tempo')}>
+          <TempoApp tempoUso={tempoUso} title="Tempo de uso · Hoje" />
+        </View>
       </ScrollView>
     );
   };
@@ -1016,11 +1244,13 @@ export default function DashboardScreen({ navigation }) {
 
       {comparisonLoading && !comparisonData ? <LoadingState label="Montando seu comparativo..." /> : null}
       {comparisonError && !comparisonLoading ? <ErrorState message={comparisonError} onRetry={loadComparison} /> : null}
-      {!comparisonLoading && !comparisonError && comparisonData && comparisonMode === 'evolution' ? <EvolutionChart periods={comparisonData.periodos || []} /> : null}
+      {!comparisonLoading && !comparisonError && comparisonData && comparisonMode === 'evolution' ? (
+        <EvolutionChart periods={comparisonData.periodos || []} accountStartMonth={accountStartMonth} evolutionEnd={evolutionEnd} requestedMonths={evolutionMonths} />
+      ) : null}
       {!comparisonLoading && !comparisonError && comparisonData && comparisonMode === 'compare' ? (
         <>
           <ComparisonSummary comparison={comparisonData.comparacao} />
-          <CategoryComparisonChart categories={comparisonData.comparacao?.categorias || []} />
+          <CategoryComparisonChart categories={comparisonData.comparacao?.categorias || []} periods={comparisonData.periodos || []} />
           <PaymentComparisonChart periods={comparisonData.periodos || []} />
         </>
       ) : null}
@@ -1029,18 +1259,6 @@ export default function DashboardScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.brandBlock}>
-          <Text style={styles.brand}>plenna</Text>
-          <Text style={styles.headerSubtitle}>Consumo com mais consciência</Text>
-        </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerIconButton} onPress={() => navigation.navigate('Purchases')} accessibilityLabel="Abrir compras">
-            <MaterialCommunityIcons name="shopping-outline" size={21} color={COLORS.dadoUm} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       <View style={styles.tabs}>
         {['Visão geral', 'Comparativos'].map((label, index) => (
           <TouchableOpacity key={label} style={styles.tabButton} onPress={() => selectTab(index)} activeOpacity={0.8} accessibilityRole="tab" accessibilityState={{ selected: activeTab === index }}>
@@ -1055,6 +1273,7 @@ export default function DashboardScreen({ navigation }) {
         horizontal
         pagingEnabled
         nestedScrollEnabled
+        scrollEnabled={!isMetricCarouselActive}
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handlePagerEnd}
         scrollEventThrottle={16}
@@ -1078,7 +1297,7 @@ export default function DashboardScreen({ navigation }) {
         value={pickerValue}
         maxMonth={maxMonth}
         minMonth={accountStartMonth}
-        title={pickerTarget === 'evolutionEnd' ? 'Fim da evolução' : pickerTarget === 'monthA' ? 'Período A' : 'Período B'}
+        title={pickerTarget === 'evolutionEnd' ? 'Fim da evolução' : 'Selecionar período'}
         onChange={handlePickerChange}
         onClose={closePicker}
       />
