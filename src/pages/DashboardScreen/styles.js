@@ -87,13 +87,31 @@ export const styles = StyleSheet.create({
     color: T.body,
   },
 
+  periodControls: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 8,
+    marginBottom: 11,
+  },
+
   periodSelector: {
+    flex: 1,
+    minWidth: 0,
     minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 11,
     paddingHorizontal: 10,
     paddingVertical: 7,
+    borderRadius: R.md,
+    backgroundColor: T.surface,
+    ...SH.card,
+  },
+
+  purchasesButton: {
+    width: 52,
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: R.md,
     backgroundColor: T.surface,
     ...SH.card,

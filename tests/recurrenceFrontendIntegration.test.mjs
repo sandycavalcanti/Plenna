@@ -52,3 +52,11 @@ test('falha na previsao nao impede a visualizacao dos detalhes', () => {
   assert.match(managementSource, /upcomingErrorById/);
   assert.match(managementSource, /Tentar novamente/);
 });
+
+test('recorrencias canceladas ficam fora da listagem e saem imediatamente apos o cancelamento', () => {
+  assert.match(managementSource, /new Set\(\['ATIVA', 'PAUSADA', 'FINALIZADA'\]\)/);
+  assert.match(managementSource, /records\.filter\(\(record\) => LISTED_RECURRENCE_STATUSES\.has\(record\?\.status\)\)/);
+  assert.match(managementSource, /if \(action === 'cancelar'\)/);
+  assert.match(managementSource, /setRecurrences\(\(current\) => current\.filter\(\(item\) => String\(item\.id\) !== id\)\)/);
+  assert.match(managementSource, /setExpandedId\(\(current\) => \(current === id \? null : current\)\)/);
+});

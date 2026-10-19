@@ -195,18 +195,30 @@ function isCanceled(error) {
   return error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError';
 }
 
-function PeriodSelector({ value, onPress, label = 'Período' }) {
+function PeriodSelector({ value, onPress, onPurchasesPress, label = 'Período' }) {
   return (
-    <TouchableOpacity style={styles.periodSelector} onPress={onPress} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel={`${label}: ${monthLabel(value)}`}>
-      <View style={styles.periodSelectorIcon}>
-        <MaterialCommunityIcons name="calendar-month-outline" size={19} color={COLORS.dadoUm} />
-      </View>
-      <View style={styles.periodSelectorCopy}>
-        <Text style={styles.periodSelectorLabel}>{label}</Text>
-        <Text style={styles.periodSelectorValue}>{monthLabel(value)}</Text>
-      </View>
-      <MaterialCommunityIcons name="chevron-down" size={19} color={COLORS.dadoUm} />
-    </TouchableOpacity>
+    <View style={styles.periodControls}>
+      <TouchableOpacity style={styles.periodSelector} onPress={onPress} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel={`${label}: ${monthLabel(value)}`}>
+        <View style={styles.periodSelectorIcon}>
+          <MaterialCommunityIcons name="calendar-month-outline" size={19} color={COLORS.dadoUm} />
+        </View>
+        <View style={styles.periodSelectorCopy}>
+          <Text style={styles.periodSelectorLabel}>{label}</Text>
+          <Text style={styles.periodSelectorValue} numberOfLines={1}>{monthLabel(value)}</Text>
+        </View>
+        <MaterialCommunityIcons name="chevron-down" size={19} color={COLORS.dadoUm} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.purchasesButton}
+        onPress={onPurchasesPress}
+        activeOpacity={0.82}
+        accessibilityRole="button"
+        accessibilityLabel="Abrir Minhas compras"
+        accessibilityHint="Exibe suas compras protegidas por PIN ou biometria">
+        <MaterialCommunityIcons name="cart-outline" size={21} color={COLORS.dadoUm} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -798,7 +810,7 @@ function ComparisonControls({ mode, setMode, months, setMonths, evolutionEnd, co
   );
 }
 
-export default function DashboardScreen({ route }) {
+export default function DashboardScreen({ route, navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { width } = useWindowDimensions();
   const isFocused = useIsFocused();
@@ -1082,7 +1094,12 @@ export default function DashboardScreen({ route }) {
         contentContainerStyle={[styles.pageContent, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={overviewLoading} onRefresh={handleRefresh} tintColor={COLORS.dadoDois} />}>
-        <PeriodSelector value={selectedMonth} onPress={() => setMonthPickerOpen(true)} label="Mês analisado" />
+        <PeriodSelector
+          value={selectedMonth}
+          onPress={() => setMonthPickerOpen(true)}
+          onPurchasesPress={() => navigation.navigate('Purchases')}
+          label="Mês analisado"
+        />
 
         <View onLayout={mark('financial')} style={styles.financialSummaryCard}>
           <View style={styles.financialSummaryHeader}>

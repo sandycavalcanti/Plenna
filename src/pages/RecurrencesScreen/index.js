@@ -30,6 +30,7 @@ const STATUS_LABELS = {
   CANCELADA: 'Cancelada',
   FINALIZADA: 'Finalizada',
 };
+const LISTED_RECURRENCE_STATUSES = new Set(['ATIVA', 'PAUSADA', 'FINALIZADA']);
 
 const FREQUENCY_LABELS = RECURRENCE_FREQUENCIES.reduce((labels, frequency) => {
   labels[frequency.value] = frequency.label;
@@ -99,9 +100,8 @@ function isSameLocalDate(left, right) {
 }
 
 function normalizeList(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.recorrencias)) return data.recorrencias;
-  return [];
+  const records = Array.isArray(data) ? data : Array.isArray(data?.recorrencias) ? data.recorrencias : [];
+  return records.filter((record) => LISTED_RECURRENCE_STATUSES.has(record?.status));
 }
 
 function getApiMessage(error, fallback) {
@@ -295,7 +295,27 @@ export default function RecurrencesScreen() {
     setActionId(`${id}:${action}`);
     try {
       const response = await apiClient.post(`/recorrencias/${recurrence.id}/${endpoint}`);
-      upsertRecurrence(response.data);
+      if (action === 'cancelar') {
+        setRecurrences((current) => current.filter((item) => String(item.id) !== id));
+        setDetailsById((current) => {
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
+        setUpcomingById((current) => {
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
+        setUpcomingErrorById((current) => {
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
+        setExpandedId((current) => (current === id ? null : current));
+      } else {
+        upsertRecurrence(response.data);
+      }
       Alert.alert(successMessage);
     } catch (error) {
       logApiErrors(error, `Erro ao ${action} recorrência`);
