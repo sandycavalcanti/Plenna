@@ -36,7 +36,7 @@ const linking = {
   prefixes: [
     'plenna://',
     'exp://',
-    'https://plenna-api-orpin.vercel.app',
+    'https://plenna-api.vercel.app',
   ],
   config: {
     screens: {},
