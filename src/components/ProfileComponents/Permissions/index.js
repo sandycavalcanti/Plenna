@@ -14,6 +14,9 @@ import {
   Switch,
   Alert,
   AppState,
+  ActivityIndicator,
+  Pressable,
+  TextInput,
 } from 'react-native';
 
 import ProfileCard from '../ProfileCard';
@@ -31,6 +34,11 @@ import {
 } from '../../../api/consentimento';
 
 import { tokenStorage } from '../../../api/tokenStorage';
+import {
+  criarMemoria,
+  excluirMemoria,
+  listarMemorias,
+} from '../../../api/memoria';
 
 import { logApiErrors } from '../../../utils/error';
 
@@ -83,10 +91,19 @@ export default function Permissions({ data }) {
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [usageAccessEnabled, setUsageAccessEnabled] = useState(false);
   const [loadingTracking, setLoadingTracking] = useState(true);
+  const [memoryEnabled, setMemoryEnabled] = useState(false);
+  const [memoryItems, setMemoryItems] = useState([]);
+  const [memoryText, setMemoryText] = useState('');
+  const [loadingMemory, setLoadingMemory] = useState(true);
+  const [memoryActionLoading, setMemoryActionLoading] = useState(false);
+  const [memoryError, setMemoryError] = useState('');
+  const [memorySuccess, setMemorySuccess] = useState('');
 
   const montado = useRef(false);
   const alterando = useRef(false);
   const consulta = useRef(0);
+  const alterandoMemoria = useRef(false);
+  const consultaMemoria = useRef(0);
 
   function validarSessao(sessao) {
     tokenStorage.assertSession(sessao.id);
@@ -125,6 +142,41 @@ export default function Permissions({ data }) {
     }
   }
 
+  async function carregarEstadoMemoria(force = false) {
+    if (alterandoMemoria.current && !force) return;
+    const numero = ++consultaMemoria.current;
+    let sessao;
+    try {
+      setLoadingMemory(true);
+      setMemoryError('');
+      sessao = await tokenStorage.captureSession();
+      if (!sessao || !montado.current) return;
+      const consentimentos = await listarConsentimentos({
+        rf017SessionId: sessao.id,
+        signal: sessao.signal,
+      });
+      validarSessao(sessao);
+      const ativo = consentimentos.some(item =>
+        (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo)
+          === 'IA_MEMORIA' && item.consentimento_status === true);
+      if (numero !== consultaMemoria.current) return;
+      setMemoryEnabled(ativo);
+      if (!ativo) return;
+
+      const resultado = await listarMemorias();
+      validarSessao(sessao);
+      if (numero !== consultaMemoria.current) return;
+      setMemoryItems(Array.isArray(resultado?.itens) ? resultado.itens : []);
+    } catch {
+      if (montado.current && numero === consultaMemoria.current) {
+        setMemoryError('Não foi possível consultar a memória da IA.');
+        setMemoryEnabled(false);
+      }
+    } finally {
+      if (montado.current && numero === consultaMemoria.current) setLoadingMemory(false);
+    }
+  }
+
   useEffect(() => {
     montado.current = true;
     let removerCancelamento;
@@ -132,9 +184,13 @@ export default function Permissions({ data }) {
       if (!sessao || !montado.current) return;
       const limpar = () => {
         consulta.current++;
+        consultaMemoria.current++;
         setTrackingEnabled(false);
         setUsageAccessEnabled(false);
         setLoadingTracking(false);
+        setMemoryEnabled(false);
+        setMemoryItems([]);
+        setLoadingMemory(false);
       };
       if (sessao.signal.aborted) limpar();
       else {
@@ -143,12 +199,19 @@ export default function Permissions({ data }) {
       }
     }).catch(() => {});
     carregarEstadoMonitoramento();
+    carregarEstadoMemoria();
     const subscription = AppState.addEventListener('change', state => {
-      if (state === 'active') carregarEstadoMonitoramento();
+      if (state === 'active') {
+        carregarEstadoMonitoramento();
+        carregarEstadoMemoria();
+      }
     });
     return () => {
       montado.current = false;
       consulta.current++;
+      consultaMemoria.current++;
+      setMemoryEnabled(false);
+      setMemoryItems([]);
       removerCancelamento?.();
       subscription.remove();
     };
@@ -244,6 +307,102 @@ export default function Permissions({ data }) {
     }
   }
 
+  async function alterarMemoria(value) {
+    if (loadingMemory || memoryActionLoading || alterandoMemoria.current) return;
+    alterandoMemoria.current = true;
+    const sessao = await tokenStorage.captureSession();
+    if (!sessao) {
+      alterandoMemoria.current = false;
+      return;
+    }
+
+    try {
+      validarSessao(sessao);
+      setMemoryActionLoading(true);
+      setMemoryError('');
+      setMemorySuccess('');
+      await registrarConsentimento('IA_MEMORIA', value, {
+        rf017SessionId: sessao.id,
+        signal: sessao.signal,
+      });
+      validarSessao(sessao);
+      setMemoryEnabled(value);
+      setMemorySuccess(value ? 'Memória da IA ativada.' : 'Memória da IA revogada.');
+      if (value) await carregarEstadoMemoria(true);
+    } catch {
+      if (montado.current && !sessao.signal.aborted) {
+        setMemoryError('Não foi possível alterar a memória da IA.');
+      }
+    } finally {
+      alterandoMemoria.current = false;
+      setMemoryActionLoading(false);
+    }
+  }
+
+  function handleToggleMemory(value) {
+    if (loadingMemory || memoryActionLoading) return;
+    if (!value) {
+      Alert.alert(
+        'Revogar memória da IA',
+        'A IA deixará de consultar e salvar memórias. Suas memórias existentes poderão ser excluídas.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Revogar', style: 'destructive', onPress: () => alterarMemoria(false) },
+        ],
+      );
+      return;
+    }
+    alterarMemoria(true);
+  }
+
+  async function handleCreateMemory() {
+    const texto = memoryText.trim();
+    if (!texto || memoryActionLoading || !memoryEnabled) return;
+    try {
+      setMemoryActionLoading(true);
+      setMemoryError('');
+      setMemorySuccess('');
+      const resultado = await criarMemoria(texto);
+      setMemoryItems(current => resultado?.memoria ? [
+        ...current.filter(item => item.memoria_id !== resultado.memoria.memoria_id),
+        resultado.memoria,
+      ] : current);
+      setMemoryText('');
+      setMemorySuccess('Memória salva.');
+    } catch {
+      setMemoryError('Não foi possível salvar essa memória.');
+    } finally {
+      setMemoryActionLoading(false);
+    }
+  }
+
+  function handleDeleteMemory(memoriaId) {
+    Alert.alert(
+      'Excluir memória',
+      'Essa ação remove apenas a memória selecionada.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setMemoryActionLoading(true);
+              setMemoryError('');
+              await excluirMemoria(memoriaId);
+              setMemoryItems(current => current.filter(item => item.memoria_id !== memoriaId));
+              setMemorySuccess('Memória excluída.');
+            } catch {
+              setMemoryError('Não foi possível excluir essa memória.');
+            } finally {
+              setMemoryActionLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
   const statusMonitoramento = loadingTracking
     ? 'Verificando...'
     : trackingEnabled
@@ -321,6 +480,61 @@ export default function Permissions({ data }) {
       <Text style={styles.warning}>
         Desativar permissões pode reduzir funcionalidades do app
       </Text>
+      <View style={styles.memorySection}>
+        <View style={styles.row}>
+          <View style={styles.textContainer}>
+            <Text style={styles.text}>Memória da IA</Text>
+            <Text style={styles.sub}>Permitir que a IA use informações que você autorizou salvar</Text>
+            <Text style={styles.status}>
+              {loadingMemory ? 'Verificando...' : memoryEnabled ? 'Memória autorizada' : 'Memória desativada'}
+            </Text>
+          </View>
+          <Switch
+            value={memoryEnabled}
+            onValueChange={handleToggleMemory}
+            disabled={loadingMemory || memoryActionLoading}
+            trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
+            thumbColor={memoryEnabled ? '#4652A4' : '#F4F3F4'}
+            ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+          />
+        </View>
+
+        <View>
+          {memoryEnabled ? (
+            <View style={styles.memoryComposer}>
+              <TextInput
+                value={memoryText}
+                onChangeText={setMemoryText}
+                placeholder="Ex.: Prefiro revisar o orçamento aos domingos"
+                placeholderTextColor="#8A8498"
+                maxLength={1000}
+                style={styles.memoryInput}
+                editable={!memoryActionLoading}
+              />
+              <Pressable
+                onPress={handleCreateMemory}
+                disabled={!memoryText.trim() || memoryActionLoading}
+                style={[styles.memoryButton, (!memoryText.trim() || memoryActionLoading) && styles.memoryButtonDisabled]}>
+                <Text style={styles.memoryButtonText}>Salvar</Text>
+              </Pressable>
+            </View>
+          ) : null}
+          {loadingMemory && memoryEnabled ? <ActivityIndicator color="#8660A1" /> : null}
+          {memoryItems.map(item => (
+            <View key={String(item.memoria_id)} style={styles.memoryItem}>
+              <View style={styles.textContainer}>
+                <Text style={styles.memoryContent}>{item.conteudo}</Text>
+                <Text style={styles.status}>{item.origem === 'INFERIDA' ? 'Inferida' : 'Declarada'}</Text>
+              </View>
+              <Pressable onPress={() => handleDeleteMemory(item.memoria_id)} disabled={memoryActionLoading}>
+                <Text style={styles.memoryDelete}>Excluir</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+        {memoryError ? <Text style={styles.memoryError}>{memoryError}</Text> : null}
+        {memorySuccess ? <Text style={styles.memorySuccess}>{memorySuccess}</Text> : null}
+      </View>
     </ProfileCard>
   );
 }

@@ -69,6 +69,9 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
   View: 'View',
   Text: 'Text',
   Switch: 'Switch',
+  ActivityIndicator: 'ActivityIndicator',
+  Pressable: 'Pressable',
+  TextInput: 'TextInput',
   Alert: {
     alert: (...args) => {
       state.alert = args;

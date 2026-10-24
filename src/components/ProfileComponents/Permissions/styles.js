@@ -62,4 +62,77 @@ export default StyleSheet.create({
     backgroundColor: COLORS.perfilPermissaoAvisoFundo,
     lineHeight: 16,
   },
+
+  memorySection: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(131, 111, 226, 0.18)',
+  },
+
+  memoryComposer: {
+    marginTop: 6,
+  },
+
+  memoryInput: {
+    minHeight: 42,
+    borderWidth: 1,
+    borderColor: 'rgba(131, 111, 226, 0.3)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: COLORS.perfilInfoLabel,
+    backgroundColor: '#FFFFFF',
+  },
+
+  memoryButton: {
+    alignSelf: 'flex-end',
+    marginTop: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 9,
+    backgroundColor: '#8660A1',
+  },
+
+  memoryButtonDisabled: {
+    opacity: 0.45,
+  },
+
+  memoryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  memoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(131, 111, 226, 0.12)',
+  },
+
+  memoryContent: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.perfilInfoLabel,
+  },
+
+  memoryDelete: {
+    color: '#A31414',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  memoryError: {
+    marginTop: 8,
+    color: '#A31414',
+    fontSize: 12,
+  },
+
+  memorySuccess: {
+    marginTop: 8,
+    color: '#34704C',
+    fontSize: 12,
+  },
 });
