@@ -93,6 +93,8 @@ export default function Permissions({ data }) {
   const [loadingTracking, setLoadingTracking] = useState(true);
   const [memoryEnabled, setMemoryEnabled] = useState(false);
   const [personalizationEnabled, setPersonalizationEnabled] = useState(false);
+  const [proactivityEnabled, setProactivityEnabled] = useState(false);
+  const [proactivityActionLoading, setProactivityActionLoading] = useState(false);
   const [personalizationActionLoading, setPersonalizationActionLoading] = useState(false);
   const [memoryItems, setMemoryItems] = useState([]);
   const [memoryText, setMemoryText] = useState('');
@@ -106,6 +108,7 @@ export default function Permissions({ data }) {
   const consulta = useRef(0);
   const alterandoMemoria = useRef(false);
   const alterandoPersonalizacao = useRef(false);
+  const alterandoProatividade = useRef(false);
   const consultaMemoria = useRef(0);
 
   function validarSessao(sessao) {
@@ -165,9 +168,13 @@ export default function Permissions({ data }) {
       const personalizacaoAtiva = consentimentos.some(item =>
         (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo)
           === 'IA_PERSONALIZACAO' && item.consentimento_status === true);
+      const proatividadeAtiva = consentimentos.some(item =>
+        (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo)
+          === 'IA_PROATIVIDADE' && item.consentimento_status === true);
       if (numero !== consultaMemoria.current) return;
       setMemoryEnabled(ativo);
       setPersonalizationEnabled(personalizacaoAtiva);
+      setProactivityEnabled(proatividadeAtiva);
       if (!ativo) return;
 
       const resultado = await listarMemorias();
@@ -179,6 +186,7 @@ export default function Permissions({ data }) {
         setMemoryError('Não foi possível consultar a memória da IA.');
         setMemoryEnabled(false);
         setPersonalizationEnabled(false);
+        setProactivityEnabled(false);
       }
     } finally {
       if (montado.current && numero === consultaMemoria.current) setLoadingMemory(false);
@@ -198,6 +206,7 @@ export default function Permissions({ data }) {
         setLoadingTracking(false);
         setMemoryEnabled(false);
         setPersonalizationEnabled(false);
+        setProactivityEnabled(false);
         setMemoryItems([]);
         setLoadingMemory(false);
       };
@@ -221,6 +230,7 @@ export default function Permissions({ data }) {
       consultaMemoria.current++;
       setMemoryEnabled(false);
       setPersonalizationEnabled(false);
+      setProactivityEnabled(false);
       setMemoryItems([]);
       removerCancelamento?.();
       subscription.remove();
@@ -396,6 +406,38 @@ export default function Permissions({ data }) {
     alterarPersonalizacao(true);
   }
 
+  async function alterarProatividade(value) {
+    if (proactivityActionLoading || alterandoProatividade.current) return;
+    alterandoProatividade.current = true;
+    const sessao = await tokenStorage.captureSession();
+    if (!sessao) { alterandoProatividade.current = false; return; }
+    try {
+      validarSessao(sessao);
+      setProactivityActionLoading(true);
+      await registrarConsentimento('IA_PROATIVIDADE', value, { rf017SessionId: sessao.id, signal: sessao.signal });
+      validarSessao(sessao);
+      setProactivityEnabled(value);
+      setMemorySuccess(value ? 'Conversas proativas ativadas.' : 'Conversas proativas revogadas.');
+    } catch {
+      if (montado.current && !sessao.signal.aborted) setMemoryError('Nao foi possivel alterar as conversas proativas.');
+    } finally {
+      alterandoProatividade.current = false;
+      setProactivityActionLoading(false);
+    }
+  }
+
+  function handleToggleProatividade(value) {
+    if (loadingMemory || proactivityActionLoading) return;
+    if (!value) {
+      Alert.alert('Revogar conversas proativas', 'A Plenna deixara de iniciar novas conversas automaticamente. Historicos existentes continuarao acessiveis.', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Revogar', style: 'destructive', onPress: () => alterarProatividade(false) },
+      ]);
+      return;
+    }
+    alterarProatividade(true);
+  }
+
   async function handleCreateMemory() {
     const texto = memoryText.trim();
     if (!texto || memoryActionLoading || !memoryEnabled) return;
@@ -533,6 +575,21 @@ export default function Permissions({ data }) {
           disabled={loadingMemory || personalizationActionLoading}
           trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
           thumbColor={personalizationEnabled ? '#4652A4' : '#F4F3F4'}
+          ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+        />
+      </View>
+      <View style={styles.row}>
+        <View style={styles.textContainer}>
+          <Text style={styles.text}>Conversas proativas</Text>
+          <Text style={styles.sub}>Permitir que a Plenna inicie uma conversa sobre uma recomendacao relevante</Text>
+          <Text style={styles.status}>{loadingMemory ? 'Verificando...' : proactivityEnabled ? 'Conversas autorizadas' : 'Conversas desativadas'}</Text>
+        </View>
+        <Switch
+          value={proactivityEnabled}
+          onValueChange={handleToggleProatividade}
+          disabled={loadingMemory || proactivityActionLoading}
+          trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
+          thumbColor={proactivityEnabled ? '#4652A4' : '#F4F3F4'}
           ios_backgroundColor="rgba(131, 111, 226, 0.25)"
         />
       </View>

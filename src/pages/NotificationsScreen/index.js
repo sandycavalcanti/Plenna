@@ -248,6 +248,15 @@ export default function NotificationsScreen() {
               style={[styles.card, unread ? styles.unreadCard : null]}
               activeOpacity={0.85}
               disabled={Boolean(readingIds[item.notificacao_id])}
+              onPress={() => {
+                void markNotificationAsReadById(item);
+                if (item.notificacao_historico_id) {
+                  navigation.navigate('Chat', {
+                    mode: 'existing',
+                    historicoId: item.notificacao_historico_id,
+                  });
+                }
+              }}
             >
               <View style={[styles.cardIconBox, { backgroundColor: presentation.iconBackgroundColor }]}>
                 <MaterialCommunityIcons name={presentation.icon} size={21} color={presentation.iconColor} />

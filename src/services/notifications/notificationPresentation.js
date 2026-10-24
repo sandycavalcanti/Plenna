@@ -23,6 +23,12 @@ const NOTIFICATION_PRESENTATIONS = {
     iconColor: '#C02C7A',
     iconBackgroundColor: '#FCECF4',
   },
+  PROATIVA: {
+    icon: 'message-text-outline',
+    label: 'Mensagem da Plenna',
+    iconColor: '#4D5AA8',
+    iconBackgroundColor: '#E8EBFF',
+  },
 };
 
 export function getNotificationPresentation(type) {

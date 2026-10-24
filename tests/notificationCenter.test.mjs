@@ -124,6 +124,7 @@ test('apresentação cobre data PT-BR, tipos, fallback, badge e leitura local', 
   assert.equal(presentation.getNotificationPresentation('LIMITE_COMPRA').icon, 'wallet-outline');
   assert.equal(presentation.getNotificationPresentation('LIMITE_MENSAL').icon, 'chart-line');
   assert.equal(presentation.getNotificationPresentation('SAZONAL').icon, 'calendar-star-outline');
+  assert.equal(presentation.getNotificationPresentation('PROATIVA').label, 'Mensagem da Plenna');
   assert.ok(presentation.getNotificationPresentation('SAZONAL').iconColor);
   assert.ok(presentation.getNotificationPresentation('SAZONAL').iconBackgroundColor);
   assert.equal(presentation.getNotificationPresentation('UNKNOWN').icon, 'bell-outline');
@@ -180,6 +181,7 @@ test('Central cobre estados, proteção, refresh, leitura e intent', async () =>
     'notificacao_titulo',
     'notificacao_mensagem',
     'notificacao_data_criacao',
+    'notificacao_historico_id',
   ]) {
     assert.match(source, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -190,6 +192,7 @@ test('Central cobre estados, proteção, refresh, leitura e intent', async () =>
   assert.match(source, /unreadOnEntryRef/);
   assert.match(source, /markNotificationsReadOnBlur/);
   assert.match(source, /void markNotificationsReadOnBlur\(\)/);
+  assert.match(source, /navigation\.navigate\('Chat'/);
   assert.match(source, /notificationsToRead\.map/);
   assert.match(source, /loadedNotifications\s*\.filter\(isNotificationUnread\)/);
   assert.doesNotMatch(source, /markLoadedUnreadNotifications/);

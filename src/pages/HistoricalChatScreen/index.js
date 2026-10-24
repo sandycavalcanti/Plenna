@@ -169,7 +169,9 @@ export default function HistoricalChatScreen({ navigation }) {
           renderItem={({ item }) => (
             <ChatItem
               title={item.historico_nome || 'Nova conversa'}
-              lastMessage={formatHistoryDate(item.historico_data_modificacao || item.historico_data_criacao)}
+              lastMessage={item.historico_origem === 'PROATIVO'
+                ? `Mensagem iniciada pela Plenna · ${formatHistoryDate(item.historico_data_modificacao || item.historico_data_criacao)}`
+                : formatHistoryDate(item.historico_data_modificacao || item.historico_data_criacao)}
               onPress={() => navigation.navigate('Chat', {
                 mode: 'existing',
                 historicoId: item.historico_id,
