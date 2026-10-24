@@ -9,29 +9,19 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
   const [confirmation, setConfirmation] = useState('');
   const [step, setStep] = useState('primary');
   const inputRef = useRef(null);
-  const focusTimerRef = useRef(null);
   const isSetup = mode === 'setup' || mode === 'change';
+
+  function focusInput() {
+    if (!visible || busy) return;
+    inputRef.current?.focus();
+  }
 
   useEffect(() => {
     if (visible) {
       setValue('');
       setConfirmation('');
       setStep('primary');
-      // O foco atrasado aguarda a animação do Modal. Guardar o timer e limpá-lo
-      // no cleanup evita tentar focar um input depois de fechar/desmontar o
-      // modal, especialmente ao cancelar o setup ou o desbloqueio.
-      focusTimerRef.current = setTimeout(() => {
-        inputRef.current?.focus();
-        focusTimerRef.current = null;
-      }, 120);
     }
-
-    return () => {
-      if (focusTimerRef.current) {
-        clearTimeout(focusTimerRef.current);
-        focusTimerRef.current = null;
-      }
-    };
   }, [visible, mode]);
 
   function updateValue(text) {
@@ -70,17 +60,31 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
       : 'Use o PIN do Plenna para continuar.';
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+      onShow={focusInput}
+    >
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
 
-          <View style={styles.indicators} accessibilityLabel={`${displayedLength} de ${PIN_LENGTH} dígitos preenchidos`}>
+          <TouchableOpacity
+            style={styles.indicators}
+            accessibilityRole="button"
+            accessibilityLabel={`${displayedLength} de ${PIN_LENGTH} dígitos preenchidos`}
+            accessibilityHint="Toque para exibir o teclado do PIN"
+            onPress={focusInput}
+            disabled={busy}
+            activeOpacity={0.8}
+          >
             {Array.from({ length: PIN_LENGTH }).map((_, index) => (
               <Text key={index} style={styles.indicator}>{index < displayedLength ? '●' : '○'}</Text>
             ))}
-          </View>
+          </TouchableOpacity>
 
           <TextInput
             ref={inputRef}
@@ -90,6 +94,7 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
             maxLength={PIN_LENGTH}
             secureTextEntry
             autoFocus
+            showSoftInputOnFocus={true}
             editable={!busy}
             style={styles.input}
             accessibilityLabel="Entrada numérica do PIN"
