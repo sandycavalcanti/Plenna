@@ -20,6 +20,8 @@ import { useDataRefresh } from '../../hooks/useDataRefresh';
 
 import { getUnreadCount, waitForPendingNotificationReads } from '../../services/notifications/notificationApi';
 import { getUnreadBadgeLabel } from '../../services/notifications/notificationPresentation';
+import { useRecomendacoesHome } from '../../hooks/useRecomendacoesHome';
+import { obterContextoRecomendacao } from '../../api/recomendacoes';
 
 export default function HomeScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -28,6 +30,7 @@ export default function HomeScreen({ navigation }) {
   const financeiro = useResumoHome(periodo);
   const tempo = useTempoUsoHome(true);
   const metas = useMetasHome();
+  const recomendacoes = useRecomendacoesHome();
   const [usuario, setUsuario] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -99,6 +102,15 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
   const unreadBadgeLabel = getUnreadBadgeLabel(unreadCount);
   const destaques = destaquesHome(financeiro.loading || financeiro.error ? null : financeiro.dados, metas.loading || metas.error ? [] : metas.metas, unreadCount);
+  const conversarSobreRecomendacao = useCallback(async (item) => {
+    try { await recomendacoes.updateStatus(item.id, 'VISUALIZADA'); } catch { /* fallback local seguro */ }
+    let contexto = `Quero conversar sobre a recomendação "${item.titulo}". ${item.texto}`;
+    try {
+      const resposta = await obterContextoRecomendacao(item.id);
+      if (typeof resposta?.contexto === 'string' && resposta.contexto.trim()) contexto = resposta.contexto;
+    } catch { /* o texto do card permanece disponível */ }
+    navigation.navigate('Chat', { mode: 'new', recommendationContext: contexto.slice(0, 800) });
+  }, [navigation, recomendacoes]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -132,6 +144,8 @@ export default function HomeScreen({ navigation }) {
         {/* <Text style={{ marginVertical: 20, color: COLORS.cadTitulo, fontSize: 18, textAlign: 'center' }} onPress={() => navigation.navigate('Login')}>
           Voltar para Login
         </Text> */}
+        {(recomendacoes.loading || recomendacoes.error || recomendacoes.itens.length > 0) && <View style={{marginHorizontal:18,marginBottom:14,gap:10}}><Text style={{fontSize:18,fontWeight:'700',color:'#594367'}}>Recomendações para você</Text>{recomendacoes.loading ? <Text style={{color:'#655A70'}}>Carregando recomendações...</Text> : recomendacoes.error ? <TouchableOpacity onPress={recomendacoes.refresh} accessibilityRole="button"><Text style={{color:'#893467'}}>Não foi possível carregar recomendações. Tentar novamente</Text></TouchableOpacity> : recomendacoes.itens.map(item => <View key={`recomendacao-${item.id}`} style={{padding:16,minHeight:48,borderRadius:18,backgroundColor:'#FFFFFF',gap:8}}><Text style={{fontSize:16,fontWeight:'600',color:'#594367'}}>{item.titulo}</Text><Text style={{color:'#655A70',lineHeight:19}}>{item.texto}</Text><View style={{flexDirection:'row',gap:16,alignItems:'center'}}><TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={{color:'#893467',fontWeight:'600'}}>Conversar sobre isso</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => recomendacoes.updateStatus(item.id, 'DESCARTADA')}><Text style={{color:'#655A70'}}>Dispensar</Text></TouchableOpacity></View></View>)}</View>}
+        {!recomendacoes.loading && !recomendacoes.error && recomendacoes.consentimentoAtivo && recomendacoes.itens.length === 0 && <View style={{marginHorizontal:18,marginBottom:14,padding:16,borderRadius:18,backgroundColor:'#FFFFFF'}}><Text style={{fontSize:16,fontWeight:'600',color:'#594367'}}>Nenhuma recomendação no momento</Text><Text style={{color:'#655A70',marginTop:5}}>Continue acompanhando seus dados para receber sugestões baseadas em evidências.</Text></View>}
       </ScrollView>
     </SafeAreaView>
   );

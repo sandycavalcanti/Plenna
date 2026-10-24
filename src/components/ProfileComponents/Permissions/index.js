@@ -92,6 +92,8 @@ export default function Permissions({ data }) {
   const [usageAccessEnabled, setUsageAccessEnabled] = useState(false);
   const [loadingTracking, setLoadingTracking] = useState(true);
   const [memoryEnabled, setMemoryEnabled] = useState(false);
+  const [personalizationEnabled, setPersonalizationEnabled] = useState(false);
+  const [personalizationActionLoading, setPersonalizationActionLoading] = useState(false);
   const [memoryItems, setMemoryItems] = useState([]);
   const [memoryText, setMemoryText] = useState('');
   const [loadingMemory, setLoadingMemory] = useState(true);
@@ -103,6 +105,7 @@ export default function Permissions({ data }) {
   const alterando = useRef(false);
   const consulta = useRef(0);
   const alterandoMemoria = useRef(false);
+  const alterandoPersonalizacao = useRef(false);
   const consultaMemoria = useRef(0);
 
   function validarSessao(sessao) {
@@ -159,8 +162,12 @@ export default function Permissions({ data }) {
       const ativo = consentimentos.some(item =>
         (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo)
           === 'IA_MEMORIA' && item.consentimento_status === true);
+      const personalizacaoAtiva = consentimentos.some(item =>
+        (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo)
+          === 'IA_PERSONALIZACAO' && item.consentimento_status === true);
       if (numero !== consultaMemoria.current) return;
       setMemoryEnabled(ativo);
+      setPersonalizationEnabled(personalizacaoAtiva);
       if (!ativo) return;
 
       const resultado = await listarMemorias();
@@ -211,6 +218,7 @@ export default function Permissions({ data }) {
       consulta.current++;
       consultaMemoria.current++;
       setMemoryEnabled(false);
+      setPersonalizationEnabled(false);
       setMemoryItems([]);
       removerCancelamento?.();
       subscription.remove();
@@ -355,6 +363,37 @@ export default function Permissions({ data }) {
     alterarMemoria(true);
   }
 
+  async function alterarPersonalizacao(value) {
+    if (personalizationActionLoading || alterandoPersonalizacao.current) return;
+    alterandoPersonalizacao.current = true;
+    const sessao = await tokenStorage.captureSession();
+    if (!sessao) { alterandoPersonalizacao.current = false; return; }
+    try {
+      validarSessao(sessao);
+      setPersonalizationActionLoading(true);
+      await registrarConsentimento('IA_PERSONALIZACAO', value, { rf017SessionId: sessao.id, signal: sessao.signal });
+      validarSessao(sessao);
+      setPersonalizationEnabled(value);
+    } catch {
+      if (montado.current && !sessao.signal.aborted) setMemoryError('Não foi possível alterar as recomendações personalizadas.');
+    } finally {
+      alterandoPersonalizacao.current = false;
+      setPersonalizationActionLoading(false);
+    }
+  }
+
+  function handleTogglePersonalizacao(value) {
+    if (loadingMemory || personalizationActionLoading) return;
+    if (!value) {
+      Alert.alert('Revogar recomendações personalizadas', 'Novas recomendações personalizadas deixarão de ser geradas.', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Revogar', style: 'destructive', onPress: () => alterarPersonalizacao(false) },
+      ]);
+      return;
+    }
+    alterarPersonalizacao(true);
+  }
+
   async function handleCreateMemory() {
     const texto = memoryText.trim();
     if (!texto || memoryActionLoading || !memoryEnabled) return;
@@ -480,6 +519,21 @@ export default function Permissions({ data }) {
       <Text style={styles.warning}>
         Desativar permissões pode reduzir funcionalidades do app
       </Text>
+      <View style={styles.row}>
+        <View style={styles.textContainer}>
+          <Text style={styles.text}>Recomendações personalizadas</Text>
+          <Text style={styles.sub}>Permitir sugestões baseadas nos seus dados financeiros</Text>
+          <Text style={styles.status}>{loadingMemory ? 'Verificando...' : personalizationEnabled ? 'Recomendações autorizadas' : 'Recomendações desativadas'}</Text>
+        </View>
+        <Switch
+          value={personalizationEnabled}
+          onValueChange={handleTogglePersonalizacao}
+          disabled={loadingMemory || personalizationActionLoading}
+          trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
+          thumbColor={personalizationEnabled ? '#4652A4' : '#F4F3F4'}
+          ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+        />
+      </View>
       <View style={styles.memorySection}>
         <View style={styles.row}>
           <View style={styles.textContainer}>
