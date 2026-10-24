@@ -178,6 +178,7 @@ export default function Permissions({ data }) {
       if (montado.current && numero === consultaMemoria.current) {
         setMemoryError('Não foi possível consultar a memória da IA.');
         setMemoryEnabled(false);
+        setPersonalizationEnabled(false);
       }
     } finally {
       if (montado.current && numero === consultaMemoria.current) setLoadingMemory(false);
@@ -196,6 +197,7 @@ export default function Permissions({ data }) {
         setUsageAccessEnabled(false);
         setLoadingTracking(false);
         setMemoryEnabled(false);
+        setPersonalizationEnabled(false);
         setMemoryItems([]);
         setLoadingMemory(false);
       };

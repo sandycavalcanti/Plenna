@@ -164,7 +164,7 @@ test('Perfil ativa, revoga e exclui memória própria já carregada', async () =
     { codigo: 'IA_MEMORIA', status: false },
   ]);
 
-  assert.deepEqual(state.states[5], state.memories);
+  assert.deepEqual(state.states[7], state.memories);
   const renderedAfterRevoke = render();
   const deleteButton = findAll(renderedAfterRevoke, 'Pressable').find(node =>
     JSON.stringify(node).includes('Excluir'));
