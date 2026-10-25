@@ -1,3 +1,6 @@
+import DescobertasCarousel from '../../components/HomeComponents/DescobertasCarousel';
+import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
+import { cartoesResumo } from '../../utils/selecionarDescobertas';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Animated, View, Text, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
@@ -26,6 +29,7 @@ export default function HomeScreen({ navigation }) {
   const { fetchUsuario } = useDataRefresh();
   const [periodo,setPeriodo] = useState(() => periodoMensalUTC());
   const financeiro = useResumoHome(periodo);
+  const descobertas = useDescobertasResumo(periodo);
   const tempo = useTempoUsoHome(true);
   const metas = useMetasHome();
   const [usuario, setUsuario] = useState(null);
@@ -102,7 +106,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1, marginTop: 10, paddingBottom: tabBarHeight + 32 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { financeiro.refresh(); metas.refresh(); tempo.refresh(); refetchAllData(); }} tintColor={COLORS.dadoUm} />}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, marginTop: 10, paddingBottom: tabBarHeight + 32 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { financeiro.refresh(); descobertas.refresh(); metas.refresh(); tempo.refresh(); refetchAllData(); }} tintColor={COLORS.dadoUm} />}>
         <View style={styles.topBar}>
           <View style={styles.topBarTextBlock}>
             <Text style={styles.greeting}>Olá, {usuario?.usuario_nome}!</Text>
@@ -124,6 +128,7 @@ export default function HomeScreen({ navigation }) {
         <SeletorMensalHome periodo={periodo} limites={financeiro.dados?.seletor} loading={financeiro.loading} error={financeiro.error} onChange={setPeriodo} />
         <PurchaseHero />
         <View style={{marginHorizontal:18,marginBottom:14}}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh}/></View>
+        <DescobertasCarousel cards={cartoesResumo(descobertas.dados)} onAction={() => navigation.navigate('Dashboard', { indicador: 'rf018', periodo })} />
         <MetasHome {...metas} onRetry={metas.refresh} onCreate={() => navigation.navigate('EditProfile',{mode:'goals'})}/>
         <View style={{marginHorizontal:18,padding:16,marginBottom:14,borderRadius:18,backgroundColor:'#FFFFFF',gap:8}}><Text style={{fontSize:18,fontWeight:'700',color:'#594367'}}>Tempo em aplicativos · hoje</Text><Text style={{fontSize:24,fontWeight:'700',color:'#893467'}}>{tempo.estado==='CARREGANDO'?'Carregando':tempo.estado==='ERRO'?'Indisponível':tempo.estado==='SEM_CONSENTIMENTO'?'Não autorizado':resumirTempoHoje(tempo.registros)>0?formatarTempoUso(resumirTempoHoje(tempo.registros)):'Sem registros hoje'}</Text><Text>{tempo.estado==='SEM_CONSENTIMENTO'?'Monitoramento não autorizado. Consulte o Perfil.':'Somente registros deste celular; tempo de uso não comprova compras.'}</Text><TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Dashboard', { indicador:'tempo' })} style={{minHeight:48,justifyContent:'center'}}><Text style={{color:'#893467',fontWeight:'600'}}>Entender meu tempo</Text></TouchableOpacity></View>
         {destaques.length>0&&<View style={{marginHorizontal:18,marginBottom:14,gap:10}}><Text style={{fontSize:18,fontWeight:'700',color:'#594367'}}>Para você</Text>{destaques.map(d=><TouchableOpacity key={d.codigo} accessibilityRole="button" onPress={() => d.acao==='notificacoes'?openNotifications():d.acao==='metas'?navigation.navigate('EditProfile',{mode:'goals'}):navigation.navigate('Dashboard',{indicador:'gastos'})} style={{padding:16,minHeight:48,borderRadius:18,backgroundColor:'#FFFFFF',gap:6}}><Text style={{fontSize:16,fontWeight:'600',color:'#594367'}}>{d.titulo}</Text><Text style={{color:'#655A70',lineHeight:19}}>{d.mensagem}</Text></TouchableOpacity>)}</View>}
