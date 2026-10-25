@@ -6,20 +6,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiClient } from '../../api/client';
 import { logApiErrors } from '../../utils/error';
 import PurchaseItem from '../../components/PurchaseComponents/PurchaseItem';
+import ContextoCompra from '../../components/PurchaseComponents/ContextoCompra';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
+import { comprasPeriodo } from '../../utils/comprasPeriodo';
+import {consultarResumosCompras} from '../../services/resumosCompras';
+import GerenciarCompra from '../../components/PurchaseComponents/GerenciarCompra';
 
 /**
  * Tela que apresenta todas as compras retornadas para o usuário autenticado.
  * A autenticação não é feita manualmente aqui: o interceptor do apiClient
  * adiciona o token existente em todas as requisições.
  */
-export default function PurchasesScreen() {
+export default function PurchasesScreen({route}={}) {
   const navigation = useNavigation();
+  const filtroConsumo=route?.params?.filtroConsumo;
+  const [contextoCompraId, setContextoCompraId] = useState(null);
+  const [gerenciamento,setGerenciamento]=useState(null),[resumos,setResumos]=useState({}),[mostrarOcultas,setMostrarOcultas]=useState(false);
   const isFocused = useIsFocused();
   const protectedAccess = useProtectedAccess();
+  useEffect(() => {
+    if (!isFocused || protectedAccess.status !== PROTECTED_ACCESS_STATES.UNLOCKED){setContextoCompraId(null);setGerenciamento(null);setResumos({});}
+  }, [isFocused, protectedAccess.status]);
   // Estes estados distinguem carregamento inicial, erro, lista e exclusão.
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +63,9 @@ export default function PurchasesScreen() {
       const response = await apiClient.get('/compras');
       const visiblePurchases = (Array.isArray(response.data) ? response.data : [])
         .filter((purchase) => ['AGUARDANDO_CONFIRMACAO', 'CONFIRMADA'].includes(purchase.compra_status));
-      setPurchases(sortPurchases(visiblePurchases));
+      const summaries=await consultarResumosCompras(visiblePurchases);setResumos(summaries);
+      const scoped=filtroConsumo?comprasPeriodo(visiblePurchases,filtroConsumo):visiblePurchases;
+      setPurchases(sortPurchases(scoped.filter(c=>summaries[c.compra_id]&&(mostrarOcultas?!!summaries[c.compra_id].oculto:!summaries[c.compra_id].oculto))));
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar compras');
       setErrorMessage('Não foi possível carregar suas compras. Tente novamente.');
@@ -61,7 +73,7 @@ export default function PurchasesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [filtroConsumo,mostrarOcultas]);
 
   /**
    * A lista não depende da ordem do backend: pendentes exigem atenção e ficam
@@ -163,7 +175,7 @@ export default function PurchasesScreen() {
       // Ignorada permanece no banco, mas sai imediatamente da única lista
       // visual porque esse status final não é uma página recuperável.
       setPurchases((currentPurchases) => currentPurchases.filter((item) => item.compra_id !== purchase.compra_id));
-      Alert.alert('Compra ignorada com sucesso!');
+      Alert.alert('Compra ignorada', 'Ela continua registrada, mas não aparece nas listas de compras pendentes ou confirmadas.');
     } catch (error) {
       logApiErrors(error, 'Erro ao ignorar compra');
       Alert.alert('Erro', 'Não foi possível ignorar a compra. Tente novamente.');
@@ -245,7 +257,7 @@ export default function PurchasesScreen() {
 
       // Atualização otimista é evitada: só filtramos após o sucesso da API.
       setPurchases((currentPurchases) => currentPurchases.filter((item) => item.compra_id !== purchaseId));
-      Alert.alert('Compra excluída com sucesso!');
+      Alert.alert('Compra excluída', 'Ela saiu do histórico e não participa mais dos totais financeiros.');
     } catch (error) {
       logApiErrors(error, 'Erro ao excluir compra');
       Alert.alert('Erro', 'Não foi possível excluir a compra. Tente novamente.');
@@ -331,6 +343,9 @@ export default function PurchasesScreen() {
     return (
       <PurchaseItem
         purchase={item}
+        onContext={setContextoCompraId}
+        onManage={(compra,item)=>setGerenciamento({compra,item})}
+        resumo={resumos[item.compra_id]}
         isDeleting={deletingId === item.compra_id}
         hasItemDeleting={deletingItemId !== null}
         isItemDeleting={deletingItemId !== null && item.tb_compra_item?.some((purchaseItem) => purchaseItem.compra_item_id === deletingItemId)}
@@ -515,6 +530,9 @@ export default function PurchasesScreen() {
           );
         }}
       />
+      <Pressable accessibilityRole="button" accessibilityState={{selected:mostrarOcultas}} onPress={()=>setMostrarOcultas(v=>!v)} style={{minHeight:48,alignItems:'center',justifyContent:'center'}}><Text>{mostrarOcultas?'Voltar às compras visíveis':'Compras ocultas'}</Text></Pressable>
+      {gerenciamento&&<GerenciarCompra {...gerenciamento} onClose={()=>setGerenciamento(null)} onSaved={()=>loadPurchases(true)}/>}
+      {contextoCompraId !== null && <ContextoCompra compraId={contextoCompraId} compra={(()=>{const c=purchases.find(c=>c.compra_id===contextoCompraId);return c?{...c,tb_compra_item:c.tb_compra_item?.filter(i=>!resumos[c.compra_id]?.itensOcultos?.includes(i.compra_item_id))}:undefined;})()} onClose={() => {setContextoCompraId(null);loadPurchases(true);}} />}
     </SafeAreaView>
   );
 }
