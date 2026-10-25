@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { listarRecomendacoes, atualizarStatusRecomendacao } from '../api/recomendacoes';
 
 export function useRecomendacoesHome() {
-  const [state, setState] = useState({ itens: [], loading: true, error: false, consentimentoAtivo: false });
+  const [state, setState] = useState({ itens: [], loading: true, error: false, consentimentoAtivo: null });
   const request = useRef(0);
 
   const refresh = useCallback(async () => {
@@ -12,9 +12,17 @@ export function useRecomendacoesHome() {
     try {
       const result = await listarRecomendacoes({ limite: 10 });
       if (id !== request.current) return;
-      setState({ itens: Array.isArray(result?.itens) ? result.itens : [], loading: false, error: false, consentimentoAtivo: result?.consentimentoAtivo === true });
-    } catch {
-      if (id === request.current) setState({ itens: [], loading: false, error: true, consentimentoAtivo: false });
+      if (!result || !Array.isArray(result.itens) || typeof result.consentimentoAtivo !== 'boolean') {
+        throw new Error('RECOMENDACOES_CONTRACT_INVALID');
+      }
+      setState({ itens: result.itens, loading: false, error: false, consentimentoAtivo: result.consentimentoAtivo });
+    } catch (error) {
+      if (id !== request.current) return;
+      if (error?.response?.status === 403) {
+        setState({ itens: [], loading: false, error: false, consentimentoAtivo: false });
+      } else {
+        setState({ itens: [], loading: false, error: true, consentimentoAtivo: null });
+      }
     }
   }, []);
 

@@ -7,6 +7,9 @@ import { transformSync } from '@babel/core';
 async function ambiente() {
   const state = {
     memoryConsent: false,
+    personalizationConsent: false,
+    proactivityConsent: false,
+    failConsent: false,
     memories: [{ memoria_id: 1, conteudo: 'Preferência própria.', origem: 'DECLARADA' }],
     consentCalls: [],
     listCalls: 0,
@@ -40,11 +43,16 @@ async function ambiente() {
     listarConsentimentos: async () => [
       { consentimento_tipo_codigo: 'MONITORAMENTO_TEMPO_USO', consentimento_status: false },
       { consentimento_tipo_codigo: 'IA_MEMORIA', consentimento_status: state.memoryConsent },
+      { consentimento_tipo_codigo: 'IA_PERSONALIZACAO', consentimento_status: state.personalizationConsent },
+      { consentimento_tipo_codigo: 'IA_PROATIVIDADE', consentimento_status: state.proactivityConsent },
     ],
     registrarConsentimento: async (codigo, status) => {
       state.registrarEntered = true;
       state.consentCalls.push({ codigo, status });
+      if (state.failConsent) throw Object.assign(new Error('falha simulada'), { code: 'ERR_BAD_RESPONSE', response: { status: 503 } });
       if (codigo === 'IA_MEMORIA') state.memoryConsent = status;
+      if (codigo === 'IA_PERSONALIZACAO') state.personalizationConsent = status;
+      if (codigo === 'IA_PROATIVIDADE') state.proactivityConsent = status;
       return { consentimento_status: status };
     },
   };
@@ -175,4 +183,46 @@ test('Perfil ativa, revoga e exclui memória própria já carregada', async () =
   assert.deepEqual(state.deleteCalls, [1]);
   assert.deepEqual(state.memories, []);
   void initial;
+});
+
+test('Perfil reflete e altera os três consentimentos de IA separadamente', async () => {
+  const { state, render, settle } = await ambiente();
+  render();
+  state.effects[0]();
+  await settle();
+
+  let switches = findAll(render(), 'Switch');
+  assert.equal(switches.at(-3).props.value, false);
+  assert.equal(switches.at(-2).props.value, false);
+  assert.equal(switches.at(-1).props.value, false);
+
+  switches.at(-3).props.onValueChange(true);
+  switches.at(-2).props.onValueChange(true);
+  switches.at(-1).props.onValueChange(true);
+  await settle();
+
+  assert.deepEqual(state.consentCalls, [
+    { codigo: 'IA_PERSONALIZACAO', status: true },
+    { codigo: 'IA_PROATIVIDADE', status: true },
+    { codigo: 'IA_MEMORIA', status: true },
+  ]);
+  switches = findAll(render(), 'Switch');
+  assert.equal(switches.at(-3).props.value, true);
+  assert.equal(switches.at(-2).props.value, true);
+  assert.equal(switches.at(-1).props.value, true);
+});
+
+test('falha ao persistir consentimento mantém o switch desligado', async () => {
+  const { state, render, settle } = await ambiente();
+  render();
+  state.effects[0]();
+  await settle();
+  state.failConsent = true;
+
+  const memorySwitch = findAll(render(), 'Switch').at(-1);
+  memorySwitch.props.onValueChange(true);
+  await settle();
+
+  assert.deepEqual(state.consentCalls, [{ codigo: 'IA_MEMORIA', status: true }]);
+  assert.equal(findAll(render(), 'Switch').at(-1).props.value, false);
 });

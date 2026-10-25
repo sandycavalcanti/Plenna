@@ -19,6 +19,19 @@ test('Home consome recomendações persistidas sem gerar IA no carregamento', as
   assert.doesNotMatch(home, /Requesty|chatWithTools|generateRecommendation/);
 });
 
+test('integração distingue contrato inválido, personalização desativada e erro de rede', async () => {
+  const [config, hook, home] = await Promise.all([
+    read('src/constants/config.js'),
+    read('src/hooks/useRecomendacoesHome.js'),
+    read('src/pages/HomeScreen/index.js'),
+  ]);
+  assert.match(config, /EXPO_PUBLIC_API_URL/);
+  assert.match(hook, /RECOMENDACOES_CONTRACT_INVALID/);
+  assert.match(hook, /status === 403/);
+  assert.match(home, /consentimentoAtivo === false/);
+  assert.match(home, /Ative as recomenda/);
+});
+
 test('ação Conversar abre nova conversa com contexto limitado e seguro', async () => {
   const home = await read('src/pages/HomeScreen/index.js');
   const chat = await read('src/pages/ChatScreen/index.js');

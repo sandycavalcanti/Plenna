@@ -83,6 +83,40 @@ function logErroMonitoramento(error, texto) {
   logApiErrors(erroSeguro, texto);
 }
 
+function logErroPermissoes(error, metodo, caminho, operacao) {
+  if (!__DEV__) return;
+  const statusOriginal = error?.response?.status;
+  const codigoOriginal = error?.code;
+  const status = Number.isInteger(statusOriginal) && statusOriginal >= 100 && statusOriginal <= 599
+    ? statusOriginal
+    : null;
+  const codigo = ['ERR_BAD_REQUEST', 'ERR_BAD_RESPONSE', 'ERR_NETWORK', 'ECONNABORTED'].includes(codigoOriginal)
+    ? codigoOriginal
+    : null;
+  const categoria = status === 401
+    ? 'AUTENTICACAO'
+    : status === 403
+      ? 'AUTORIZACAO'
+      : status !== null && status >= 500
+        ? 'SERVIDOR'
+        : codigo === 'ERR_NETWORK'
+          ? 'REDE'
+          : status === 400
+            ? 'CONTRATO'
+            : 'DESCONHECIDA';
+  logApiErrors({
+    code: codigo,
+    response: { status, data: { message: 'Falha segura na API de permissões.' } },
+  }, 'Erro de integração de permissões:', true, {
+    operacao,
+    metodo,
+    caminho,
+    status,
+    ambiente: __DEV__ ? 'desenvolvimento' : 'producao',
+    categoria,
+  });
+}
+
 export default function Permissions({ data }) {
   const [emailEnabled, setEmailEnabled] = useState(
     data?.email ?? true
@@ -96,6 +130,7 @@ export default function Permissions({ data }) {
   const [proactivityEnabled, setProactivityEnabled] = useState(false);
   const [proactivityActionLoading, setProactivityActionLoading] = useState(false);
   const [personalizationActionLoading, setPersonalizationActionLoading] = useState(false);
+  const [consentimentosDisponiveis, setConsentimentosDisponiveis] = useState(false);
   const [memoryItems, setMemoryItems] = useState([]);
   const [memoryText, setMemoryText] = useState('');
   const [loadingMemory, setLoadingMemory] = useState(true);
@@ -162,6 +197,8 @@ export default function Permissions({ data }) {
         signal: sessao.signal,
       });
       validarSessao(sessao);
+      if (numero !== consultaMemoria.current) return;
+      setConsentimentosDisponiveis(true);
       const ativo = consentimentos.some(item =>
         (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo)
           === 'IA_MEMORIA' && item.consentimento_status === true);
@@ -175,18 +212,27 @@ export default function Permissions({ data }) {
       setMemoryEnabled(ativo);
       setPersonalizationEnabled(personalizacaoAtiva);
       setProactivityEnabled(proatividadeAtiva);
-      if (!ativo) return;
+      if (!ativo) {
+        setMemoryItems([]);
+        return;
+      }
 
-      const resultado = await listarMemorias();
-      validarSessao(sessao);
-      if (numero !== consultaMemoria.current) return;
-      setMemoryItems(Array.isArray(resultado?.itens) ? resultado.itens : []);
-    } catch {
+      try {
+        const resultado = await listarMemorias();
+        validarSessao(sessao);
+        if (numero !== consultaMemoria.current) return;
+        setMemoryItems(Array.isArray(resultado?.itens) ? resultado.itens : []);
+      } catch (error) {
+        logErroPermissoes(error, 'GET', '/memorias', 'listar_memorias');
+        if (montado.current && numero === consultaMemoria.current) {
+          setMemoryError('Permissões carregadas, mas não foi possível consultar as memórias da IA.');
+        }
+      }
+    } catch (error) {
       if (montado.current && numero === consultaMemoria.current) {
-        setMemoryError('Não foi possível consultar a memória da IA.');
-        setMemoryEnabled(false);
-        setPersonalizationEnabled(false);
-        setProactivityEnabled(false);
+        setConsentimentosDisponiveis(false);
+        setMemoryError('Nao foi possivel consultar as permissoes da IA.');
+        logErroPermissoes(error, 'GET', '/consentimento', 'listar_consentimentos');
       }
     } finally {
       if (montado.current && numero === consultaMemoria.current) setLoadingMemory(false);
@@ -207,6 +253,7 @@ export default function Permissions({ data }) {
         setMemoryEnabled(false);
         setPersonalizationEnabled(false);
         setProactivityEnabled(false);
+        setConsentimentosDisponiveis(false);
         setMemoryItems([]);
         setLoadingMemory(false);
       };
@@ -231,6 +278,7 @@ export default function Permissions({ data }) {
       setMemoryEnabled(false);
       setPersonalizationEnabled(false);
       setProactivityEnabled(false);
+      setConsentimentosDisponiveis(false);
       setMemoryItems([]);
       removerCancelamento?.();
       subscription.remove();
@@ -330,13 +378,10 @@ export default function Permissions({ data }) {
   async function alterarMemoria(value) {
     if (loadingMemory || memoryActionLoading || alterandoMemoria.current) return;
     alterandoMemoria.current = true;
-    const sessao = await tokenStorage.captureSession();
-    if (!sessao) {
-      alterandoMemoria.current = false;
-      return;
-    }
-
+    let sessao;
     try {
+      sessao = await tokenStorage.captureSession();
+      if (!sessao) return;
       validarSessao(sessao);
       setMemoryActionLoading(true);
       setMemoryError('');
@@ -349,8 +394,9 @@ export default function Permissions({ data }) {
       setMemoryEnabled(value);
       setMemorySuccess(value ? 'Memória da IA ativada.' : 'Memória da IA revogada.');
       if (value) await carregarEstadoMemoria(true);
-    } catch {
-      if (montado.current && !sessao.signal.aborted) {
+    } catch (error) {
+      logErroPermissoes(error, 'POST', '/consentimento', 'registrar_IA_MEMORIA');
+      if (montado.current && !sessao?.signal?.aborted) {
         setMemoryError('Não foi possível alterar a memória da IA.');
       }
     } finally {
@@ -360,7 +406,7 @@ export default function Permissions({ data }) {
   }
 
   function handleToggleMemory(value) {
-    if (loadingMemory || memoryActionLoading) return;
+    if (loadingMemory || !consentimentosDisponiveis || memoryActionLoading) return;
     if (!value) {
       Alert.alert(
         'Revogar memória da IA',
@@ -378,15 +424,21 @@ export default function Permissions({ data }) {
   async function alterarPersonalizacao(value) {
     if (personalizationActionLoading || alterandoPersonalizacao.current) return;
     alterandoPersonalizacao.current = true;
-    const sessao = await tokenStorage.captureSession();
-    if (!sessao) { alterandoPersonalizacao.current = false; return; }
+    let sessao;
     try {
+      sessao = await tokenStorage.captureSession();
+      if (!sessao) return;
       validarSessao(sessao);
       setPersonalizationActionLoading(true);
       await registrarConsentimento('IA_PERSONALIZACAO', value, { rf017SessionId: sessao.id, signal: sessao.signal });
       validarSessao(sessao);
       setPersonalizationEnabled(value);
-    } catch {
+    } catch (error) {
+      logErroPermissoes(error, 'POST', '/consentimento', 'registrar_IA_PERSONALIZACAO');
+      if (!sessao) {
+        setMemoryError('Nao foi possivel alterar as recomendacoes personalizadas.');
+        return;
+      }
       if (montado.current && !sessao.signal.aborted) setMemoryError('Não foi possível alterar as recomendações personalizadas.');
     } finally {
       alterandoPersonalizacao.current = false;
@@ -395,7 +447,7 @@ export default function Permissions({ data }) {
   }
 
   function handleTogglePersonalizacao(value) {
-    if (loadingMemory || personalizationActionLoading) return;
+    if (loadingMemory || !consentimentosDisponiveis || personalizationActionLoading) return;
     if (!value) {
       Alert.alert('Revogar recomendações personalizadas', 'Novas recomendações personalizadas deixarão de ser geradas.', [
         { text: 'Cancelar', style: 'cancel' },
@@ -409,16 +461,22 @@ export default function Permissions({ data }) {
   async function alterarProatividade(value) {
     if (proactivityActionLoading || alterandoProatividade.current) return;
     alterandoProatividade.current = true;
-    const sessao = await tokenStorage.captureSession();
-    if (!sessao) { alterandoProatividade.current = false; return; }
+    let sessao;
     try {
+      sessao = await tokenStorage.captureSession();
+      if (!sessao) return;
       validarSessao(sessao);
       setProactivityActionLoading(true);
       await registrarConsentimento('IA_PROATIVIDADE', value, { rf017SessionId: sessao.id, signal: sessao.signal });
       validarSessao(sessao);
       setProactivityEnabled(value);
       setMemorySuccess(value ? 'Conversas proativas ativadas.' : 'Conversas proativas revogadas.');
-    } catch {
+    } catch (error) {
+      logErroPermissoes(error, 'POST', '/consentimento', 'registrar_IA_PROATIVIDADE');
+      if (!sessao) {
+        setMemoryError('Nao foi possivel alterar as conversas proativas.');
+        return;
+      }
       if (montado.current && !sessao.signal.aborted) setMemoryError('Nao foi possivel alterar as conversas proativas.');
     } finally {
       alterandoProatividade.current = false;
@@ -427,7 +485,7 @@ export default function Permissions({ data }) {
   }
 
   function handleToggleProatividade(value) {
-    if (loadingMemory || proactivityActionLoading) return;
+    if (loadingMemory || !consentimentosDisponiveis || proactivityActionLoading) return;
     if (!value) {
       Alert.alert('Revogar conversas proativas', 'A Plenna deixara de iniciar novas conversas automaticamente. Historicos existentes continuarao acessiveis.', [
         { text: 'Cancelar', style: 'cancel' },
@@ -572,7 +630,7 @@ export default function Permissions({ data }) {
         <Switch
           value={personalizationEnabled}
           onValueChange={handleTogglePersonalizacao}
-          disabled={loadingMemory || personalizationActionLoading}
+          disabled={loadingMemory || !consentimentosDisponiveis || personalizationActionLoading}
           trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
           thumbColor={personalizationEnabled ? '#4652A4' : '#F4F3F4'}
           ios_backgroundColor="rgba(131, 111, 226, 0.25)"
@@ -587,7 +645,7 @@ export default function Permissions({ data }) {
         <Switch
           value={proactivityEnabled}
           onValueChange={handleToggleProatividade}
-          disabled={loadingMemory || proactivityActionLoading}
+          disabled={loadingMemory || !consentimentosDisponiveis || proactivityActionLoading}
           trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
           thumbColor={proactivityEnabled ? '#4652A4' : '#F4F3F4'}
           ios_backgroundColor="rgba(131, 111, 226, 0.25)"
@@ -605,7 +663,7 @@ export default function Permissions({ data }) {
           <Switch
             value={memoryEnabled}
             onValueChange={handleToggleMemory}
-            disabled={loadingMemory || memoryActionLoading}
+            disabled={loadingMemory || !consentimentosDisponiveis || memoryActionLoading}
             trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
             thumbColor={memoryEnabled ? '#4652A4' : '#F4F3F4'}
             ios_backgroundColor="rgba(131, 111, 226, 0.25)"
