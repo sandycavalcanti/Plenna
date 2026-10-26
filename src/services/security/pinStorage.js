@@ -97,7 +97,7 @@ export async function savePin(userId, pin) {
       key,
       JSON.stringify({ version: RECORD_VERSION, salt, verifier }),
     );
-  } catch {
+  } catch (error) {
     throw error;
   }
 }

@@ -100,6 +100,7 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
     },
     'src/components/ProfileComponents/ProfileCard.js': { default: 'ProfileCard' },
     'src/components/ProfileComponents/Permissions/styles.js': { default: {} },
+    '@react-navigation/native': { useNavigation: () => ({ navigate() {} }) },
   };
   const base = new URL('../', import.meta.url);
   const cache = new Map();

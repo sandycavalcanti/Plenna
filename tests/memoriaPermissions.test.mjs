@@ -20,6 +20,7 @@ async function ambiente() {
     refs: [],
     hookIndex: 0,
     alert: null,
+    navigations: [],
   };
   const session = { id: 1, signal: new AbortController().signal };
   const context = vm.createContext({ AbortController, console, __DEV__: false });
@@ -76,6 +77,7 @@ async function ambiente() {
       Alert: { alert: (...args) => { state.alert = args; } },
       AppState: { addEventListener: () => ({ remove() {} }) },
     },
+    '@react-navigation/native': { useNavigation: () => ({ navigate: (...args) => state.navigations.push(args) }) },
     'src/components/ProfileComponents/ProfileCard.js': { default: 'ProfileCard' },
     'src/components/ProfileComponents/Permissions/styles.js': { default: {} },
     'modules/plenna-usage-stats.js': {
@@ -149,7 +151,7 @@ function findAll(node, type, result = []) {
   return result;
 }
 
-test('Perfil ativa, revoga e exclui memória própria já carregada', async () => {
+test('Perfil ativa, revoga e encaminha para a consulta protegida sem editar memórias', async () => {
   const { state, render, settle } = await ambiente();
   const initial = render();
   state.effects[0]();
@@ -160,7 +162,12 @@ test('Perfil ativa, revoga e exclui memória própria já carregada', async () =
   memorySwitch.props.onValueChange(true);
   await settle();
   assert.deepEqual(state.consentCalls, [{ codigo: 'IA_MEMORIA', status: true }]);
-  assert.equal(state.listCalls, 1);
+  assert.equal(state.listCalls, 0);
+
+  const consultButton = findAll(render(), 'Pressable').find(node => JSON.stringify(node).includes('Consultar minhas memórias'));
+  assert.ok(consultButton);
+  await consultButton.props.onPress();
+  assert.deepEqual(state.navigations, [['MemoryList']]);
 
   switches = findAll(render(), 'Switch');
   await switches.at(-1).props.onValueChange(false);
@@ -172,16 +179,8 @@ test('Perfil ativa, revoga e exclui memória própria já carregada', async () =
     { codigo: 'IA_MEMORIA', status: false },
   ]);
 
-  assert.deepEqual(state.states.find(value => Array.isArray(value)), state.memories);
   const renderedAfterRevoke = render();
-  const deleteButton = findAll(renderedAfterRevoke, 'Pressable').find(node =>
-    JSON.stringify(node).includes('Excluir'));
-  assert.ok(deleteButton);
-  await deleteButton.props.onPress();
-  await state.alert[2][1].onPress();
-  await settle();
-  assert.deepEqual(state.deleteCalls, [1]);
-  assert.deepEqual(state.memories, []);
+  assert.doesNotMatch(JSON.stringify(renderedAfterRevoke), /Salvar|Excluir/);
   void initial;
 });
 

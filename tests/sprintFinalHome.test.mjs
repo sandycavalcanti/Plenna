@@ -4,7 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {transformSync} from '@babel/core';
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 async function pure(path){return import('data:text/javascript;base64,'+Buffer.from(await read(path)).toString('base64'));}
-const {destaquesHome}=await pure('src/utils/destaquesHome.js');
+const {destaquesHome,unificarDestaquesHome}=await pure('src/utils/destaquesHome.js');
+const {formatarValorMoedaParaTela}=await pure('src/components/CustomTextInput/currency.js');
 const {distribuicaoClassificacoes}=await pure('src/utils/distribuicaoClassificacoes.js');
 const {apresentarMeiaLua}=await pure('src/utils/meiaLuaHome.js');
 const clock=new Date('2026-10-14T12:00:00Z');
@@ -45,7 +46,7 @@ const text=t=>Array.isArray(t)?t.map(text).join(' '):t&&typeof t==='object'?text
 const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
 const source=await read('src/components/HomeComponents/MetasHome.js');
 const js=transformSync(source.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
-const component=new Function('React','View','Text','Pressable','ActivityIndicator','useState',js+';return MetasHome;')(React,'View','Text','Pressable','Spinner',()=>[false,()=>{}]);
+const component=new Function('React','View','Text','Pressable','ActivityIndicator','useState','formatarValorMoedaParaTela',js+';return MetasHome;')(React,'View','Text','Pressable','Spinner',()=>[false,()=>{}],formatarValorMoedaParaTela);
 test('goals actual contents, zero one multiple complete unknown and loading failure',()=>{
  const one={id:1,nome:'Viagem',valor:'300',data:'2026-12-01',concluida:false};
  assert.match(text(component({metas:[]})),/Criar uma meta/);
@@ -93,7 +94,7 @@ test('Home hierarchy consumes safe summary and actual goals without old shortcut
  assert.doesNotMatch(s,/ResumoInterativo|Explore seu consumo|Seus próximos passos|useAnaliseComportamento|fetchCompras/);
  assert.ok(s.indexOf('<CardFinanceiroHome')<s.indexOf('<MetasHome'));assert.ok(s.indexOf('<MetasHome')<s.indexOf('Tempo em aplicativos'));
  assert.doesNotMatch(s,/navigate\('Dashboard',\s*\{\s*periodo/);
- assert.match(s,/destaques\.map/);
+ assert.match(s,/itensParaVoce\.map/);
 });
 
 test('Home usage preserves seconds without inventing limits',async()=>{
@@ -108,4 +109,28 @@ test('Home usage preserves seconds without inventing limits',async()=>{
 test('goal calendar date preserves its day and today is not overdue',()=>{
  assert.deepEqual(destaquesHome(null,[{data:'2026-10-14T00:00:00Z',concluida:false}],0,clock),[]);
  assert.match(text(component({metas:[{id:1,nome:'Objetivo',valor:100,data:'2026-12-01T00:00:00Z',concluida:false}]})),/01\/12\/2026/);
+});
+
+test('Home unifica recomendações persistidas e destaques locais por contexto',()=>{
+ const local=[
+  {codigo:'ORCAMENTO_EXCEDIDO',titulo:'Orçamento ultrapassado',mensagem:'Aviso local',acao:'dashboard'},
+  {codigo:'NOTIFICACOES',titulo:'Há avisos para você',mensagem:'1 aviso',acao:'notificacoes'},
+ ];
+ const recommendations=[
+  {id:10,tipo:'ORCAMENTO_EXCEDIDO',titulo:'Atenção ao orçamento',texto:'Veja as despesas do mês.'},
+  {id:11,tipo:'ORCAMENTO_EXCEDIDO',titulo:'Outro alerta',texto:'Evite repetir o excesso.'},
+ ];
+ const result=unificarDestaquesHome(recommendations,local,true);
+ assert.deepEqual(result.map(item=>item.tipoItem),['RECOMENDACAO','DESTAQUE_LOCAL']);
+ assert.equal(result[0].id,10);
+ assert.equal(result[1].codigo,'NOTIFICACOES');
+ assert.equal(unificarDestaquesHome(recommendations,local,false).length,2);
+});
+
+test('Home exibe metas na mesma unidade usada pelo Perfil',()=>{
+ const values=[[500,'R$ 5,00'],[50000,'R$ 500,00'],[125050,'R$ 1.250,50'],[5000000,'R$ 50.000,00']];
+ for(const [valor,esperado] of values){
+  const output=text(component({metas:[{id:1,nome:'Cadeira Gamer',valor,data:null,concluida:false}]}));
+  assert.match(output,new RegExp(esperado.replace(/[.$]/g,'\\$&')));
+ }
 });

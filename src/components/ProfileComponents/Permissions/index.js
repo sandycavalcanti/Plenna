@@ -14,10 +14,9 @@ import {
   Switch,
   Alert,
   AppState,
-  ActivityIndicator,
   Pressable,
-  TextInput,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import ProfileCard from '../ProfileCard';
 import styles from './styles';
@@ -34,12 +33,6 @@ import {
 } from '../../../api/consentimento';
 
 import { tokenStorage } from '../../../api/tokenStorage';
-import {
-  criarMemoria,
-  excluirMemoria,
-  listarMemorias,
-} from '../../../api/memoria';
-
 import { logApiErrors } from '../../../utils/error';
 
 function logErroMonitoramento(error, texto) {
@@ -118,6 +111,7 @@ function logErroPermissoes(error, metodo, caminho, operacao) {
 }
 
 export default function Permissions({ data }) {
+  const navigation = useNavigation();
   const [emailEnabled, setEmailEnabled] = useState(
     data?.email ?? true
   );
@@ -131,8 +125,6 @@ export default function Permissions({ data }) {
   const [proactivityActionLoading, setProactivityActionLoading] = useState(false);
   const [personalizationActionLoading, setPersonalizationActionLoading] = useState(false);
   const [consentimentosDisponiveis, setConsentimentosDisponiveis] = useState(false);
-  const [memoryItems, setMemoryItems] = useState([]);
-  const [memoryText, setMemoryText] = useState('');
   const [loadingMemory, setLoadingMemory] = useState(true);
   const [memoryActionLoading, setMemoryActionLoading] = useState(false);
   const [memoryError, setMemoryError] = useState('');
@@ -212,22 +204,6 @@ export default function Permissions({ data }) {
       setMemoryEnabled(ativo);
       setPersonalizationEnabled(personalizacaoAtiva);
       setProactivityEnabled(proatividadeAtiva);
-      if (!ativo) {
-        setMemoryItems([]);
-        return;
-      }
-
-      try {
-        const resultado = await listarMemorias();
-        validarSessao(sessao);
-        if (numero !== consultaMemoria.current) return;
-        setMemoryItems(Array.isArray(resultado?.itens) ? resultado.itens : []);
-      } catch (error) {
-        logErroPermissoes(error, 'GET', '/memorias', 'listar_memorias');
-        if (montado.current && numero === consultaMemoria.current) {
-          setMemoryError('Permissões carregadas, mas não foi possível consultar as memórias da IA.');
-        }
-      }
     } catch (error) {
       if (montado.current && numero === consultaMemoria.current) {
         setConsentimentosDisponiveis(false);
@@ -254,7 +230,6 @@ export default function Permissions({ data }) {
         setPersonalizationEnabled(false);
         setProactivityEnabled(false);
         setConsentimentosDisponiveis(false);
-        setMemoryItems([]);
         setLoadingMemory(false);
       };
       if (sessao.signal.aborted) limpar();
@@ -279,7 +254,6 @@ export default function Permissions({ data }) {
       setPersonalizationEnabled(false);
       setProactivityEnabled(false);
       setConsentimentosDisponiveis(false);
-      setMemoryItems([]);
       removerCancelamento?.();
       subscription.remove();
     };
@@ -496,54 +470,6 @@ export default function Permissions({ data }) {
     alterarProatividade(true);
   }
 
-  async function handleCreateMemory() {
-    const texto = memoryText.trim();
-    if (!texto || memoryActionLoading || !memoryEnabled) return;
-    try {
-      setMemoryActionLoading(true);
-      setMemoryError('');
-      setMemorySuccess('');
-      const resultado = await criarMemoria(texto);
-      setMemoryItems(current => resultado?.memoria ? [
-        ...current.filter(item => item.memoria_id !== resultado.memoria.memoria_id),
-        resultado.memoria,
-      ] : current);
-      setMemoryText('');
-      setMemorySuccess('Memória salva.');
-    } catch {
-      setMemoryError('Não foi possível salvar essa memória.');
-    } finally {
-      setMemoryActionLoading(false);
-    }
-  }
-
-  function handleDeleteMemory(memoriaId) {
-    Alert.alert(
-      'Excluir memória',
-      'Essa ação remove apenas a memória selecionada.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setMemoryActionLoading(true);
-              setMemoryError('');
-              await excluirMemoria(memoriaId);
-              setMemoryItems(current => current.filter(item => item.memoria_id !== memoriaId));
-              setMemorySuccess('Memória excluída.');
-            } catch {
-              setMemoryError('Não foi possível excluir essa memória.');
-            } finally {
-              setMemoryActionLoading(false);
-            }
-          },
-        },
-      ],
-    );
-  }
-
   const statusMonitoramento = loadingTracking
     ? 'Verificando...'
     : trackingEnabled
@@ -655,7 +581,7 @@ export default function Permissions({ data }) {
         <View style={styles.row}>
           <View style={styles.textContainer}>
             <Text style={styles.text}>Memória da IA</Text>
-            <Text style={styles.sub}>Permitir que a IA use informações que você autorizou salvar</Text>
+            <Text style={styles.sub}>Permitir que a Plenna lembre informações relevantes identificadas durante suas conversas.</Text>
             <Text style={styles.status}>
               {loadingMemory ? 'Verificando...' : memoryEnabled ? 'Memória autorizada' : 'Memória desativada'}
             </Text>
@@ -670,39 +596,15 @@ export default function Permissions({ data }) {
           />
         </View>
 
-        <View>
-          {memoryEnabled ? (
-            <View style={styles.memoryComposer}>
-              <TextInput
-                value={memoryText}
-                onChangeText={setMemoryText}
-                placeholder="Ex.: Prefiro revisar o orçamento aos domingos"
-                placeholderTextColor="#8A8498"
-                maxLength={1000}
-                style={styles.memoryInput}
-                editable={!memoryActionLoading}
-              />
-              <Pressable
-                onPress={handleCreateMemory}
-                disabled={!memoryText.trim() || memoryActionLoading}
-                style={[styles.memoryButton, (!memoryText.trim() || memoryActionLoading) && styles.memoryButtonDisabled]}>
-                <Text style={styles.memoryButtonText}>Salvar</Text>
-              </Pressable>
-            </View>
-          ) : null}
-          {loadingMemory && memoryEnabled ? <ActivityIndicator color="#8660A1" /> : null}
-          {memoryItems.map(item => (
-            <View key={String(item.memoria_id)} style={styles.memoryItem}>
-              <View style={styles.textContainer}>
-                <Text style={styles.memoryContent}>{item.conteudo}</Text>
-                <Text style={styles.status}>{item.origem === 'INFERIDA' ? 'Inferida' : 'Declarada'}</Text>
-              </View>
-              <Pressable onPress={() => handleDeleteMemory(item.memoria_id)} disabled={memoryActionLoading}>
-                <Text style={styles.memoryDelete}>Excluir</Text>
-              </Pressable>
-            </View>
-          ))}
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !memoryEnabled || loadingMemory || !consentimentosDisponiveis }}
+          onPress={() => navigation.navigate('MemoryList')}
+          disabled={!memoryEnabled || loadingMemory || !consentimentosDisponiveis}
+          style={[styles.memoryButton, (!memoryEnabled || loadingMemory || !consentimentosDisponiveis) && styles.memoryButtonDisabled]}
+        >
+          <Text style={styles.memoryButtonText}>Consultar minhas memórias</Text>
+        </Pressable>
         {memoryError ? <Text style={styles.memoryError}>{memoryError}</Text> : null}
         {memorySuccess ? <Text style={styles.memorySuccess}>{memorySuccess}</Text> : null}
       </View>
