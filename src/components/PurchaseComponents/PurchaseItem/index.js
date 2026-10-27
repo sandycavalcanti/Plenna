@@ -25,7 +25,7 @@ function getStatusLabel(status) {
  */
 function getClassificationLabel(classification) {
   const labels = {
-    PENDENTE: 'Pendente',
+    PENDENTE: 'Sem classificação',
     IMPULSIVA: 'Impulsiva',
     NAO_IMPULSIVA: 'Não impulsiva',
   };
@@ -39,7 +39,7 @@ function getClassificationLabel(classification) {
  * decisão visual e permitir trocar a biblioteca sem alterar a renderização.
  * Categorias novas ou desconhecidas usam uma sacola neutra como fallback.
  */
-function getCategoryIcon(categoryName) {
+export function getCategoryIcon(categoryName) {
   const normalizedName = String(categoryName || '').trim().toLocaleLowerCase('pt-BR');
   const icons = {
     moradia: { family: MaterialCommunityIcons, name: 'home' },
@@ -57,10 +57,10 @@ function getCategoryIcon(categoryName) {
     'eletrônicos e gadgets': { family: MaterialCommunityIcons, name: 'laptop' },
     'hobbies e lazer': { family: MaterialCommunityIcons, name: 'gamepad-variant' },
     presentes: { family: MaterialCommunityIcons, name: 'gift' },
-    outros: { family: MaterialCommunityIcons, name: 'shopping-bag' },
+    outros: { family: MaterialCommunityIcons, name: 'shopping-outline' },
   };
 
-  return icons[normalizedName] || { family: MaterialCommunityIcons, name: 'shopping-bag' };
+  return icons[normalizedName] || { family: MaterialCommunityIcons, name: 'shopping-outline' };
 }
 
 /**
@@ -70,12 +70,13 @@ function getCategoryIcon(categoryName) {
  * e para seus itens. Assim, a apresentação não precisa conhecer a lista
  * inteira nem manipular diretamente o estado da tela.
  */
-export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, isItemDeleting, isStatusActionRunning, statusAction, onConfirm, onIgnore, onDelete, onDeleteItem }) {
+export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, isItemDeleting, isStatusActionRunning, statusAction, onConfirm, onIgnore, onDelete, onDeleteItem, onContext, onManage, resumo }) {
   const itemsCount = Array.isArray(purchase.tb_compra_item) ? purchase.tb_compra_item.length : 0;
   const establishment = purchase.compra_fonte || 'Origem não informada';
   // Os helpers são usados somente na apresentação; o objeto recebido não é alterado.
   const statusLabel = getStatusLabel(purchase.compra_status);
-  const classificationLabel = getClassificationLabel(purchase.compra_classificacao);
+  const voluntaryClassification=resumo?.classificacao==='PREFIRO_NAO_CLASSIFICAR'?'PENDENTE':resumo?.classificacao??purchase.compra_classificacao;
+  const classificationLabel = resumo?.classificacao==='PREFIRO_NAO_CLASSIFICAR'?'Prefiro não classificar':getClassificationLabel(voluntaryClassification);
   const isPending = purchase.compra_status === 'AGUARDANDO_CONFIRMACAO';
   const isEmailOrigin = purchase.compra_email === true;
 
@@ -88,6 +89,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
 
   /** Formata Decimal/string/número em moeda brasileira com fallback seguro. */
   function formatCurrency(value) {
+    if (value === null || value === undefined || value === '') return 'Valor não informado';
     const number = Number(value);
     if (!Number.isFinite(number)) return 'Valor não informado';
     return number.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -109,6 +111,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
    * estado usando a compra atualizada devolvida pela API.
    */
   function confirmDeleteItem(item) {
+    if(onManage){onManage(purchase,item);return;}
     if (isDeleting || hasItemDeleting) return;
 
     // Quando só resta um item, a exclusão precisa seguir o DELETE da compra,
@@ -116,7 +119,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
     if (itemsCount === 1) {
       Alert.alert(
         'Excluir compra?',
-        'Deseja excluir esta compra?',
+        'Ela deixará o histórico e os totais financeiros. Isso não registra cancelamento ou reembolso.',
         [
           { text: 'Cancelar', style: 'cancel' },
           { text: 'Excluir', style: 'destructive', onPress: () => onDelete(purchase) },
@@ -140,9 +143,10 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
    * Enquanto o DELETE estiver em andamento, o botão permanece desabilitado.
    */
   function confirmDelete() {
+    if(onManage){onManage(purchase);return;}
     if (isDeleting || hasItemDeleting) return;
 
-    Alert.alert('Excluir compra?', 'Deseja excluir esta compra?', [
+    Alert.alert('Excluir compra?', 'Ela deixará o histórico e os totais financeiros. Isso não registra cancelamento ou reembolso.', [
       { text: 'Cancelar', style: 'cancel' },
         { text: 'Excluir', style: 'destructive', onPress: () => onDelete(purchase) },
     ]);
@@ -196,7 +200,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
           <Text style={styles.value}>{formatCurrency(purchase.compra_valor)}</Text>
           {purchase.compra_status === 'CONFIRMADA' ? (
             <TouchableOpacity
-              accessibilityLabel="Excluir compra e todos os itens"
+              accessibilityLabel={onManage?'Gerenciar compra':'Excluir compra e todos os itens'}
               disabled={isDeleting || hasItemDeleting}
               onPress={confirmDelete}
               style={styles.purchaseDeleteIconButton}
@@ -204,12 +208,13 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
               {isDeleting ? (
                 <ActivityIndicator size="small" color={COLORS.cadTextoAdicionarLimites} />
               ) : (
-                <Feather name="trash-2" size={25} color={COLORS.cadTextoAdicionarLimites} />
+                <Feather name={onManage?'more-horizontal':'trash-2'} size={25} color={COLORS.cadTextoAdicionarLimites} />
               )}
             </TouchableOpacity>
           ) : null}
         </View>
       </View>
+      {onContext && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Contextualizar compra" onPress={() => onContext(purchase.compra_id)} style={{minHeight:64,padding:12,borderRadius:14,backgroundColor:'#EEE4F2',gap:5}}><Text style={{color:COLORS.cadTitulo,fontWeight:'600'}}>{resumo?.percepcao==='SIM'?'Sua percepção':resumo?.contextoRevisao>0?'Seu contexto está registrado':'Entenda melhor esta compra'}</Text><Text style={{color:'#655A70',fontSize:12}}>{resumo?.percepcao==='SIM'?'Você percebeu impulso nesta compra. Ver análise →':resumo?.contextoRevisao>0?'Ver análise e percepção →':'Adicionar contexto · opcional →'}</Text></TouchableOpacity>}
       {/* Badges traduzem os enums sem alterar os dados recebidos da API. */}
       <View style={styles.badgesRow}>
         {isEmailOrigin ? (
@@ -219,10 +224,10 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
           </View>
         ) : null}
 
-        {purchase.compra_classificacao ? (
+        {voluntaryClassification ? (
           <View style={[
             styles.classificationBadge,
-            purchase.compra_classificacao === 'IMPULSIVA' ? styles.impulsiveBadge : null,
+            voluntaryClassification === 'IMPULSIVA' ? styles.impulsiveBadge : null,
           ]}>
             {/*
               A classificação impulsiva recebe texto próprio para manter
@@ -230,8 +235,8 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
             */}
             <Text style={[
               styles.classificationBadgeText,
-              purchase.compra_classificacao === 'IMPULSIVA' ? styles.impulsiveBadgeText : null,
-            ]}>{classificationLabel}</Text>
+              voluntaryClassification === 'IMPULSIVA' ? styles.impulsiveBadgeText : null,
+            ]} accessibilityRole="button" accessibilityLabel="Entender classificação registrada" onPress={() => Alert.alert('Sobre esta classificação', voluntaryClassification === 'PENDENTE' ? (resumo?.classificacao === 'PREFIRO_NAO_CLASSIFICAR' ? 'Você preferiu não classificar esta compra.' : 'Você ainda não classificou esta compra. A reflexão contextual é independente.') : 'Esta é uma classificação registrada, que você pode rever no gerenciamento da compra. Não é uma conclusão automática da análise.')}>{voluntaryClassification==='PENDENTE'?classificationLabel:'Sua classificação: '+classificationLabel}</Text>
           </View>
         ) : null}
         <Text style={styles.itemsSummary}>{itemsCount} {itemsCount === 1 ? 'item' : 'itens'}</Text>
@@ -244,7 +249,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
       <View style={styles.itemsSection}>
         <Text style={styles.itemsTitle}>Itens da compra</Text>
         {Array.isArray(purchase.tb_compra_item) && purchase.tb_compra_item.length > 0 ? (
-          purchase.tb_compra_item.map((item) => {
+          purchase.tb_compra_item.filter(item=>!resumo?.itensOcultos?.includes(item.compra_item_id)).map((item) => {
             const quantityLabel = formatQuantity(item.compra_item_quantidade);
             const categoryLabel = item.tb_categoria?.categoria_nome;
             const categoryIcon = getCategoryIcon(categoryLabel);
@@ -265,7 +270,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
                 </View>
                 <Text style={styles.itemValue}>{formatCurrency(item.compra_item_valor)}</Text>
                 {!isPending ? <TouchableOpacity
-                  accessibilityLabel={`Excluir item ${item.compra_item_nome}`}
+                  accessibilityLabel={`${onManage?'Gerenciar':'Excluir'} item ${item.compra_item_nome}`}
                   disabled={isDeleting || hasItemDeleting}
                   onPress={() => confirmDeleteItem(item)}
                   style={styles.itemDeleteButton}
@@ -273,7 +278,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
                   {isItemDeleting ? (
                     <ActivityIndicator size="small" color={COLORS.cadTextoAdicionarLimites} />
                   ) : (
-                    <Feather name="trash-2" size={17} color={COLORS.cadTextoAdicionarLimites} />
+                    <Feather name={onManage?'more-horizontal':'trash-2'} size={20} color={COLORS.cadTextoAdicionarLimites} />
                   )}
                 </TouchableOpacity> : null}
               </View>

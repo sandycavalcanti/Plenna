@@ -52,6 +52,7 @@ export default StyleSheet.create({
   },
 
   warning: {
+    marginTop: 14,
     fontSize: 12,
     color: COLORS.perfilPermissaoAvisoTexto,
     paddingVertical: 10,

@@ -544,9 +544,6 @@ export default function Permissions({ data }) {
         />
       </View>
 
-      <Text style={styles.warning}>
-        Desativar permissões pode reduzir funcionalidades do app
-      </Text>
       <View style={styles.row}>
         <View style={styles.textContainer}>
           <Text style={styles.text}>Recomendações personalizadas</Text>
@@ -608,6 +605,9 @@ export default function Permissions({ data }) {
         {memoryError ? <Text style={styles.memoryError}>{memoryError}</Text> : null}
         {memorySuccess ? <Text style={styles.memorySuccess}>{memorySuccess}</Text> : null}
       </View>
+      <Text style={styles.warning}>
+        Desativar permissões pode reduzir funcionalidades do app
+      </Text>
     </ProfileCard>
   );
 }

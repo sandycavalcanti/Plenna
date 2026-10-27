@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -138,8 +138,8 @@ export function createRenderer(mocks = {}) {
       if (name.endsWith('api/client')) return { apiClient: { get: async () => ({ data: [] }) } };
       if (name.endsWith('.png')) return name;
       const target = resolve(dirname(path), name);
-      try { return load(target + '.js'); }
-      catch (error) { if (error.code !== 'ENOENT') throw error; }
+      if (name.endsWith('.js')) return load(target);
+      if (existsSync(target + '.js')) return load(target + '.js');
       return load(resolve(target, 'index.js'));
     };
     new Function('require', 'module', 'exports', code)(localRequire, module, module.exports);

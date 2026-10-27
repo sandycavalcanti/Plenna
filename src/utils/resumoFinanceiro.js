@@ -1,4 +1,15 @@
-export const periodoMensalUTC = (date = new Date()) => date.toISOString().slice(0, 7);
+export const BUSINESS_TIMEZONE = 'America/Sao_Paulo';
+
+export function periodoMensalSaoPaulo(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: BUSINESS_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  return `${year}-${month}`;
+}
 export function apresentarResumoFinanceiro(resumo, loading = false, error = false) {
   if (loading || error || !resumo) return { total: null, orcamento: null, titulo: error ? 'Erro ao carregar resumo' : 'Carregando resumo', mensagem: error ? 'Tente atualizar novamente' : '', subtitulo: '', alerta: true };
   const partial = resumo.qualidade === 'PARCIAL';

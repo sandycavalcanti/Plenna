@@ -111,7 +111,7 @@ test('goal calendar date preserves its day and today is not overdue',()=>{
  assert.match(text(component({metas:[{id:1,nome:'Objetivo',valor:100,data:'2026-12-01T00:00:00Z',concluida:false}]})),/01\/12\/2026/);
 });
 
-test('Home unifica recomendações persistidas e destaques locais por contexto',()=>{
+test('Home prioriza recomendações e não mistura destaques locais',()=>{
  const local=[
   {codigo:'ORCAMENTO_EXCEDIDO',titulo:'Orçamento ultrapassado',mensagem:'Aviso local',acao:'dashboard'},
   {codigo:'NOTIFICACOES',titulo:'Há avisos para você',mensagem:'1 aviso',acao:'notificacoes'},
@@ -121,10 +121,17 @@ test('Home unifica recomendações persistidas e destaques locais por contexto',
   {id:11,tipo:'ORCAMENTO_EXCEDIDO',titulo:'Outro alerta',texto:'Evite repetir o excesso.'},
  ];
  const result=unificarDestaquesHome(recommendations,local,true);
- assert.deepEqual(result.map(item=>item.tipoItem),['RECOMENDACAO','DESTAQUE_LOCAL']);
+ assert.deepEqual(result.map(item=>item.tipoItem),['RECOMENDACAO']);
  assert.equal(result[0].id,10);
- assert.equal(result[1].codigo,'NOTIFICACOES');
  assert.equal(unificarDestaquesHome(recommendations,local,false).length,2);
+});
+
+test('Home usa fallbacks somente quando não há recomendação inteligente',()=>{
+ const local=[{codigo:'NOTIFICACOES',titulo:'Há avisos',mensagem:'1 aviso',acao:'notificacoes'}];
+ const descoberta=[{codigo:'INSIGHT',titulo:'Insight',mensagem:'Uma observação',acao:'descobertas'}];
+ assert.deepEqual(unificarDestaquesHome([],local,true,descoberta).map(item=>item.tipoItem),['DESTAQUE_SISTEMA','DESTAQUE_LOCAL']);
+ assert.deepEqual(unificarDestaquesHome([],local,true).map(item=>item.tipoItem),['DESTAQUE_LOCAL']);
+ assert.deepEqual(unificarDestaquesHome([],local,true,[{codigo:'REEMBOLSOS',titulo:'Reembolsos',mensagem:'R$ 10',acao:'descobertas'}]).map(item=>item.tipoItem),['DESTAQUE_SISTEMA','DESTAQUE_LOCAL']);
 });
 
 test('Home exibe metas na mesma unidade usada pelo Perfil',()=>{

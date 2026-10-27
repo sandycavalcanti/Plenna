@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { apresentarResumoFinanceiro, periodoMensalUTC } from '../src/utils/resumoFinanceiro.js';
+import { apresentarResumoFinanceiro, periodoMensalSaoPaulo } from '../src/utils/resumoFinanceiro.js';
 import { readFile } from 'node:fs/promises';
 const complete = { total:100, totalConhecido:100, qualidade:'COMPLETO', comprasSemValor:0, orcamentoMensal:200, estadoOrcamento:'DENTRO' };
 test('both screens consume backend summary; no financial sum from pending history',async()=>{
@@ -24,8 +24,8 @@ test('known zero and empty differ from loading and HTTP failure',()=>{
   assert.match(apresentarResumoFinanceiro(complete,false,true).titulo,/Erro/);
   assert.equal(apresentarResumoFinanceiro(complete,true).total,null);
 });
-test('UTC month boundary and reached/exceeded wording are distinct',()=>{
-  assert.equal(periodoMensalUTC(new Date('2026-12-31T23:30:00-03:00')),'2027-01');
+test('São Paulo month boundary and reached/exceeded wording are distinct',()=>{
+  assert.equal(periodoMensalSaoPaulo(new Date('2027-01-01T01:30:00Z')),'2026-12');
   assert.match(apresentarResumoFinanceiro({...complete,estadoOrcamento:'ATINGIDO'}).subtitulo,/atingido/);
   assert.match(apresentarResumoFinanceiro({...complete,estadoOrcamento:'EXCEDIDO'}).subtitulo,/excedido/);
 });

@@ -8,7 +8,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build": "node src/utils/buildScript.js && eas build -p android --profile preview"
+    "build": "node src/utils/buildScript.js && eas build -p android --profile preview",
+    "test:offline": "node --import ./scripts/offline-network.mjs --experimental-vm-modules --test tests/*.test.mjs",
+    "test:rf018": "node scripts/test-rf018.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

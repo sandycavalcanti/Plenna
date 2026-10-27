@@ -1,3 +1,6 @@
+import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
+import DescobertasDashboard from '../../components/DashboardComponents/DescobertasDashboard';
+import MovimentacoesCompra from '../../components/DashboardComponents/MovimentacoesCompra';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -857,7 +860,7 @@ export default function DashboardScreen({ route, navigation }) {
       : routeIndicator === 'compras'
         ? 'indicators'
         : routeIndicator === 'orientacoes'
-          ? 'rf018'
+          ? 'comportamento'
           : routeIndicator === 'gastos'
             ? 'financial'
             : null;
@@ -1031,7 +1034,9 @@ export default function DashboardScreen({ route, navigation }) {
     [activeTab, width],
   );
 
+  const descobertasResumo = useDescobertasResumo(selectedMonth);
   const handleRefresh = useCallback(() => {
+    descobertasResumo.refresh();
     if (activeTab === 0) {
       loadOverview();
       loadContext();
@@ -1039,7 +1044,7 @@ export default function DashboardScreen({ route, navigation }) {
     } else {
       loadComparison();
     }
-  }, [activeTab, comportamento.refresh, loadComparison, loadContext, loadOverview]);
+  }, [activeTab, comportamento.refresh, descobertasResumo.refresh, loadComparison, loadContext, loadOverview]);
 
   const period = overviewData?.periodos?.[0] || null;
   const metaValue = Number(usuario?.usuario_meta_valor_mensal || 0);
@@ -1171,7 +1176,7 @@ export default function DashboardScreen({ route, navigation }) {
           />
         </View>
 
-        <View onLayout={mark('rf018')}>
+        <View onLayout={mark('comportamento')}>
           <AnaliseComportamento
             dados={comportamento.dados}
             loading={comportamento.loading}
@@ -1185,6 +1190,8 @@ export default function DashboardScreen({ route, navigation }) {
         </View>
         <FormaPagamento gastosFormaPagamento={period?.formas_pagamento || []} />
         <Impulsividade data={period?.impulsividade || []} />
+        <DescobertasDashboard dados={descobertasResumo.dados} onOpen={() => navigation.navigate('Purchases', { filtroConsumo: { periodo: selectedMonth, timezone: 'America/Sao_Paulo' } })} />
+        <MovimentacoesCompra eventos={descobertasResumo.dados?.eventos} />
         <Impulsividade
           data={limitData}
           title="Compras acima do limite"

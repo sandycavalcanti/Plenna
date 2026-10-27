@@ -34,9 +34,16 @@ function contextoDoItem(item) {
  * contexto financeiro. A lista persistida tem prioridade; os destaques locais
  * continuam disponíveis para avisos comuns, como notificações não lidas.
  */
-export function unificarDestaquesHome(recomendacoes = [], locais = [], consentimentoAtivo = false) {
- const itens = [];
+export function unificarDestaquesHome(
+ recomendacoes = [],
+ locais = [],
+ consentimentoAtivo = false,
+ descobertas = [],
+) {
+ const itensInteligentes = [];
+ const itensFallback = [];
  const contextos = new Set();
+ const contextosFallback = new Set();
 
  if (consentimentoAtivo === true && Array.isArray(recomendacoes)) {
   for (const item of recomendacoes) {
@@ -44,7 +51,7 @@ export function unificarDestaquesHome(recomendacoes = [], locais = [], consentim
    const contexto = contextoDoItem(item);
    if (contextos.has(contexto)) continue;
    contextos.add(contexto);
-   itens.push({
+   itensInteligentes.push({
     ...item,
     tipoItem: 'RECOMENDACAO',
     chave: `recomendacao-${item.id}`,
@@ -55,11 +62,27 @@ export function unificarDestaquesHome(recomendacoes = [], locais = [], consentim
   }
  }
 
+ // Descobertas e observações históricas são cards sistêmicos de fallback.
+ // Recomendações persistidas têm prioridade e não são misturadas com eles.
+ for (const item of Array.isArray(descobertas) ? descobertas : []) {
+  if (!item?.codigo) continue;
+  const contexto = contextoDoItem(item);
+  if (contextos.has(contexto) || contextosFallback.has(contexto)) continue;
+  contextosFallback.add(contexto);
+  itensFallback.push({
+   ...item,
+   tipoItem: 'DESTAQUE_SISTEMA',
+   chave: `descoberta-${item.codigo}`,
+   contexto,
+   mensagem: item.mensagem ?? item.informacao ?? item.texto ?? '',
+  });
+ }
+
  for (const item of Array.isArray(locais) ? locais : []) {
   const contexto = contextoDoItem(item);
-  if (contextos.has(contexto)) continue;
-  contextos.add(contexto);
-  itens.push({
+  if (contextos.has(contexto) || contextosFallback.has(contexto)) continue;
+  contextosFallback.add(contexto);
+  itensFallback.push({
    ...item,
    tipoItem: 'DESTAQUE_LOCAL',
    chave: `local-${item.codigo}`,
@@ -67,5 +90,6 @@ export function unificarDestaquesHome(recomendacoes = [], locais = [], consentim
   });
  }
 
- return itens;
+ if (itensInteligentes.length > 0) return itensInteligentes.slice(0, 3);
+ return [...itensFallback].slice(0, 3);
 }

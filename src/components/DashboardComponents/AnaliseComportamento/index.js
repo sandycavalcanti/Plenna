@@ -12,9 +12,7 @@ function recommendationKey(periodo, codigo) {
 export default function AnaliseComportamento({ dados, loading, error, onRetry }) {
   const [openedCategoriesPeriod, setOpenedCategoriesPeriod] = useState(null);
   const [openedRecommendation, setOpenedRecommendation] = useState(null);
-  const categoriesExpanded = Boolean(
-    dados?.analise?.periodo && openedCategoriesPeriod === dados.analise.periodo,
-  );
+  const categoriesExpanded = Boolean(dados?.analise?.periodo && openedCategoriesPeriod === dados.analise.periodo);
   let content;
 
   if (loading) {
@@ -57,30 +55,22 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
             <View style={styles.metricTop}>
               <MaterialCommunityIcons name="cash-check" size={19} color={COLORS.dadoTres} accessible={false} />
               <Text style={styles.value}>
-                {typeof financeiro.total === 'number' && Number.isFinite(financeiro.total)
-                  ? financeiro.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                  : '--'}
+                {typeof financeiro.total === 'number' && Number.isFinite(financeiro.total) ? financeiro.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '--'}
               </Text>
             </View>
-            <Text style={styles.label}>Compras com valor conhecido</Text>
+            <Text style={styles.label}>Compras identificadas</Text>
           </View>
         </View>
 
         {frequencia.compras === 0 && <Text style={styles.note}>Nenhuma compra confirmada registrada neste período.</Text>}
-        {financeiro.comprasSemValor > 0 && (
-          <Text style={styles.note}>
-            {financeiro.comprasSemValor} compra(s) sem valor. Os totais conhecidos podem estar incompletos.
-          </Text>
-        )}
+        {financeiro.comprasSemValor > 0 && <Text style={styles.note}>{financeiro.comprasSemValor} compra(s) sem valor. Os totais conhecidos podem estar incompletos.</Text>}
         {groups.length > 0 && (
           <View style={styles.groupSection}>
             <Text style={styles.sectionHeading}>Suas categorias</Text>
             {(categoriesExpanded ? groups : groups.slice(0, 2)).map((group) => (
               <View key={group.categoriaId} style={styles.category}>
                 <View style={styles.categoryHeader}>
-                  <Text style={styles.categoryName}>
-                    {labels.get(group.categoriaId) || 'Categoria não identificada'}
-                  </Text>
+                  <Text style={styles.categoryName}>{labels.get(group.categoriaId) || 'Categoria não identificada'}</Text>
                   <Text style={styles.note}>
                     {group.compras} compra(s) · {(group.participacao * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%
                   </Text>
@@ -97,22 +87,14 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
               accessibilityState={{ expanded: categoriesExpanded }}
               accessibilityLabel={categoriesExpanded ? 'Mostrar menos categorias' : 'Ver mais categorias'}
               style={styles.moreButton}
-              onPress={() => setOpenedCategoriesPeriod(categoriesExpanded ? null : analise.periodo)}
-            >
+              onPress={() => setOpenedCategoriesPeriod(categoriesExpanded ? null : analise.periodo)}>
               <Text style={styles.actionText}>{categoriesExpanded ? 'Mostrar menos' : 'Ver mais'}</Text>
-              <MaterialCommunityIcons
-                name={categoriesExpanded ? 'chevron-up' : 'chevron-down'}
-                size={19}
-                color={COLORS.dadoTres}
-                accessible={false}
-              />
+              <MaterialCommunityIcons name={categoriesExpanded ? 'chevron-up' : 'chevron-down'} size={19} color={COLORS.dadoTres} accessible={false} />
             </Pressable>
           </View>
         )}
 
-        {concentration.comprasSemCategoria > 0 && (
-          <Text style={styles.note}>{concentration.comprasSemCategoria} compra(s) sem categoria informada.</Text>
-        )}
+        {concentration.comprasSemCategoria > 0 && <Text style={styles.note}>{concentration.comprasSemCategoria} compra(s) sem categoria informada.</Text>}
 
         {recommendations.length > 0 && <Text style={styles.sectionHeading}>Para refletir</Text>}
         {recommendations.slice(0, 2).map((recommendation) => {
@@ -124,17 +106,11 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
               accessibilityRole="button"
               accessibilityState={{ expanded: recommendationExpanded }}
               onPress={() => setOpenedRecommendation(recommendationExpanded ? null : key)}
-              style={styles.recommendation}
-            >
+              style={styles.recommendation}>
               <View style={styles.recommendationHeader}>
                 <MaterialCommunityIcons name="lightbulb-outline" size={19} color={COLORS.dadoTres} accessible={false} />
                 <Text style={[styles.sectionHeading, styles.recommendationTitle]}>{recommendation.titulo}</Text>
-                <MaterialCommunityIcons
-                  name={recommendationExpanded ? 'chevron-up' : 'chevron-down'}
-                  size={19}
-                  color={COLORS.dadoTres}
-                  accessible={false}
-                />
+                <MaterialCommunityIcons name={recommendationExpanded ? 'chevron-up' : 'chevron-down'} size={19} color={COLORS.dadoTres} accessible={false} />
               </View>
               {recommendationExpanded && <Text style={styles.note}>{recommendation.mensagem}</Text>}
             </Pressable>
@@ -142,7 +118,7 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
         })}
 
         {recommendations.length === 0 && <Text style={styles.note}>Sem orientações disponíveis neste mês.</Text>}
-        {recommendations.length > 0 && <Text style={styles.note}>Referência: limites atuais, sem vigência histórica comprovada.</Text>}
+        {recommendations.length > 0 && <Text style={styles.note}>Referência: tuais, sem vigência histórica comprovada.</Text>}
       </View>
     );
   }
