@@ -1,0 +1,975 @@
+{
+  "versaoContrato": 1,
+  "versaoComplemento": "contextual-historico-1",
+  "compraId": 1,
+  "contextual": {
+    "versaoContrato": 1,
+    "versaoMotor": "contextual-1",
+    "compraId": 1,
+    "contextoRevisao": 0,
+    "estado": "DADOS_INSUFICIENTES",
+    "observacoes": [
+      {
+        "codigo": "LIMITE_EXCEDIDO",
+        "mensagem": "O valor registrado supera a referência individual atual em R$ 20,00. Isso não determina impulsividade.",
+        "referencias": [
+          "compra:1",
+          "perfil:limite-atual"
+        ]
+      }
+    ],
+    "declaracoes": [],
+    "autopercepcao": null,
+    "interpretacao": {
+      "mensagem": "Não há contexto suficiente para uma reflexão contextual. Isso não significa ausência de sinais.",
+      "reflexao": null,
+      "referencias": []
+    },
+    "evidencias": [
+      {
+        "referencia": "compra:1",
+        "natureza": "REGISTRADO"
+      },
+      {
+        "referencia": "perfil:limite-atual",
+        "natureza": "DECLARADO"
+      }
+    ],
+    "limitacoes": [
+      "NAO_DIAGNOSTICA_IMPULSIVIDADE",
+      "REFERENCIA_ATUAL_SEM_VIGENCIA_HISTORICA",
+      "HORARIO_EFETIVO_NAO_COMPROVADO",
+      "HISTORICO_E_RF017_NAO_UTILIZADOS",
+      "PLANEJAMENTO_GERAL_AUSENTE",
+      "CONTEXTO_INSUFICIENTE_PARA_REFLEXAO"
+    ],
+    "regrasAplicadas": [
+      {
+        "codigo": "R1_LIMITE",
+        "versao": 1,
+        "justificativa": "Comparação em centavos com a referência individual atual; sem conclusão comportamental.",
+        "referencias": [
+          "compra:1",
+          "perfil:limite-atual"
+        ]
+      }
+    ]
+  },
+  "historico": {
+    "versaoContrato": 1,
+    "versaoIndicadores": "historicos-1",
+    "periodo": "2026-10",
+    "timezone": "America/Sao_Paulo",
+    "observadoAte": "2026-10-05T00:00:00.000Z",
+    "janelaHistorico": {
+      "inicio": "2026-04-01T00:00:00.000Z",
+      "fimExclusivo": "2026-10-01T00:00:00.000Z",
+      "meses": 6
+    },
+    "politicaTemporal": {
+      "versao": "temporal-1",
+      "solicitado": {
+        "inicio": "2026-04-01T00:00:00.000Z",
+        "fimExclusivo": "2026-10-05T00:00:00.000Z"
+      },
+      "contaCriadaEm": null,
+      "compras": {
+        "analisado": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "cobertura": "REGISTROS_DISPONIVEIS_SEM_GARANTIA_DE_CONTINUIDADE",
+        "registros": 6,
+        "disponivel": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "continuidadeComprovada": false,
+        "origens": [
+          "MANUAL"
+        ],
+        "precisao": "DIA_OU_INSUFICIENTE",
+        "datasDeMensagemEmail": 0
+      },
+      "valores": {
+        "analisado": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "cobertura": "REGISTROS_DISPONIVEIS_SEM_GARANTIA_DE_CONTINUIDADE",
+        "registros": 6,
+        "disponivel": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "continuidadeComprovada": false,
+        "origens": [
+          "MANUAL"
+        ],
+        "precisao": "DIA_OU_INSUFICIENTE",
+        "datasDeMensagemEmail": 0
+      },
+      "categorias": {
+        "analisado": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "cobertura": "REGISTROS_DISPONIVEIS_SEM_GARANTIA_DE_CONTINUIDADE",
+        "registros": 6,
+        "disponivel": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "continuidadeComprovada": false,
+        "origens": [
+          "MANUAL"
+        ],
+        "precisao": "DIA_OU_INSUFICIENTE",
+        "datasDeMensagemEmail": 0
+      },
+      "planejamento": {
+        "analisado": null,
+        "cobertura": "REGISTROS_DISPONIVEIS_SEM_GARANTIA_DE_CONTINUIDADE",
+        "declaracoesRegistradas": null,
+        "vigenciaNaCompraComprovada": false,
+        "registros": 0,
+        "disponivel": null,
+        "continuidadeComprovada": false,
+        "origens": [],
+        "precisao": "DIA_OU_INSUFICIENTE",
+        "datasDeMensagemEmail": 0
+      },
+      "influenciaPromocional": {
+        "analisado": null,
+        "cobertura": "REGISTROS_DISPONIVEIS_SEM_GARANTIA_DE_CONTINUIDADE",
+        "declaracoesRegistradas": null,
+        "vigenciaNaCompraComprovada": false,
+        "registros": 0,
+        "disponivel": null,
+        "continuidadeComprovada": false,
+        "origens": [],
+        "precisao": "DIA_OU_INSUFICIENTE",
+        "datasDeMensagemEmail": 0
+      },
+      "intervalos": {
+        "analisado": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "cobertura": "REGISTROS_DISPONIVEIS_SEM_GARANTIA_DE_CONTINUIDADE",
+        "registros": 6,
+        "disponivel": {
+          "inicio": "2026-09-01",
+          "fimInclusivo": "2026-09-06"
+        },
+        "continuidadeComprovada": false,
+        "origens": [
+          "MANUAL"
+        ],
+        "precisao": "DIA_OU_INSUFICIENTE",
+        "datasDeMensagemEmail": 0
+      },
+      "recorrenciasVinculadas": {
+        "analisado": null,
+        "cobertura": "REGISTROS_DISPONIVEIS_SEM_GARANTIA_DE_CONTINUIDADE",
+        "registros": 0,
+        "disponivel": null,
+        "continuidadeComprovada": false,
+        "origens": [],
+        "precisao": "DIA_OU_INSUFICIENTE",
+        "datasDeMensagemEmail": 0
+      },
+      "monitoramentoAndroid": "NAO_UTILIZADO",
+      "associacaoAplicativosCompras": "INDISPONIVEL",
+      "comparacaoElegivel": false,
+      "limitacoes": [
+        "REGISTROS_NAO_COMPROVAM_CONTINUIDADE",
+        "CADASTRO_NAO_LIMITA_COMPRAS_ANTERIORES",
+        "EMAIL_NAO_COMPROVA_DATA_DA_TRANSACAO",
+        "RF017_NAO_UTILIZADO"
+      ]
+    },
+    "qualidade": {
+      "cobertura": "DESCONHECIDA",
+      "universo": "COMPRAS_ATIVAS_CONFIRMADAS_REGISTRADAS",
+      "comprasAtual": 0,
+      "comprasHistorico": 6,
+      "semDataOuPrecisao": 0,
+      "excluidasLogicamente": 0,
+      "naoConfirmadas": 0,
+      "importadasEmailAtual": 0,
+      "contextoAusenteAtual": 0,
+      "revisoesUtilizadas": [],
+      "precisaoTemporal": "DIA_OU_INSUFICIENTE"
+    },
+    "frequencia": {
+      "compras": 0,
+      "diasObservados": 4,
+      "comprasPorDia": null,
+      "periodos": [
+        {
+          "periodo": "2026-04",
+          "inicio": "2026-04-01T00:00:00.000Z",
+          "fimExclusivo": "2026-05-01T00:00:00.000Z",
+          "compras": 0,
+          "diasObservados": 30,
+          "cobertura": "DESCONHECIDA",
+          "temRegistros": false,
+          "comprasPorDia": null
+        },
+        {
+          "periodo": "2026-05",
+          "inicio": "2026-05-01T00:00:00.000Z",
+          "fimExclusivo": "2026-06-01T00:00:00.000Z",
+          "compras": 0,
+          "diasObservados": 31,
+          "cobertura": "DESCONHECIDA",
+          "temRegistros": false,
+          "comprasPorDia": null
+        },
+        {
+          "periodo": "2026-06",
+          "inicio": "2026-06-01T00:00:00.000Z",
+          "fimExclusivo": "2026-07-01T00:00:00.000Z",
+          "compras": 0,
+          "diasObservados": 30,
+          "cobertura": "DESCONHECIDA",
+          "temRegistros": false,
+          "comprasPorDia": null
+        },
+        {
+          "periodo": "2026-07",
+          "inicio": "2026-07-01T00:00:00.000Z",
+          "fimExclusivo": "2026-08-01T00:00:00.000Z",
+          "compras": 0,
+          "diasObservados": 31,
+          "cobertura": "DESCONHECIDA",
+          "temRegistros": false,
+          "comprasPorDia": null
+        },
+        {
+          "periodo": "2026-08",
+          "inicio": "2026-08-01T00:00:00.000Z",
+          "fimExclusivo": "2026-09-01T00:00:00.000Z",
+          "compras": 0,
+          "diasObservados": 31,
+          "cobertura": "DESCONHECIDA",
+          "temRegistros": false,
+          "comprasPorDia": null
+        },
+        {
+          "periodo": "2026-09",
+          "inicio": "2026-09-01T00:00:00.000Z",
+          "fimExclusivo": "2026-10-01T00:00:00.000Z",
+          "compras": 6,
+          "diasObservados": 30,
+          "cobertura": "DESCONHECIDA",
+          "temRegistros": true,
+          "comprasPorDia": null
+        },
+        {
+          "periodo": "2026-10",
+          "inicio": "2026-10-01T00:00:00.000Z",
+          "fimExclusivo": "2026-10-05T00:00:00.000Z",
+          "compras": 0,
+          "diasObservados": 4,
+          "cobertura": "DESCONHECIDA",
+          "temRegistros": false,
+          "comprasPorDia": null
+        }
+      ],
+      "distribuicaoDiaria": [],
+      "maiorConcentracao": {
+        "comprasPorDia": 0,
+        "datas": []
+      },
+      "comparacao": {
+        "disponibilidade": "INDISPONIVEL",
+        "motivo": "COBERTURA_NAO_COMPLETA",
+        "diasComparados": 4,
+        "inicioAtual": "2026-10-01T00:00:00.000Z",
+        "fimAtualExclusivo": "2026-10-05T00:00:00.000Z",
+        "inicioAnterior": "2026-09-01T00:00:00.000Z",
+        "fimAnteriorExclusivo": "2026-09-05T00:00:00.000Z",
+        "comprasAtual": 0,
+        "comprasAnterior": 4,
+        "diferenca": null,
+        "variacaoRelativa": null
+      }
+    },
+    "intervalos": {
+      "disponibilidade": "PARCIAL",
+      "escopo": "HISTORICO_E_PERIODO_ATUAL",
+      "motivo": "INTERVALOS_ENTRE_REGISTROS_NAO_COMPROVAM_MOMENTO_EFETIVO",
+      "medianaDiasEntreDatas": 1,
+      "pares": [
+        {
+          "compraAnteriorId": 2,
+          "compraId": 3,
+          "precisao": "DIA",
+          "ordemNoMesmoDiaComprovada": null,
+          "segundosExatos": null,
+          "diasEntreDatas": 1
+        },
+        {
+          "compraAnteriorId": 3,
+          "compraId": 4,
+          "precisao": "DIA",
+          "ordemNoMesmoDiaComprovada": null,
+          "segundosExatos": null,
+          "diasEntreDatas": 1
+        },
+        {
+          "compraAnteriorId": 4,
+          "compraId": 5,
+          "precisao": "DIA",
+          "ordemNoMesmoDiaComprovada": null,
+          "segundosExatos": null,
+          "diasEntreDatas": 1
+        },
+        {
+          "compraAnteriorId": 5,
+          "compraId": 6,
+          "precisao": "DIA",
+          "ordemNoMesmoDiaComprovada": null,
+          "segundosExatos": null,
+          "diasEntreDatas": 1
+        },
+        {
+          "compraAnteriorId": 6,
+          "compraId": 7,
+          "precisao": "DIA",
+          "ordemNoMesmoDiaComprovada": null,
+          "segundosExatos": null,
+          "diasEntreDatas": 1
+        }
+      ]
+    },
+    "valores": {
+      "atual": {
+        "amostra": 0,
+        "semValor": 0,
+        "disponibilidade": "INDISPONIVEL",
+        "motivo": "MENOS_DE_DUAS_COMPRAS_COM_VALOR",
+        "medianaCentavos": null,
+        "mediaCentavos": null,
+        "minimoCentavos": null,
+        "maximoCentavos": null
+      },
+      "historico": {
+        "amostra": 6,
+        "semValor": 0,
+        "disponibilidade": "DISPONIVEL",
+        "motivo": null,
+        "medianaCentavos": 1250,
+        "mediaCentavos": 1250,
+        "minimoCentavos": 1000,
+        "maximoCentavos": 1500
+      },
+      "referencia": "MEDIANA_DAS_COMPRAS_ANTERIORES",
+      "minimoAmostraHistorica": 2,
+      "disponibilidade": "INDISPONIVEL",
+      "motivo": "HISTORICO_OU_VALORES_INSUFICIENTES",
+      "diferencaMedianasCentavos": null,
+      "variacaoRelativaMediana": null
+    },
+    "categorias": [
+      {
+        "categoriaId": 1,
+        "comprasAtual": 0,
+        "comprasHistorico": 6,
+        "nome": "Livros",
+        "valores": {
+          "comprasAtribuidas": 6,
+          "totalLiquidoCentavos": 7500,
+          "comprasMulticategoriaSemRateio": 0,
+          "comprasSemCategorizacaoCompleta": 0,
+          "escopo": "COMPRAS_COM_UMA_CATEGORIA_SEM_RATEIO_DE_DESCONTO"
+        },
+        "repeticaoObservada": true,
+        "comparacao": {
+          "atual": 0,
+          "anterior": 4,
+          "disponibilidade": "INDISPONIVEL",
+          "motivo": "COBERTURA_NAO_COMPLETA",
+          "diferenca": null,
+          "variacaoRelativa": null
+        }
+      }
+    ],
+    "planejamento": {
+      "universo": 0,
+      "conhecidas": 0,
+      "ausentes": 0,
+      "recusadas": 0,
+      "naoLembra": 0,
+      "cobertura": null,
+      "disponibilidade": "INDISPONIVEL",
+      "contagens": {
+        "SIM": 0,
+        "PARCIALMENTE": 0,
+        "NAO": 0
+      },
+      "proporcoesConhecidas": {
+        "SIM": null,
+        "PARCIALMENTE": null,
+        "NAO": null
+      },
+      "historico": {
+        "universo": 6,
+        "conhecidas": 0,
+        "ausentes": 6,
+        "recusadas": 0,
+        "naoLembra": 0,
+        "cobertura": 0,
+        "disponibilidade": "INDISPONIVEL",
+        "contagens": {
+          "SIM": 0,
+          "PARCIALMENTE": 0,
+          "NAO": 0
+        },
+        "proporcoesConhecidas": {
+          "SIM": null,
+          "PARCIALMENTE": null,
+          "NAO": null
+        }
+      },
+      "periodos": [
+        {
+          "periodo": "2026-04",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-05",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-06",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-07",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-08",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-09",
+          "universo": 6,
+          "conhecidas": 0,
+          "ausentes": 6,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": 0,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-10",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        }
+      ],
+      "porItem": {
+        "universo": 0,
+        "conhecidas": 0,
+        "ausentes": 0,
+        "recusadas": 0,
+        "naoLembra": 0,
+        "cobertura": null,
+        "disponibilidade": "INDISPONIVEL",
+        "contagens": {
+          "SIM": 0,
+          "PARCIALMENTE": 0,
+          "NAO": 0
+        },
+        "proporcoesConhecidas": {
+          "SIM": null,
+          "PARCIALMENTE": null,
+          "NAO": null
+        },
+        "escopo": "ITENS_ATIVOS_DAS_COMPRAS_ELEGIVEIS"
+      }
+    },
+    "influenciaPromocional": {
+      "universo": 0,
+      "conhecidas": 0,
+      "ausentes": 0,
+      "recusadas": 0,
+      "naoLembra": 0,
+      "cobertura": null,
+      "disponibilidade": "INDISPONIVEL",
+      "contagens": {
+        "SIM": 0,
+        "PARCIALMENTE": 0,
+        "NAO": 0
+      },
+      "proporcoesConhecidas": {
+        "SIM": null,
+        "PARCIALMENTE": null,
+        "NAO": null
+      },
+      "historico": {
+        "universo": 6,
+        "conhecidas": 0,
+        "ausentes": 6,
+        "recusadas": 0,
+        "naoLembra": 0,
+        "cobertura": 0,
+        "disponibilidade": "INDISPONIVEL",
+        "contagens": {
+          "SIM": 0,
+          "PARCIALMENTE": 0,
+          "NAO": 0
+        },
+        "proporcoesConhecidas": {
+          "SIM": null,
+          "PARCIALMENTE": null,
+          "NAO": null
+        }
+      },
+      "periodos": [
+        {
+          "periodo": "2026-04",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-05",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-06",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-07",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-08",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-09",
+          "universo": 6,
+          "conhecidas": 0,
+          "ausentes": 6,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": 0,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        },
+        {
+          "periodo": "2026-10",
+          "universo": 0,
+          "conhecidas": 0,
+          "ausentes": 0,
+          "recusadas": 0,
+          "naoLembra": 0,
+          "cobertura": null,
+          "disponibilidade": "INDISPONIVEL",
+          "contagens": {
+            "SIM": 0,
+            "PARCIALMENTE": 0,
+            "NAO": 0
+          },
+          "proporcoesConhecidas": {
+            "SIM": null,
+            "PARCIALMENTE": null,
+            "NAO": null
+          }
+        }
+      ],
+      "influenciaDeclarada": 0,
+      "proporcaoConhecidas": null
+    },
+    "recorrencias": {
+      "cadastradas": 0,
+      "referenciaCadastro": "CONFIGURACAO_ATUAL_NAO_HISTORICO_DE_ESTADOS",
+      "porStatus": {
+        "ATIVA": 0,
+        "PAUSADA": 0,
+        "CANCELADA": 0,
+        "FINALIZADA": 0
+      },
+      "comprasVinculadasAtual": 0,
+      "comprasVinculadasHistorico": 0,
+      "repeticaoEstatisticaNaoComprovaRecorrencia": true
+    },
+    "eventosPosteriores": {
+      "universo": 6,
+      "comprasComDeclaracao": 0,
+      "contagens": {
+        "CANCELAMENTO": 0,
+        "DEVOLUCAO": 0,
+        "REEMBOLSO": 0,
+        "ARREPENDIMENTO": 0
+      },
+      "escopo": "ULTIMA_DECLARACAO_DISPONIVEL_SEM_AJUSTE_FINANCEIRO"
+    },
+    "financeiro": {
+      "totalConhecido": 0,
+      "total": 0,
+      "qualidade": "SEM_COMPRAS",
+      "comprasConfirmadas": 0,
+      "comprasComValor": 0,
+      "comprasSemValor": 0,
+      "mediaConhecida": null,
+      "orcamentoMensal": null,
+      "estadoOrcamento": "SEM_ORCAMENTO",
+      "cobertura": "DESCONHECIDA",
+      "orcamentoHistoricoComprovado": false
+    },
+    "complementoContextual": {
+      "observacoes": [
+        {
+          "codigo": "FREQUENCIA_REGISTRADA",
+          "mensagem": "0 compra(s) confirmada(s) no período observado.",
+          "referencias": []
+        },
+        {
+          "codigo": "COBERTURA_PLANEJAMENTO",
+          "mensagem": "0 de 0 compra(s) têm planejamento conhecido declarado.",
+          "referencias": []
+        }
+      ],
+      "alteraClassificacao": false
+    },
+    "limitacoes": [
+      "INDICADORES_DESCRITIVOS_NAO_DIAGNOSTICAM_IMPULSIVIDADE",
+      "DATAS_REGISTRADAS_NAO_COMPROVAM_MOMENTO_EFETIVO",
+      "AUSENCIA_DE_REGISTROS_NAO_COMPROVA_AUSENCIA_DE_CONSUMO",
+      "DESCONTOS_NAO_SUBTRAIDOS_NOVAMENTE",
+      "DECLARACOES_USAM_ULTIMA_REVISAO_DISPONIVEL_NAO_CONTEXTO_INFERIDO",
+      "RECORRENCIA_CADASTRADA_NAO_CLASSIFICA_COMPORTAMENTO",
+      "COBERTURA_NAO_COMPLETA",
+      "ORCAMENTO_ATUAL_SEM_HISTORICO_DE_VIGENCIA"
+    ]
+  },
+  "persistido": false,
+  "escopoHistorico": "ANTERIOR_A_DATA_REGISTRADA_SEM_EVENTOS_DO_MESMO_DIA",
+  "comparacaoValorCompra": {
+    "valorLiquidoCentavos": 10000,
+    "referencia": "MEDIANA_DAS_COMPRAS_ANTERIORES_A_DATA",
+    "amostra": 6,
+    "medianaHistoricaCentavos": 1250,
+    "diferencaCentavos": 8750,
+    "disponibilidade": "PARCIAL"
+  },
+  "reflexoesHistoricas": {
+    "versaoRegras": "reflexoes-historicas-1",
+    "estado": "COM_REFLEXOES",
+    "itens": [
+      {
+        "codigo": "VALORES",
+        "natureza": "REGISTRADO",
+        "observacao": "Esta compra tem valor registrado de R$ 100,00. A mediana de 6 compras anteriores com valor conhecido é R$ 12,50. A diferença, por si só, não determina comportamento.",
+        "reflexao": "O valor desta compra corresponde ao que você pretendia gastar?",
+        "referencias": [
+          "compra:2",
+          "compra:3",
+          "compra:4",
+          "compra:5",
+          "compra:6",
+          "compra:7",
+          "compra:1"
+        ],
+        "indicadores": [
+          "comparacaoValorCompra"
+        ]
+      },
+      {
+        "codigo": "CATEGORIAS",
+        "natureza": "REGISTRADO",
+        "observacao": "1 categoria(s) aparecem em mais de uma compra anterior registrada. Repetição de categoria não comprova recorrência cadastrada.",
+        "reflexao": "Essa repetição se relaciona com necessidades ou planos que continuam presentes?",
+        "referencias": [
+          "compra:2",
+          "compra:3",
+          "compra:4",
+          "compra:5",
+          "compra:6",
+          "compra:7"
+        ],
+        "indicadores": [
+          "categorias"
+        ]
+      }
+    ],
+    "limitacoes": [
+      "SOMENTE_REGISTROS_DISPONIVEIS",
+      "NAO_DEMONSTRA_TENDENCIA_NEM_CAUSA",
+      "NAO_CLASSIFICA_IMPULSIVIDADE",
+      "COBERTURA_NAO_COMPLETA"
+    ]
+  },
+  "descobertas": {
+    "versao": "automaticas-1",
+    "itens": [
+      {
+        "codigo": "VALOR_FORA_FAIXA",
+        "natureza": "REGISTRADO",
+        "titulo": "R$ 100,00",
+        "detalhe": "Acima da faixa dos seus registros anteriores.",
+        "referencias": [
+          "compra:1",
+          "compra:2",
+          "compra:3",
+          "compra:4",
+          "compra:5",
+          "compra:6",
+          "compra:7"
+        ],
+        "grafico": {
+          "unidade": "CENTAVOS",
+          "pontos": [
+            {
+              "rotulo": "Esta compra",
+              "valor": 10000
+            },
+            {
+              "rotulo": "Mediana anterior",
+              "valor": 1250
+            },
+            {
+              "rotulo": "Topo da faixa anterior",
+              "valor": 1850
+            }
+          ]
+        }
+      },
+      {
+        "codigo": "CATEGORIA_REPETIDA",
+        "natureza": "REGISTRADO",
+        "titulo": "Livros",
+        "detalhe": "Em 6 compras anteriores registradas.",
+        "referencias": [
+          "compra:2",
+          "compra:3",
+          "compra:4",
+          "compra:5",
+          "compra:6",
+          "compra:7"
+        ]
+      }
+    ],
+    "reflexao": "O que ajuda a entender o valor desta compra?",
+    "perguntasSugeridas": [
+      "planejamento"
+    ],
+    "eventosPosteriores": [],
+    "limitacoes": [
+      "REGISTROS_NAO_COMPROVAM_TODO_CONSUMO",
+      "NAO_CLASSIFICA_IMPULSIVIDADE",
+      "LIMITES_ATUAIS_SEM_VIGENCIA_HISTORICA"
+    ]
+  },
+  "consultadoEm": "2026-10-25T12:00:00.000Z",
+  "dependenciasHistoricas": {
+    "fontesHash": "69dd5095298f6bea33903c36f125f197e11aa09e63b6d4882f006acc17fa19f7",
+    "versaoPoliticaTemporal": "temporal-1",
+    "versaoIndicadores": "historicos-1",
+    "versaoMotorContextual": "contextual-1",
+    "versaoRegras": "reflexoes-historicas-1",
+    "contextoRevisao": 0,
+    "periodo": "2026-10",
+    "inicio": "2026-04-01T00:00:00.000Z",
+    "fimExclusivo": "2026-10-05T00:00:00.000Z"
+  }
+}

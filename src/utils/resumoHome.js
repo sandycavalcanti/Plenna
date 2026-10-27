@@ -1,7 +1,7 @@
 const exact = (object, keys) => object && typeof object === 'object' && !Array.isArray(object) && Object.keys(object).length === keys.length && Object.keys(object).every(key => keys.includes(key));
 export function validarResumoHome(data, periodo) {
   const fail = () => { throw new Error('INVALID_HOME_CONTRACT'); };
-  if (!exact(data, ['versaoContrato','periodo','referenciaTemporal','seletor','financeiro','orcamento','limitacoes','perspectivas']) || data.versaoContrato !== 1 || data.periodo !== periodo || data.referenciaTemporal !== 'UTC') fail();
+  if (!exact(data, ['versaoContrato','periodo','referenciaTemporal','seletor','financeiro','orcamento','limitacoes','perspectivas']) || data.versaoContrato !== 1 || data.periodo !== periodo || data.referenciaTemporal !== 'America/Sao_Paulo') fail();
   if (!exact(data.financeiro, ['comprasConfirmadas','comprasComValor','comprasSemValor','totalConhecidoCentavos','totalCentavos','qualidade','cobertura'])) fail();
   if (!exact(data.orcamento, ['disponibilidade','valorCentavos','percentualConhecido','excessoConhecidoCentavos','vigencia','estadoUtilizacao','motivo'])) fail();
   if (!exact(data.seletor, ['periodoMinimo','periodoMaximo','motivoLimiteInicial'])) fail();

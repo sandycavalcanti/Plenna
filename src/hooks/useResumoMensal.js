@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiClient } from '../api/client';
-import { periodoMensalUTC } from '../utils/resumoFinanceiro';
-export function useResumoMensal(periodo = periodoMensalUTC()) {
+import { periodoMensalSaoPaulo } from '../utils/resumoFinanceiro';
+export function useResumoMensal(periodo = periodoMensalSaoPaulo()) {
   const [state, setState] = useState({ periodo, resumo: null, loading: true, error: false });
   const request = useRef(0);
   const refresh = useCallback(async () => {

@@ -8,4 +8,5 @@ export const SUPPORTED_NOTIFICATION_TYPES = new Set([
   'LIMITE_CATEGORIA',
   'LIMITE_MENSAL',
   'SAZONAL',
+  'PROATIVA',
 ]);

@@ -87,13 +87,31 @@ export const styles = StyleSheet.create({
     color: T.body,
   },
 
+  periodControls: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 8,
+    marginBottom: 11,
+  },
+
   periodSelector: {
+    flex: 1,
+    minWidth: 0,
     minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 11,
     paddingHorizontal: 10,
     paddingVertical: 7,
+    borderRadius: R.md,
+    backgroundColor: T.surface,
+    ...SH.card,
+  },
+
+  purchasesButton: {
+    width: 52,
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: R.md,
     backgroundColor: T.surface,
     ...SH.card,
@@ -189,23 +207,15 @@ export const styles = StyleSheet.create({
   },
 
   financialBarRow: {
-    marginTop: 9,
-  },
-
-  financialComparisonRows: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 16,
+    gap: 8,
+    marginTop: 13,
   },
 
   financialBarHeader: {
-    flex: 1,
-    gap: 3,
-  },
-
-  financialBarHeaderEnd: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
   },
 
   financialBarLabel: {
@@ -232,33 +242,39 @@ export const styles = StyleSheet.create({
   financialBarFill: {
     height: '100%',
     borderRadius: R.pill,
-    backgroundColor: T.accent,
   },
 
-  financialBarFillExcess: {
-    height: '100%',
-    position: 'absolute',
-    borderRadius: R.pill,
-    backgroundColor: T.warning,
+  financialBarLimitFill: {
+    backgroundColor: T.accentSecondary,
   },
 
-  financialBarLimitMarker: {
-    position: 'absolute',
-    top: -3,
-    width: 2,
-    height: 17,
-    borderRadius: R.pill,
-    backgroundColor: T.navy,
+  financialBarSpentFill: {
+    backgroundColor: T.positive,
   },
 
   financialSummaryStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     marginTop: 14,
     paddingTop: 11,
     borderTopWidth: 1,
     borderTopColor: T.border,
+  },
+
+  financialSummaryExcess: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingRight: 12,
+  },
+
+  financialSummaryExcessText: {
+    flexShrink: 1,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '800',
   },
 
   financialSummaryStatusCopy: {

@@ -23,7 +23,9 @@ import EditProfileScreen from './pages/EditProfileScreen';
 import EditPreferencesScreen from './pages/EditPreferencesScreen';
 import CreateCompraScreen from './pages/CreateCompraScreen';
 import PurchasesScreen from './pages/PurchasesScreen';
+import RecurrencesScreen from './pages/RecurrencesScreen';
 import NotificationsScreen from './pages/NotificationsScreen';
+import MemoryListScreen from './pages/MemoryListScreen';
 
 import { COLORS } from './constants';
 
@@ -35,7 +37,7 @@ const linking = {
   prefixes: [
     'plenna://',
     'exp://',
-    'https://plenna-api-orpin.vercel.app',
+    'https://plenna-api.vercel.app',
   ],
   config: {
     screens: {},
@@ -367,8 +369,18 @@ export default function Routes() {
         />
 
         <Stack.Screen
+          name="Recurrences"
+          component={RecurrencesScreen}
+        />
+
+        <Stack.Screen
           name="Notifications"
           component={NotificationsScreen}
+        />
+
+        <Stack.Screen
+          name="MemoryList"
+          component={MemoryListScreen}
         />
 
         <Stack.Screen

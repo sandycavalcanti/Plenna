@@ -1,7 +1,7 @@
 import { categoriaEhOutros } from '../../utils/categorias';
 import React, { useEffect, useState, useRef } from 'react';
 import { styles } from './styles';
-import { ActivityIndicator, Alert, BackHandler, FlatList, Modal, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, FlatList, Modal, Platform, Pressable, Text, Image, KeyboardAvoidingView, TouchableOpacity, View, ScrollView, TextInput } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import LimitSlider from '../../components/LimitSlider';
@@ -22,6 +22,7 @@ import * as Linking from 'expo-linking';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 WebBrowser.maybeCompleteAuthSession();
+const signupKeyboardBehavior = typeof Platform !== 'undefined' && Platform.OS === 'android' ? 'height' : 'padding';
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 
 const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
@@ -444,17 +445,29 @@ async function CadastrarUsuario() {
 
   return (
   <SafeAreaView style={{ flex: 1 }}>
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={signupKeyboardBehavior}
+      keyboardVerticalOffset={0}
+    >
      {step === 1 && (
   <ScrollView
     style={styles.signupScroll}
     contentContainerStyle={styles.signupScrollContent}
     keyboardShouldPersistTaps="handled"
+    keyboardDismissMode="on-drag"
     showsVerticalScrollIndicator={false}
   >
     <View style={styles.overlay}>
           <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-          <Text style={styles.titulo}>Cadastre-se!</Text>
+          <Text
+            style={styles.titulo}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+          >
+            Cadastre-se!
+          </Text>
 
           <CustomTextInput
             placeholder="Como devemos te chamar?"

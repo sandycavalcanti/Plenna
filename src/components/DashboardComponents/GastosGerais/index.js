@@ -30,14 +30,7 @@ function StatCard({ icon, iconColor, label, value, subtitle, cardStyle }) {
   );
 }
 
-export function ResumoMensalCarousel({
-  cards = [],
-  monthTitle = 'Resumo do mês',
-  onInteractionChange,
-  sectionStyle,
-  cardStyle,
-  scrollContentStyle,
-}) {
+export function ResumoMensalCarousel({ cards = [], monthTitle = 'Resumo do mês', onInteractionChange, sectionStyle, cardStyle, scrollContentStyle }) {
   return (
     <View style={[styles.section, sectionStyle]}>
       <Text style={styles.monthTitle}>{monthTitle}</Text>
@@ -54,22 +47,16 @@ export function ResumoMensalCarousel({
         onScrollBeginDrag={() => onInteractionChange?.(true)}
         onScrollEndDrag={() => onInteractionChange?.(false)}
         onMomentumScrollEnd={() => onInteractionChange?.(false)}>
-        {cards.map((card) => (
-          <StatCard key={card.key || card.label} {...card} cardStyle={cardStyle} />
-        ))}
+        {cards.map((card) => {
+          const { key: cardKey, ...cardProps } = card;
+          return <StatCard key={cardKey || card.label} {...cardProps} cardStyle={cardStyle} />;
+        })}
       </ScrollView>
     </View>
   );
 }
 
-export default function GastosTotais({
-  resumo = null,
-  resumoLoading = false,
-  resumoError = false,
-  tempoUso = [],
-  cobertura = 'DESCONHECIDA',
-  monthTitle = 'Resumo do mês',
-})  {
+export default function GastosTotais({ resumo = null, resumoLoading = false, resumoError = false, tempoUso = [], cobertura = 'DESCONHECIDA', monthTitle = 'Resumo do mês' }) {
   const { width, fontScale } = useWindowDimensions();
   const cardWidth = Math.max(220, Math.min(width - 44, fontScale > 1.3 ? width - 44 : 300));
   const [showNotes, setShowNotes] = useState(false);
@@ -153,11 +140,12 @@ export default function GastosTotais({
           label="Tempo em aplicativos"
           value={tempoHojeFormatado}
           subtitle={totalSegundosHoje > 0 ? 'Hoje' : 'Sem dados registrados'}
-/>
+        />
       </ScrollView>
       <Text style={styles.coverageNote}>{view.mensagem}. Os registros podem não incluir todos os gastos.</Text>
-      <Pressable accessibilityRole="button" accessibilityState={{ expanded: showNotes }} onPress={() => setShowNotes(!showNotes)} style={styles.notesButton}><Text style={styles.notesLink}>Sobre estes dados</Text></Pressable>
-      {showNotes && <Text style={styles.coverageNote}>{statusMensagem}. Limites atuais, sem comprovação da vigência histórica.</Text>}
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: showNotes }} onPress={() => setShowNotes(!showNotes)} style={styles.notesButton}>
+        <Text style={styles.notesLink}>Sobre estes dados</Text>
+      </Pressable>
     </View>
   );
 }

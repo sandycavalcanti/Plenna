@@ -12,7 +12,11 @@ export function apresentarMesHome(periodo) {
   const label = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
-export function navegacaoMensalHome(periodo, limites, loading, error, atual = new Date().toISOString().slice(0,7)) {
+function periodoAtualSaoPaulo(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' }).formatToParts(date);
+  return `${parts.find(part => part.type === 'year')?.value}-${parts.find(part => part.type === 'month')?.value}`;
+}
+export function navegacaoMensalHome(periodo, limites, loading, error, atual = periodoAtualSaoPaulo()) {
   const disabled = { anterior: null, proximo: null };
   if (loading || error || !valid(periodo) || !valid(limites?.periodoMinimo) || !valid(limites?.periodoMaximo) || limites.periodoMinimo > limites.periodoMaximo) return disabled;
   const max = limites.periodoMaximo < atual ? limites.periodoMaximo : atual;

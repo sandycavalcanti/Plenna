@@ -24,7 +24,7 @@ test('missing limits loading and errors disable navigation without stale data',(
 });
 test('Home starts current month, positions selector below header and never propagates month',async()=>{
  const home=await readFile(new URL('src/pages/HomeScreen/index.js',base),'utf8');
- assert.match(home,/useState\(\(\) => periodoMensalUTC\(\)\)/);
+ assert.match(home,/useState\(\(\) => periodoMensalSaoPaulo\(\)\)/);
  assert.ok(home.indexOf('<SeletorMensalHome')<home.indexOf('<PurchaseHero'));
  assert.ok(home.indexOf('<SeletorMensalHome')>home.indexOf('styles.topBar'));
  assert.match(home,/navigation.navigate\('Dashboard', \{ indicador:'tempo' \}\)/);

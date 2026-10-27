@@ -1,38 +1,83 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  InteractionManager,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { styles } from './styles';
 
 const PIN_LENGTH = 6;
+const pinKeyboardBehavior = typeof Platform !== 'undefined' && Platform.OS === 'android' ? 'height' : 'padding';
 
 export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel, errorMessage = '', busy = false }) {
   const [value, setValue] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [step, setStep] = useState('primary');
   const inputRef = useRef(null);
-  const focusTimerRef = useRef(null);
   const isSetup = mode === 'setup' || mode === 'change';
+  const focusTimeoutRef = useRef(null);
+  const interactionTaskRef = useRef(null);
+
+  function clearFocusSchedule() {
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+      focusTimeoutRef.current = null;
+    }
+    interactionTaskRef.current?.cancel?.();
+    interactionTaskRef.current = null;
+  }
+
+  function focusInput() {
+    if (!visible || busy) return;
+    if (typeof inputRef.current?.focus === 'function') inputRef.current.focus();
+  }
+
+  function scheduleFocus() {
+    clearFocusSchedule();
+    if (!visible || busy) return;
+
+    const requestFocus = () => {
+      if (visible && !busy && typeof inputRef.current?.focus === 'function') inputRef.current.focus();
+    };
+
+    interactionTaskRef.current = InteractionManager?.runAfterInteractions
+      ? InteractionManager.runAfterInteractions(requestFocus)
+      : null;
+    focusTimeoutRef.current = setTimeout(requestFocus, 180);
+  }
 
   useEffect(() => {
     if (visible) {
       setValue('');
       setConfirmation('');
       setStep('primary');
-      // O foco atrasado aguarda a animação do Modal. Guardar o timer e limpá-lo
-      // no cleanup evita tentar focar um input depois de fechar/desmontar o
-      // modal, especialmente ao cancelar o setup ou o desbloqueio.
-      focusTimerRef.current = setTimeout(() => {
-        inputRef.current?.focus();
-        focusTimerRef.current = null;
-      }, 120);
+    }
+  }, [visible, mode]);
+
+  useEffect(() => {
+    if (!visible || busy) {
+      clearFocusSchedule();
+      if (typeof inputRef.current?.blur === 'function') inputRef.current.blur();
+      Keyboard.dismiss();
+      return undefined;
     }
 
-    return () => {
-      if (focusTimerRef.current) {
-        clearTimeout(focusTimerRef.current);
-        focusTimerRef.current = null;
-      }
-    };
-  }, [visible, mode]);
+    scheduleFocus();
+    return clearFocusSchedule;
+  }, [visible, busy, step]);
+
+  function handleCancel() {
+    clearFocusSchedule();
+    if (typeof inputRef.current?.blur === 'function') inputRef.current.blur();
+    Keyboard.dismiss();
+    onCancel?.();
+  }
 
   function updateValue(text) {
     const digits = text.replace(/\D/g, '').slice(0, PIN_LENGTH);
@@ -70,37 +115,58 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
       : 'Use o PIN do Plenna para continuar.';
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={handleCancel}
+      onShow={scheduleFocus}
+    >
       <View style={styles.overlay}>
-        <View style={styles.card}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoiding}
+          behavior={pinKeyboardBehavior}
+        >
+          <View style={styles.card}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
 
-          <View style={styles.indicators} accessibilityLabel={`${displayedLength} de ${PIN_LENGTH} dígitos preenchidos`}>
-            {Array.from({ length: PIN_LENGTH }).map((_, index) => (
-              <Text key={index} style={styles.indicator}>{index < displayedLength ? '●' : '○'}</Text>
-            ))}
+            <View style={styles.pinEntry}>
+              <TouchableOpacity
+                style={styles.indicators}
+                accessibilityRole="button"
+                accessibilityLabel={`${displayedLength} de ${PIN_LENGTH} dígitos preenchidos`}
+                accessibilityHint="Toque para exibir o teclado do PIN"
+                onPress={focusInput}
+                disabled={busy}
+                activeOpacity={0.8}
+              >
+                {Array.from({ length: PIN_LENGTH }).map((_, index) => (
+                  <Text key={index} style={styles.indicator}>{index < displayedLength ? '●' : '○'}</Text>
+                ))}
+              </TouchableOpacity>
+
+              <TextInput
+                ref={inputRef}
+                value={value}
+                onChangeText={updateValue}
+                keyboardType="number-pad"
+                maxLength={PIN_LENGTH}
+                secureTextEntry
+                showSoftInputOnFocus
+                editable={!busy}
+                style={styles.input}
+                accessibilityLabel="Entrada numérica do PIN"
+              />
+            </View>
+
+            <Text style={styles.error}>{errorMessage}</Text>
+
+            <TouchableOpacity style={styles.cancel} onPress={handleCancel} disabled={busy}>
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </TouchableOpacity>
           </View>
-
-          <TextInput
-            ref={inputRef}
-            value={value}
-            onChangeText={updateValue}
-            keyboardType="number-pad"
-            maxLength={PIN_LENGTH}
-            secureTextEntry
-            autoFocus
-            editable={!busy}
-            style={styles.input}
-            accessibilityLabel="Entrada numérica do PIN"
-          />
-
-          <Text style={styles.error}>{errorMessage}</Text>
-
-          <TouchableOpacity style={styles.cancel} onPress={onCancel} disabled={busy}>
-            <Text style={styles.cancelText}>Cancelar</Text>
-          </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );

@@ -1,3 +1,6 @@
+import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
+import DescobertasDashboard from '../../components/DashboardComponents/DescobertasDashboard';
+import MovimentacoesCompra from '../../components/DashboardComponents/MovimentacoesCompra';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -195,18 +198,30 @@ function isCanceled(error) {
   return error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError';
 }
 
-function PeriodSelector({ value, onPress, label = 'Período' }) {
+function PeriodSelector({ value, onPress, onPurchasesPress, label = 'Período' }) {
   return (
-    <TouchableOpacity style={styles.periodSelector} onPress={onPress} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel={`${label}: ${monthLabel(value)}`}>
-      <View style={styles.periodSelectorIcon}>
-        <MaterialCommunityIcons name="calendar-month-outline" size={19} color={COLORS.dadoUm} />
-      </View>
-      <View style={styles.periodSelectorCopy}>
-        <Text style={styles.periodSelectorLabel}>{label}</Text>
-        <Text style={styles.periodSelectorValue}>{monthLabel(value)}</Text>
-      </View>
-      <MaterialCommunityIcons name="chevron-down" size={19} color={COLORS.dadoUm} />
-    </TouchableOpacity>
+    <View style={styles.periodControls}>
+      <TouchableOpacity style={styles.periodSelector} onPress={onPress} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel={`${label}: ${monthLabel(value)}`}>
+        <View style={styles.periodSelectorIcon}>
+          <MaterialCommunityIcons name="calendar-month-outline" size={19} color={COLORS.dadoUm} />
+        </View>
+        <View style={styles.periodSelectorCopy}>
+          <Text style={styles.periodSelectorLabel}>{label}</Text>
+          <Text style={styles.periodSelectorValue} numberOfLines={1}>{monthLabel(value)}</Text>
+        </View>
+        <MaterialCommunityIcons name="chevron-down" size={19} color={COLORS.dadoUm} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.purchasesButton}
+        onPress={onPurchasesPress}
+        activeOpacity={0.82}
+        accessibilityRole="button"
+        accessibilityLabel="Abrir Minhas compras"
+        accessibilityHint="Exibe suas compras protegidas por PIN ou biometria">
+        <MaterialCommunityIcons name="cart-outline" size={21} color={COLORS.dadoUm} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -777,7 +792,7 @@ function ComparisonControls({ mode, setMode, months, setMonths, evolutionEnd, co
                 </Text>
               </View>
             </TouchableOpacity>
-            <MaterialCommunityIcons name="compare-arrows" size={23} color={COLORS.dadoDois} />
+            <MaterialCommunityIcons name="compare-horizontal" size={23} color={COLORS.dadoDois} />
             <TouchableOpacity
               style={[styles.comparePickerButton, { borderTopColor: COMPARISON_COLORS.compared }]}
               onPress={() => onOpenPicker('monthB')}
@@ -798,7 +813,7 @@ function ComparisonControls({ mode, setMode, months, setMonths, evolutionEnd, co
   );
 }
 
-export default function DashboardScreen({ route }) {
+export default function DashboardScreen({ route, navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { width } = useWindowDimensions();
   const isFocused = useIsFocused();
@@ -845,7 +860,7 @@ export default function DashboardScreen({ route }) {
       : routeIndicator === 'compras'
         ? 'indicators'
         : routeIndicator === 'orientacoes'
-          ? 'rf018'
+          ? 'comportamento'
           : routeIndicator === 'gastos'
             ? 'financial'
             : null;
@@ -1019,7 +1034,9 @@ export default function DashboardScreen({ route }) {
     [activeTab, width],
   );
 
+  const descobertasResumo = useDescobertasResumo(selectedMonth);
   const handleRefresh = useCallback(() => {
+    descobertasResumo.refresh();
     if (activeTab === 0) {
       loadOverview();
       loadContext();
@@ -1027,12 +1044,12 @@ export default function DashboardScreen({ route }) {
     } else {
       loadComparison();
     }
-  }, [activeTab, comportamento.refresh, loadComparison, loadContext, loadOverview]);
+  }, [activeTab, comportamento.refresh, descobertasResumo.refresh, loadComparison, loadContext, loadOverview]);
 
   const period = overviewData?.periodos?.[0] || null;
-  const metaValue = Number(usuario?.usuario_meta_valor_mensal || 0);
-  const metaCents = Math.round(metaValue * 100);
-  const totalCents = Number(period?.total_centavos || 0);
+  const metaValue = Math.max(0, Number(usuario?.usuario_meta_valor_mensal) || 0);
+  const metaCents = Math.max(0, Math.round(metaValue * 100));
+  const totalCents = Math.max(0, Number(period?.total_centavos) || 0);
   const metaUsagePercent = metaCents > 0 ? (totalCents / metaCents) * 100 : 0;
   const metaStatus = metaCents <= 0 ? 'undefined' : metaUsagePercent > 100 ? 'exceeded' : metaUsagePercent >= 80 ? 'near' : 'within';
   const metaExcessCents = metaCents > 0 ? Math.max(totalCents - metaCents, 0) : 0;
@@ -1046,9 +1063,8 @@ export default function DashboardScreen({ route }) {
   const isHistoricalMonth = selectedMonth !== currentMonth;
   const dailyUsageMinutes = getDailyUsageMinutes(tempoUso);
   const financialScaleCents = Math.max(totalCents, metaCents, 1);
-  const spentWithinLimitWidth = metaCents > 0 ? (Math.min(totalCents, metaCents) / financialScaleCents) * 100 : 0;
-  const spentExcessWidth = metaCents > 0 ? (Math.max(totalCents - metaCents, 0) / financialScaleCents) * 100 : 0;
-  const limitWidth = metaCents > 0 ? (metaCents / financialScaleCents) * 100 : 0;
+  const limitBarWidth = metaCents > 0 ? Math.min(100, (metaCents / financialScaleCents) * 100) : 0;
+  const spentBarWidth = totalCents > 0 ? Math.min(100, (totalCents / financialScaleCents) * 100) : 0;
   const usagePercentValue = metaCents > 0 ? `${metaUsagePercent.toFixed(2).replace('.', ',')}%` : null;
   const metricCards = [
     {
@@ -1082,7 +1098,12 @@ export default function DashboardScreen({ route }) {
         contentContainerStyle={[styles.pageContent, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={overviewLoading} onRefresh={handleRefresh} tintColor={COLORS.dadoDois} />}>
-        <PeriodSelector value={selectedMonth} onPress={() => setMonthPickerOpen(true)} label="Mês analisado" />
+        <PeriodSelector
+          value={selectedMonth}
+          onPress={() => setMonthPickerOpen(true)}
+          onPurchasesPress={() => navigation.navigate('Purchases')}
+          label="Mês analisado"
+        />
 
         <View onLayout={mark('financial')} style={styles.financialSummaryCard}>
           <View style={styles.financialSummaryHeader}>
@@ -1099,20 +1120,31 @@ export default function DashboardScreen({ route }) {
           {metaCents > 0 ? (
             <View style={styles.financialBars}>
               <View style={styles.financialBarRow}>
-                <View style={styles.financialComparisonRows}>
-                  <View style={styles.financialBarHeader}>
-                    <Text style={styles.financialBarLabel}>Limite mensal</Text>
-                    <Text style={styles.financialBarValue}>{formatReais(metaValue)}</Text>
-                  </View>
-                  <View style={[styles.financialBarHeader, styles.financialBarHeaderEnd]}>
-                    <Text style={styles.financialBarLabel}>Gastos do mês</Text>
-                    <Text style={styles.financialBarValue}>{formatCents(totalCents)}</Text>
-                  </View>
+                <View style={styles.financialBarHeader}>
+                  <Text style={styles.financialBarLabel}>Limite mensal</Text>
+                  <Text style={styles.financialBarValue}>{formatReais(metaValue)}</Text>
                 </View>
-                <View style={styles.financialBarTrack}>
-                  <View style={[styles.financialBarFill, { width: `${spentWithinLimitWidth}%` }]} />
-                  {spentExcessWidth > 0 ? <View style={[styles.financialBarFillExcess, { left: `${spentWithinLimitWidth}%`, width: `${spentExcessWidth}%` }]} /> : null}
-                  <View style={[styles.financialBarLimitMarker, { left: `${Math.min(limitWidth, 98)}%` }]} />
+                <View
+                  style={styles.financialBarTrack}
+                  accessible
+                  accessibilityRole="progressbar"
+                  accessibilityLabel={`Limite mensal de ${formatReais(metaValue)}`}
+                >
+                  <View style={[styles.financialBarFill, styles.financialBarLimitFill, { width: `${limitBarWidth}%` }]} />
+                </View>
+              </View>
+              <View style={styles.financialBarRow}>
+                <View style={styles.financialBarHeader}>
+                  <Text style={styles.financialBarLabel}>Gastos do mês</Text>
+                  <Text style={styles.financialBarValue}>{formatCents(totalCents)}</Text>
+                </View>
+                <View
+                  style={styles.financialBarTrack}
+                  accessible
+                  accessibilityRole="progressbar"
+                  accessibilityLabel={`Gastos do mês de ${formatCents(totalCents)}`}
+                >
+                  <View style={[styles.financialBarFill, styles.financialBarSpentFill, { width: `${spentBarWidth}%`, backgroundColor: metaStatusColor }]} />
                 </View>
               </View>
             </View>
@@ -1124,6 +1156,14 @@ export default function DashboardScreen({ route }) {
           )}
 
           <View style={styles.financialSummaryStatus}>
+            {metaExcessCents > 0 ? (
+              <View style={styles.financialSummaryExcess}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={18} color={metaStatusColor} />
+                <Text style={[styles.financialSummaryExcessText, { color: metaStatusColor }]}>
+                  {formatCents(metaExcessCents)} acima do limite
+                </Text>
+              </View>
+            ) : null}
             {usagePercentValue ? (
               <View style={styles.financialSummaryPercentBlock}>
                 <Text style={[styles.financialSummaryPercentValue, { color: metaStatusColor }]}>{usagePercentValue}</Text>
@@ -1154,7 +1194,7 @@ export default function DashboardScreen({ route }) {
           />
         </View>
 
-        <View onLayout={mark('rf018')}>
+        <View onLayout={mark('comportamento')}>
           <AnaliseComportamento
             dados={comportamento.dados}
             loading={comportamento.loading}
@@ -1168,6 +1208,8 @@ export default function DashboardScreen({ route }) {
         </View>
         <FormaPagamento gastosFormaPagamento={period?.formas_pagamento || []} />
         <Impulsividade data={period?.impulsividade || []} />
+        <DescobertasDashboard dados={descobertasResumo.dados} onOpen={() => navigation.navigate('Purchases', { filtroConsumo: { periodo: selectedMonth, timezone: 'America/Sao_Paulo' } })} />
+        <MovimentacoesCompra eventos={descobertasResumo.dados?.eventos} />
         <Impulsividade
           data={limitData}
           title="Compras acima do limite"

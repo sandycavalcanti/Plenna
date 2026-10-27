@@ -134,6 +134,10 @@ export default function ChatScreen({ navigation }) {
   const historicoId = isNewConversation ? createdHistoryId : routeHistoricoId ?? createdHistoryId;
   const historyToLoadId = isNewConversation ? null : routeHistoricoId;
   const conversationKey = historicoId == null ? 'new' : String(historicoId);
+  useEffect(() => {
+    const context = route.params?.recommendationContext;
+    if (isNewConversation && typeof context === 'string' && context.trim()) setDraftMessage(context.slice(0, CHAT_MAX_MESSAGE_CHARS));
+  }, [isNewConversation, route.params?.recommendationContext]);
 
   activeHistoryIdRef.current = conversationKey;
 

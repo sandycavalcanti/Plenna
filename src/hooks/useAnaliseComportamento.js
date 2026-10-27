@@ -13,7 +13,7 @@ export function useAnaliseComportamento(periodo) {
       if (!session) throw new Error('SESSION_REQUIRED');
       const { data } = await apiClient.get('/analises/comportamento', { params: { periodo }, signal: session.signal, rf017SessionId: session.id });
       tokenStorage.assertSession(session.id);
-      if (data?.versaoContrato !== 1 || data?.analise?.periodo !== periodo || !data.analise.indicadores || !Array.isArray(data?.recomendacoes?.recomendacoes)) throw new Error('RF018_CONTRACT_INVALID');
+      if (data?.versaoContrato !== 1 || data?.analise?.periodo !== periodo || !data.analise.indicadores || !Array.isArray(data?.recomendacoes?.recomendacoes)) throw new Error('ANALISE_CONTRACT_INVALID');
       if (id === request.current) setState({ periodo, dados: data, loading: false, error: false });
     } catch {
       if (id === request.current) setState({ periodo, dados: null, loading: false, error: true });
