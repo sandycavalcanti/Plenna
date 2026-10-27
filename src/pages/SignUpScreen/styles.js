@@ -4,10 +4,18 @@ import { COLORS } from '../../constants/colors';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: COLORS.cadFundo,
-    paddingTop: -50,
+  },
+  signupScroll: {
+    flex: 1,
+    width: '100%',
+  },
+  signupScrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 24,
   },
   contentContainer: {
     flexGrow: 1,
@@ -23,9 +31,9 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.cadFundo,
   },
   overlay: {
-    width: '85%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: '100%',
+    maxWidth: 420,
+    alignItems: 'stretch',
     borderRadius: 20,
   },
   borderOverlay: {
@@ -38,8 +46,10 @@ export const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   logo: {
-    width: 140,
-    height: 140,
+    width: 116,
+    height: 116,
+    alignSelf: 'center',
+    marginBottom: 4,
   },
   stepTwoContainer: {
     alignItems: 'center',
@@ -49,9 +59,12 @@ export const styles = StyleSheet.create({
   },
   titulo: {
     fontFamily: 'SugoDisplay',
-    fontSize: 52,
+    fontSize: 42,
+    lineHeight: 48,
     color: COLORS.cadTitulo,
-    marginBottom: 10,
+    marginBottom: 16,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   segmentAction: {
     marginTop: 16,
@@ -119,9 +132,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.7)',
   },
   checkboxRow: {
-    width: '90%',
+    width: '100%',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 6,
     borderRadius: 8,
   },
@@ -156,6 +169,7 @@ export const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+    width: '100%',
   },
   stepThreeContainer: {
     width: '95%',

@@ -155,6 +155,14 @@ test('purchase list has no clear-filter rendering while preserving the period fi
     new URL('../src/pages/PurchasesScreen/index.js', import.meta.url),
     'utf8',
   );
+  const itemSource = readFileSync(
+    new URL('../src/components/PurchaseComponents/PurchaseItem/index.js', import.meta.url),
+    'utf8',
+  );
   assert.doesNotMatch(source, /Limpar filtro/);
-  assert.match(source, /comprasPeriodo\(visiblePurchases,filtroConsumo\)/);
+  assert.match(source, /comprasPeriodo\(eligiblePurchases,filtroConsumo\)/);
+  assert.doesNotMatch(source, /mostrarOcultas|Compras ocultas|Voltar às compras visíveis/);
+  assert.doesNotMatch(source, /oculto|itensOcultos/);
+  assert.match(itemSource, /purchase\.tb_compra_item\.map/);
+  assert.doesNotMatch(itemSource, /itensOcultos/);
 });

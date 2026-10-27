@@ -84,3 +84,26 @@ test('session change clears loaded RF018 data immediately and rejects late respo
  const h=hook(async()=>({data:data()}));const cleanup=h.focus();await new Promise(r=>setImmediate(r));assert.ok(h.state().dados);h.changeUser();assert.equal(h.state().dados,null);cleanup();
  let resolve;const j=hook(()=>new Promise(r=>{resolve=r;}));const pending=j.result.refresh();await new Promise(r=>setImmediate(r));j.changeUser();resolve({data:data()});await pending;assert.equal(j.state().dados,null);
 });
+
+test('financial comparison preserves dynamic scale with independent bars',async()=>{
+ const source=await readFile(new URL('../src/pages/DashboardScreen/index.js',import.meta.url),'utf8');
+ assert.match(source,/financialScaleCents\s*=\s*Math\.max\(totalCents, metaCents, 1\)/);
+ assert.match(source,/limitBarWidth/);
+ assert.match(source,/spentBarWidth/);
+ assert.match(source,/metaExcessCents/);
+ assert.match(source,/financialBarLimitFill/);
+ assert.match(source,/financialBarSpentFill/);
+ assert.doesNotMatch(source,/financialBarLegend/);
+ assert.doesNotMatch(source,/financialBarLimitMarker/);
+});
+
+test('observed patterns preserve the registered-evidence contract without expandable details',async()=>{
+ const source=await readFile(new URL('../src/components/DashboardComponents/DescobertasDashboard.js',import.meta.url),'utf8');
+ assert.match(source,/d\.tipo === 'REGISTRADO'/);
+ assert.match(source,/d\.evidencias\?\.length/);
+ assert.match(source,/\.slice\(0, 2\)/);
+ assert.match(source,/relatedAction/);
+ assert.doesNotMatch(source,/ReadingDetails/);
+ assert.doesNotMatch(source,/Sobre estes registros/);
+ assert.match(source,/getDiscoveryIcon/);
+});

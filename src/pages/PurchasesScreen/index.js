@@ -24,7 +24,7 @@ export default function PurchasesScreen({route}={}) {
   const navigation = useNavigation();
   const filtroConsumo=route?.params?.filtroConsumo;
   const [contextoCompraId, setContextoCompraId] = useState(null);
-  const [gerenciamento,setGerenciamento]=useState(null),[resumos,setResumos]=useState({}),[mostrarOcultas,setMostrarOcultas]=useState(false);
+  const [gerenciamento,setGerenciamento]=useState(null),[resumos,setResumos]=useState({});
   const isFocused = useIsFocused();
   const protectedAccess = useProtectedAccess();
   useEffect(() => {
@@ -61,11 +61,11 @@ export default function PurchasesScreen({route}={}) {
     try {
       // GET /compras já usa o usuário do JWT no back-end.
       const response = await apiClient.get('/compras');
-      const visiblePurchases = (Array.isArray(response.data) ? response.data : [])
+      const eligiblePurchases = (Array.isArray(response.data) ? response.data : [])
         .filter((purchase) => ['AGUARDANDO_CONFIRMACAO', 'CONFIRMADA'].includes(purchase.compra_status));
-      const summaries=await consultarResumosCompras(visiblePurchases);setResumos(summaries);
-      const scoped=filtroConsumo?comprasPeriodo(visiblePurchases,filtroConsumo):visiblePurchases;
-      setPurchases(sortPurchases(scoped.filter(c=>summaries[c.compra_id]&&(mostrarOcultas?!!summaries[c.compra_id].oculto:!summaries[c.compra_id].oculto))));
+      const summaries=await consultarResumosCompras(eligiblePurchases);setResumos(summaries);
+      const scoped=filtroConsumo?comprasPeriodo(eligiblePurchases,filtroConsumo):eligiblePurchases;
+      setPurchases(sortPurchases(scoped));
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar compras');
       setErrorMessage('Não foi possível carregar suas compras. Tente novamente.');
@@ -73,7 +73,7 @@ export default function PurchasesScreen({route}={}) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [filtroConsumo,mostrarOcultas]);
+  }, [filtroConsumo]);
 
   /**
    * A lista não depende da ordem do backend: pendentes exigem atenção e ficam
@@ -530,9 +530,8 @@ export default function PurchasesScreen({route}={}) {
           );
         }}
       />
-      <Pressable accessibilityRole="button" accessibilityState={{selected:mostrarOcultas}} onPress={()=>setMostrarOcultas(v=>!v)} style={{minHeight:48,alignItems:'center',justifyContent:'center'}}><Text>{mostrarOcultas?'Voltar às compras visíveis':'Compras ocultas'}</Text></Pressable>
       {gerenciamento&&<GerenciarCompra {...gerenciamento} onClose={()=>setGerenciamento(null)} onSaved={()=>loadPurchases(true)}/>}
-      {contextoCompraId !== null && <ContextoCompra compraId={contextoCompraId} compra={(()=>{const c=purchases.find(c=>c.compra_id===contextoCompraId);return c?{...c,tb_compra_item:c.tb_compra_item?.filter(i=>!resumos[c.compra_id]?.itensOcultos?.includes(i.compra_item_id))}:undefined;})()} onClose={() => {setContextoCompraId(null);loadPurchases(true);}} />}
+      {contextoCompraId !== null && <ContextoCompra compraId={contextoCompraId} compra={purchases.find((purchase) => purchase.compra_id === contextoCompraId)} onClose={() => {setContextoCompraId(null);loadPurchases(true);}} />}
     </SafeAreaView>
   );
 }

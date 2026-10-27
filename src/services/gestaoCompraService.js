@@ -102,7 +102,6 @@ export function criarGravadorEvento({ client, storage, uuid, compraId }) {
             'motivo',
             'quantidade',
             'valorCentavos',
-            'oculto',
             'classificacao',
           ].includes(k) && e.dados?.[k] !== v,
       )

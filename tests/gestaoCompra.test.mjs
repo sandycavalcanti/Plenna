@@ -219,7 +219,6 @@ function sheet({ action, item, fail = false } = {}) {
             compraId: 1,
             disponivel: true,
             revisao: rev,
-            resumo: { itensOcultos: [], oculto: false },
             eventos: [],
           },
         }),
@@ -380,15 +379,15 @@ test('summary batches keep session and reject foreign or duplicated purchase ide
                 mode === 'missing'
                   ? []
                   : mode === 'foreign'
-                  ? [{ compraId: 999, oculto: false }]
+                  ? [{ compraId: 999, classificacao: 'PENDENTE' }]
                   : mode === 'duplicate'
                     ? [
-                        { compraId: ids[0], oculto: false },
-                        { compraId: ids[0], oculto: false },
+                        { compraId: ids[0], classificacao: 'PENDENTE' },
+                        { compraId: ids[0], classificacao: 'PENDENTE' },
                       ]
                     : ids.map((compraId) => ({
                         compraId,
-                        oculto: compraId === 1,
+                        classificacao: compraId === 1 ? 'IMPULSIVA' : 'PENDENTE',
                       })),
             },
           };
@@ -401,7 +400,7 @@ test('summary batches keep session and reject foreign or duplicated purchase ide
     Array.from({ length: 101 }, (_, i) => ({ compra_id: i + 1 })),
   );
   assert.equal(calls.length, 2);
-  assert.equal(result[1].oculto, true);
+  assert.equal(result[1].classificacao, 'IMPULSIVA');
   assert.equal(calls[0].rf017SessionId, 1);
   mode = 'foreign';
   await assert.rejects(consultarResumosCompras([{ compra_id: 1 }]));

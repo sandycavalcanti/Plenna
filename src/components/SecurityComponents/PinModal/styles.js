@@ -9,6 +9,10 @@ export const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: 'rgba(27, 32, 70, 0.35)',
   },
+  keyboardAvoiding: {
+    width: '100%',
+    alignItems: 'center',
+  },
   card: {
     width: '100%',
     maxWidth: 380,
@@ -34,6 +38,14 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 10,
+    minHeight: 48,
+    alignItems: 'center',
+  },
+  pinEntry: {
+    width: '100%',
+    minHeight: 48,
+    position: 'relative',
+    justifyContent: 'center',
     marginBottom: 10,
   },
   indicator: {
@@ -42,10 +54,15 @@ export const styles = StyleSheet.create({
     lineHeight: 32,
   },
   input: {
-    width: 1,
-    height: 1,
-    opacity: 0.01,
     position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 48,
+    opacity: 0.02,
+    padding: 0,
+    color: 'transparent',
+    textAlign: 'center',
   },
   error: {
     minHeight: 38,

@@ -1,8 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  InteractionManager,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { styles } from './styles';
 
 const PIN_LENGTH = 6;
+const pinKeyboardBehavior = typeof Platform !== 'undefined' && Platform.OS === 'android' ? 'height' : 'padding';
 
 export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel, errorMessage = '', busy = false }) {
   const [value, setValue] = useState('');
@@ -10,10 +21,35 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
   const [step, setStep] = useState('primary');
   const inputRef = useRef(null);
   const isSetup = mode === 'setup' || mode === 'change';
+  const focusTimeoutRef = useRef(null);
+  const interactionTaskRef = useRef(null);
+
+  function clearFocusSchedule() {
+    if (focusTimeoutRef.current) {
+      clearTimeout(focusTimeoutRef.current);
+      focusTimeoutRef.current = null;
+    }
+    interactionTaskRef.current?.cancel?.();
+    interactionTaskRef.current = null;
+  }
 
   function focusInput() {
     if (!visible || busy) return;
-    inputRef.current?.focus();
+    if (typeof inputRef.current?.focus === 'function') inputRef.current.focus();
+  }
+
+  function scheduleFocus() {
+    clearFocusSchedule();
+    if (!visible || busy) return;
+
+    const requestFocus = () => {
+      if (visible && !busy && typeof inputRef.current?.focus === 'function') inputRef.current.focus();
+    };
+
+    interactionTaskRef.current = InteractionManager?.runAfterInteractions
+      ? InteractionManager.runAfterInteractions(requestFocus)
+      : null;
+    focusTimeoutRef.current = setTimeout(requestFocus, 180);
   }
 
   useEffect(() => {
@@ -23,6 +59,25 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
       setStep('primary');
     }
   }, [visible, mode]);
+
+  useEffect(() => {
+    if (!visible || busy) {
+      clearFocusSchedule();
+      if (typeof inputRef.current?.blur === 'function') inputRef.current.blur();
+      Keyboard.dismiss();
+      return undefined;
+    }
+
+    scheduleFocus();
+    return clearFocusSchedule;
+  }, [visible, busy, step]);
+
+  function handleCancel() {
+    clearFocusSchedule();
+    if (typeof inputRef.current?.blur === 'function') inputRef.current.blur();
+    Keyboard.dismiss();
+    onCancel?.();
+  }
 
   function updateValue(text) {
     const digits = text.replace(/\D/g, '').slice(0, PIN_LENGTH);
@@ -64,48 +119,54 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
-      onShow={focusInput}
+      onRequestClose={handleCancel}
+      onShow={scheduleFocus}
     >
       <View style={styles.overlay}>
-        <View style={styles.card}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoiding}
+          behavior={pinKeyboardBehavior}
+        >
+          <View style={styles.card}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
 
-          <TouchableOpacity
-            style={styles.indicators}
-            accessibilityRole="button"
-            accessibilityLabel={`${displayedLength} de ${PIN_LENGTH} dígitos preenchidos`}
-            accessibilityHint="Toque para exibir o teclado do PIN"
-            onPress={focusInput}
-            disabled={busy}
-            activeOpacity={0.8}
-          >
-            {Array.from({ length: PIN_LENGTH }).map((_, index) => (
-              <Text key={index} style={styles.indicator}>{index < displayedLength ? '●' : '○'}</Text>
-            ))}
-          </TouchableOpacity>
+            <View style={styles.pinEntry}>
+              <TouchableOpacity
+                style={styles.indicators}
+                accessibilityRole="button"
+                accessibilityLabel={`${displayedLength} de ${PIN_LENGTH} dígitos preenchidos`}
+                accessibilityHint="Toque para exibir o teclado do PIN"
+                onPress={focusInput}
+                disabled={busy}
+                activeOpacity={0.8}
+              >
+                {Array.from({ length: PIN_LENGTH }).map((_, index) => (
+                  <Text key={index} style={styles.indicator}>{index < displayedLength ? '●' : '○'}</Text>
+                ))}
+              </TouchableOpacity>
 
-          <TextInput
-            ref={inputRef}
-            value={value}
-            onChangeText={updateValue}
-            keyboardType="number-pad"
-            maxLength={PIN_LENGTH}
-            secureTextEntry
-            autoFocus
-            showSoftInputOnFocus={true}
-            editable={!busy}
-            style={styles.input}
-            accessibilityLabel="Entrada numérica do PIN"
-          />
+              <TextInput
+                ref={inputRef}
+                value={value}
+                onChangeText={updateValue}
+                keyboardType="number-pad"
+                maxLength={PIN_LENGTH}
+                secureTextEntry
+                showSoftInputOnFocus
+                editable={!busy}
+                style={styles.input}
+                accessibilityLabel="Entrada numérica do PIN"
+              />
+            </View>
 
-          <Text style={styles.error}>{errorMessage}</Text>
+            <Text style={styles.error}>{errorMessage}</Text>
 
-          <TouchableOpacity style={styles.cancel} onPress={onCancel} disabled={busy}>
-            <Text style={styles.cancelText}>Cancelar</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity style={styles.cancel} onPress={handleCancel} disabled={busy}>
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );

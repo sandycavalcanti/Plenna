@@ -249,7 +249,7 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
       <View style={styles.itemsSection}>
         <Text style={styles.itemsTitle}>Itens da compra</Text>
         {Array.isArray(purchase.tb_compra_item) && purchase.tb_compra_item.length > 0 ? (
-          purchase.tb_compra_item.filter(item=>!resumo?.itensOcultos?.includes(item.compra_item_id)).map((item) => {
+          purchase.tb_compra_item.map((item) => {
             const quantityLabel = formatQuantity(item.compra_item_quantidade);
             const categoryLabel = item.tb_categoria?.categoria_nome;
             const categoryIcon = getCategoryIcon(categoryLabel);

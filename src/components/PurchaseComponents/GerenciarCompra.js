@@ -47,12 +47,6 @@ const options = [
     'Valor efetivamente devolvido.',
   ],
   [
-    'OCULTACAO',
-    'eye-off-outline',
-    'Ocultar',
-    'Retira da lista, preserva os cálculos.',
-  ],
-  [
     'CLASSIFICACAO',
     'chatbubble-outline',
     'Como você considera esta compra?',
@@ -65,6 +59,9 @@ const reasons = [
   ['NAO_REALIZADA', 'Compra ou item não realizado'],
   ['OUTRO', 'Outro motivo'],
 ];
+const historicalEventLabels = {
+  OCULTACAO: 'Ocultação registrada',
+};
 export default function GerenciarCompra({
   compra,
   item: initialItem,
@@ -212,10 +209,6 @@ export default function GerenciarCompra({
         if (!Number.isFinite(q) || q <= 0) throw Error('Confira a quantidade.');
         body.quantidade = q;
       }
-      if (action === 'OCULTACAO')
-        body.oculto = item
-          ? !state.data.resumo?.itensOcultos.includes(item.compra_item_id)
-          : !state.data.resumo?.oculto;
       if (action === 'CLASSIFICACAO') {
         if (!classificacao) throw Error('Escolha uma opção.');
         body.classificacao = classificacao;
@@ -324,49 +317,19 @@ export default function GerenciarCompra({
                     >
                       <Ionicons name={icon} size={23} color="#8660A1" />
                       <View style={{ flex: 1 }}>
-                        <Text style={s.label}>
-                          {code === 'OCULTACAO' &&
-                          (item
-                            ? state.data.resumo?.itensOcultos.includes(
-                                item.compra_item_id,
-                              )
-                            : state.data.resumo?.oculto)
-                            ? 'Mostrar novamente'
-                            : title}
-                        </Text>
+                        <Text style={s.label}>{title}</Text>
                         <Text style={s.note}>{description}</Text>
                       </View>
                     </Pressable>
                   ))}
                 <Text style={s.label}>Histórico</Text>
-                {!item &&
-                  state.data.resumo?.itensOcultos?.map((id) => {
-                    const hidden = compra.tb_compra_item?.find(
-                      (i) => i.compra_item_id === id,
-                    );
-                    return hidden ? (
-                      <Pressable
-                        key={id}
-                        accessibilityRole="button"
-                        onPress={() => {
-                          setItem(hidden);
-                          choose('OCULTACAO');
-                        }}
-                        style={s.touch}
-                      >
-                        <Text style={s.link}>
-                          Mostrar item: {hidden.compra_item_nome}
-                        </Text>
-                      </Pressable>
-                    ) : null;
-                  })}
                 {events.length === 0 ? (
                   <Text style={s.note}>Nenhuma operação registrada.</Text>
                 ) : (
                   events.map((e) => (
                     <View key={e.id} style={s.history}>
                       <Text style={s.label}>
-                        {options.find((o) => o[0] === e.tipo)?.[2] || e.tipo}
+                        {options.find((o) => o[0] === e.tipo)?.[2] || historicalEventLabels[e.tipo] || e.tipo}
                         {e.anulado
                           ? ' · anulado'
                           : corrected.has(e.id)
@@ -469,11 +432,6 @@ export default function GerenciarCompra({
                       <Text>{label}</Text>
                     </Pressable>
                   ))
-                ) : action === 'OCULTACAO' ? (
-                  <Text style={s.note}>
-                    A visibilidade muda; os registros continuam nos cálculos.
-                    Você pode mostrar novamente pelo filtro de ocultos.
-                  </Text>
                 ) : (
                   <>
                     {action === 'REEMBOLSO' && (

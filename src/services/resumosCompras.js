@@ -21,9 +21,7 @@ export async function consultarResumosCompras(compras) {
         data.resumos.length !== ids.length ||
         new Set(data.resumos.map((r) => r.compraId)).size !==
           data.resumos.length ||
-        data.resumos.some(
-          (r) => !ids.includes(r.compraId) || typeof r.oculto !== 'boolean',
-        )
+        data.resumos.some((r) => !ids.includes(r.compraId))
       )
         throw Error('INVALID_PURCHASE_SUMMARIES');
       return data.resumos;
