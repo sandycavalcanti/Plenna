@@ -15,13 +15,23 @@ export default StyleSheet.create({
   heroCard: {
     alignItems: 'center',
     backgroundColor: COLORS.fundoPrincipal,
-    borderRadius: 22,
+    borderRadius: 24,
     paddingHorizontal: 20,
-    paddingVertical: 22,
+    paddingVertical: 18,
+    marginBottom: 2,
+  },
+  heroMark: {
+    width: 58,
+    height: 58,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3EEF9',
+    marginBottom: 10,
   },
   heroLogo: {
-    width: 150,
-    height: 150,
+    width: 116,
+    height: 116,
     marginBottom: 8,
   },
   heroBadge: {
@@ -39,6 +49,10 @@ export default StyleSheet.create({
     textAlign: 'center',
     lineHeight: 44,
   },
+  metaHeroTitle: {
+    fontSize: 32,
+    lineHeight: 36,
+  },
   heroSubtitle: {
     fontSize: 14,
     color: COLORS.dadoUm,
@@ -47,27 +61,50 @@ export default StyleSheet.create({
     lineHeight: 20,
   },
   sectionsWrap: {
-    gap: 20,
+    gap: 12,
   },
-  goalsIntroCard: {
-    alignItems: 'center',
-    backgroundColor: COLORS.fundoPrincipal,
+  metasIntroCard: {
+    alignItems: 'stretch',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E9E1F2',
     borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
-  goalsIntroTitle: {
-    fontSize: 18,
+  metasIntroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 11,
+  },
+  metasIntroIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3EEF9',
+  },
+  metasIntroCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
+  },
+  metasIntroTitle: {
+    fontSize: 16,
     fontWeight: '800',
     color: COLORS.cadTitulo,
-    textAlign: 'center',
   },
-  goalsIntroSubtitle: {
-    fontSize: 13,
+  metasIntroSubtitle: {
+    fontSize: 12,
     color: COLORS.dadoUm,
-    textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 18,
+    lineHeight: 17,
+  },
+  metaScreenHeader: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 2,
   },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   sectionCard: {
@@ -114,34 +151,112 @@ export default StyleSheet.create({
   saveButton: {
     width: '100%',
   },
-  addGoalAction: {
-    marginTop: 2,
-    marginBottom: 2,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+  addMetaAction: {
+    width: 'auto',
+    flexGrow: 0,
+    flexShrink: 0,
+    alignSelf: 'flex-end',
+    minHeight: 40,
+    paddingVertical: 8,
+    paddingHorizontal: 11,
+    borderRadius: 13,
   },
-  addGoalActionText: {
-    color: COLORS.cadTextoAdicionarLimites,
-    fontSize: 15,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  goalEditorCard: {
+  metaEditorCard: {
     width: '100%',
-    marginBottom: 0,
+    padding: 15,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E9E1F2',
+    backgroundColor: '#FFFFFF',
+    gap: 14,
   },
-  goalEditorCardCollapsed: {
-    paddingBottom: 8,
+  metaEditorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
-  goalDescriptionInput: {
-    backgroundColor: COLORS.customTextInputFundo,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 80,
-    textAlignVertical: 'top',
+  metaEditorTitleCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  metaEditorEyebrow: {
+    color: '#893467',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  metaEditorTitle: {
+    color: '#594367',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  metaEditorActions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  metaEditorIconButton: {
+    width: 34,
+    minHeight: 34,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  metaEditorDeleteButton: {
+  },
+  metaCardMetrics: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: 12,
+  },
+  metaCardProgressCopy: {
+    alignItems: 'flex-end',
+  },
+  metaMetricLabel: {
+    color: '#8F8398',
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 3,
+  },
+  metaMetricValue: {
+    color: '#594367',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  metaProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  metaProgressTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: '#F0EAF5',
+  },
+  metaProgressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#893467',
+  },
+  metaProgressPercent: {
+    minWidth: 44,
+    color: '#893467',
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
+  metaStatus: {
+    color: '#76658A',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  metaEmptyState: {
+    color: '#76658A',
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    paddingVertical: 18,
   },
   // meta card
   metaCard: {

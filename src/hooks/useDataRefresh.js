@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import { logApiErrors } from '../utils/error';
+import { normalizarRespostaMetas } from '../utils/metaContract';
 
 /**
  * Custom hook para gerenciar requisições de dados com refetch
@@ -96,11 +97,11 @@ export function useDataRefresh() {
   // Buscar metas
   const fetchMetas = useCallback(async () => {
     try {
-      const response = await apiClient.get('/goals');
-      return response.data;
+      const response = await apiClient.get('/metas');
+      return normalizarRespostaMetas(response.data);
     } catch (error) {
-      logApiErrors(error, 'Erro ao buscar metas');
-      return [];
+      logApiErrors(error, 'Erro ao buscar metas', true, error?.details ?? null);
+      throw error;
     }
   }, []);
 

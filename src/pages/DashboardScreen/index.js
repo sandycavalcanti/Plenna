@@ -23,6 +23,8 @@ import { getDashboardAnalytics } from '../../api/dashboard';
 import { useDataRefresh } from '../../hooks/useDataRefresh';
 import { useAnaliseComportamento } from '../../hooks/useAnaliseComportamento';
 import { logApiErrors } from '../../utils/error';
+import CustomButton from '../../components/CustomButton';
+import AppEmptyState from '../../components/Common/AppEmptyState';
 import { obterJanelaDiaLocal } from '../../utils/tempoUsoSync';
 import { observarAtualizacaoTempoUso } from '../../utils/tempoUsoAtualizacao';
 import { styles } from './styles';
@@ -337,9 +339,7 @@ function MonthPickerModal({ visible, value, maxMonth, minMonth, title, onChange,
             <Text style={styles.selectedMonthHint}>Meses futuros e anteriores à conta ficam bloqueados.</Text>
           </View>
 
-          <TouchableOpacity style={styles.modalDoneButton} onPress={applySelection} activeOpacity={0.85}>
-            <Text style={styles.modalDoneText}>Concluir</Text>
-          </TouchableOpacity>
+          <CustomButton title="Concluir" variant="primary" onPress={applySelection} style={styles.modalDoneButton} />
         </View>
       </Pressable>
     </Modal>
@@ -364,10 +364,7 @@ function ErrorState({ message, onRetry }) {
       </View>
       <Text style={styles.stateTitle}>Não foi possível carregar</Text>
       <Text style={styles.stateDescription}>{message}</Text>
-      <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="refresh" size={18} color="#FFFFFF" />
-        <Text style={styles.retryText}>Tentar novamente</Text>
-      </TouchableOpacity>
+      <CustomButton title="Tentar novamente" variant="outline" icon="refresh" onPress={onRetry} style={styles.retryButton} />
     </View>
   );
 }
@@ -375,9 +372,7 @@ function ErrorState({ message, onRetry }) {
 function EmptyComparison({ message = 'Ainda não há dados para comparar.' }) {
   return (
     <View style={styles.emptyComparison}>
-      <MaterialCommunityIcons name="chart-box-outline" size={28} color={COLORS.dadoTres} />
-      <Text style={styles.emptyComparisonTitle}>Sem dados suficientes</Text>
-      <Text style={styles.emptyComparisonText}>{message}</Text>
+      <AppEmptyState icon="chart-box-outline" title="Sem dados suficientes" description={message} compact />
     </View>
   );
 }
@@ -445,7 +440,7 @@ function EvolutionChart({ periods, accountStartMonth, evolutionEnd, requestedMon
   const areaPath = points.length > 2 ? `${linePath} L ${points[points.length - 1].x} ${plotBottom} L ${points[0].x} ${plotBottom} Z` : '';
 
   if (!visiblePeriods.length) {
-    return <EmptyComparison message="Não há meses disponíveis desde a criação da conta neste período." />;
+    return <EmptyComparison message="Nenhum mês disponível para este período." />;
   }
 
   return (
@@ -630,7 +625,7 @@ function PaymentComparisonChart({ periods }) {
   });
 
   const rows = [...rowsByLabel.values()].sort((left, right) => right.base + right.compared - left.base - left.compared);
-  if (!rows.length) return <EmptyComparison message="Nenhuma forma de pagamento apareceu nos períodos escolhidos." />;
+  if (!rows.length) return <EmptyComparison message="Nenhum gasto por forma de pagamento neste período." />;
 
   const visibleRows = expanded ? rows : rows.slice(0, 4);
   const max = Math.max(...rows.flatMap((row) => [row.base, row.compared]), 1);
@@ -682,7 +677,7 @@ function PaymentComparisonChart({ periods }) {
 function CategoryComparisonChart({ categories, periods }) {
   const [expanded, setExpanded] = useState(false);
   if (!categories?.length) {
-    return <EmptyComparison message="Nenhuma categoria apareceu nos períodos escolhidos." />;
+    return <EmptyComparison message="Nenhum gasto por categoria neste período." />;
   }
 
   const orderedCategories = [...categories].sort((left, right) => {
@@ -1228,7 +1223,6 @@ export default function DashboardScreen({ route, navigation }) {
             <MaterialCommunityIcons name="calendar-blank-outline" size={20} color={COLORS.dadoTres} />
             <View style={styles.emptyPeriodCopy}>
               <Text style={styles.emptyPeriodTitle}>Nenhuma compra neste mês</Text>
-              <Text style={styles.emptyPeriodText}>Os indicadores financeiros estão zerados para este período.</Text>
             </View>
           </View>
         ) : null}

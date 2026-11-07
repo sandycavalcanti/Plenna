@@ -18,6 +18,8 @@ import styles from './styles';
 import { alterarConsentimentoMonitoramento } from '../../../services/monitoramentoConsentService';
 import { getModuleStatus, hasUsageAccess, openUsageAccessSettings } from '../../../../modules/plenna-usage-stats';
 import { listarConsentimentos, registrarConsentimento } from '../../../api/consentimento';
+import CustomButton from '../../CustomButton';
+import { COLORS } from '../../../constants/colors';
 import { tokenStorage } from '../../../api/tokenStorage';
 import { logApiErrors } from '../../../utils/error';
 function logErroMonitoramento(error, texto) {
@@ -424,7 +426,8 @@ export default function Permissions({ data }) {
   }
   const statusMonitoramento = loadingTracking ? 'Verificando...' : !trackingStatusKnown ? 'Temporariamente indisponível' : !trackingEnabled ? 'Desativado' : nativeAvailable !== true || !usagePermissionKnown ? 'Temporariamente indisponível' : !usageAccessEnabled || monitoringStatus === 'PERMISSION_REQUIRED' ? 'Permissão necessária' : usageMonitoringEnabled && ['CHECKING', 'CONSENT_REQUIRED', 'SERVICE_DISABLED', 'SERVICE_UNAVAILABLE', 'SOURCE_UNAVAILABLE', 'STATUS_UNAVAILABLE', 'ERROR', 'DISABLED'].includes(monitoringStatus) ? 'Temporariamente indisponível' : monitoringStatus === 'ACTIVATION_REQUIRED' ? 'Ativação necessária' : monitoringStatus === 'CONTROLLED_PAUSE' ? 'Atualizações pausadas' : 'Ativado';
   const aguardandoAtualizacao = statusMonitoramento === 'Ativado' && usageMonitoringEnabled && ['PENDING', 'SYNCING'].includes(monitoringStatus);
-  return <ProfileCard title="Permissões">
+  return (
+    <ProfileCard title="Permissões e integrações" variant="profile">
       <View style={styles.row}>
         <View style={styles.textContainer}>
           <Text style={styles.text}>
@@ -434,25 +437,33 @@ export default function Permissions({ data }) {
           <Text style={styles.sub}>
             Importar compras automaticamente
           </Text>
-
           <Text style={styles.status}>
             {emailEnabled ? 'Ativado' : 'Desativado'}
           </Text>
         </View>
 
-        <Switch value={emailEnabled} onValueChange={handleToggleEmail} trackColor={{
-        false: 'rgba(131, 111, 226, 0.25)',
-        true: '#A9A2F1'
-      }} thumbColor={emailEnabled ? '#4652A4' : '#F4F3F4'} ios_backgroundColor="rgba(131, 111, 226, 0.25)" />
+        <Switch
+          value={emailEnabled}
+          onValueChange={handleToggleEmail}
+          trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+          thumbColor={emailEnabled ? COLORS.ink : COLORS.surface}
+          ios_backgroundColor={COLORS.border}
+        />
       </View>
 
       <View style={styles.monitoringSection}>
         <View style={styles.monitoringHeader}>
           <Text style={[styles.text, styles.monitoringTitle]}>Tempo em aplicativos</Text>
-          <Switch accessibilityLabel="Tempo em aplicativos" accessibilityHint="Autoriza ou interrompe novas coletas; preserva o histórico" value={trackingEnabled} onValueChange={handleToggleTracking} disabled={loadingTracking || !trackingStatusKnown} trackColor={{
-          false: 'rgba(131, 111, 226, 0.25)',
-          true: '#A9A2F1'
-        }} thumbColor={trackingEnabled ? '#4652A4' : '#F4F3F4'} ios_backgroundColor="rgba(131, 111, 226, 0.25)" />
+          <Switch
+            accessibilityLabel="Tempo em aplicativos"
+            accessibilityHint="Autoriza ou interrompe novas coletas; preserva o histórico"
+            value={trackingEnabled}
+            onValueChange={handleToggleTracking}
+            disabled={loadingTracking || !trackingStatusKnown}
+            trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+            thumbColor={trackingEnabled ? COLORS.ink : COLORS.surface}
+            ios_backgroundColor={COLORS.border}
+          />
         </View>
         <Text style={styles.sub}>Acompanhe seus hábitos de uso em aplicativos de compras.</Text>
         <Text style={styles.monitoringStatus} accessibilityLiveRegion="polite">{statusMonitoramento}</Text>
@@ -479,10 +490,14 @@ export default function Permissions({ data }) {
           <Text style={styles.sub}>Permitir sugestões baseadas nos seus dados financeiros</Text>
           <Text style={styles.status}>{loadingMemory ? 'Verificando...' : personalizationEnabled ? 'Recomendações autorizadas' : 'Recomendações desativadas'}</Text>
         </View>
-        <Switch value={personalizationEnabled} onValueChange={handleTogglePersonalizacao} disabled={loadingMemory || !consentimentosDisponiveis || personalizationActionLoading} trackColor={{
-        false: 'rgba(131, 111, 226, 0.25)',
-        true: '#A9A2F1'
-      }} thumbColor={personalizationEnabled ? '#4652A4' : '#F4F3F4'} ios_backgroundColor="rgba(131, 111, 226, 0.25)" />
+        <Switch
+          value={personalizationEnabled}
+          onValueChange={handleTogglePersonalizacao}
+          disabled={loadingMemory || !consentimentosDisponiveis || personalizationActionLoading}
+          trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+          thumbColor={personalizationEnabled ? COLORS.ink : COLORS.surface}
+          ios_backgroundColor={COLORS.border}
+        />
       </View>
       <View style={styles.row}>
         <View style={styles.textContainer}>
@@ -490,10 +505,14 @@ export default function Permissions({ data }) {
           <Text style={styles.sub}>Permitir que a Plenna inicie uma conversa sobre uma recomendacao relevante</Text>
           <Text style={styles.status}>{loadingMemory ? 'Verificando...' : proactivityEnabled ? 'Conversas autorizadas' : 'Conversas desativadas'}</Text>
         </View>
-        <Switch value={proactivityEnabled} onValueChange={handleToggleProatividade} disabled={loadingMemory || !consentimentosDisponiveis || proactivityActionLoading} trackColor={{
-        false: 'rgba(131, 111, 226, 0.25)',
-        true: '#A9A2F1'
-      }} thumbColor={proactivityEnabled ? '#4652A4' : '#F4F3F4'} ios_backgroundColor="rgba(131, 111, 226, 0.25)" />
+        <Switch
+          value={proactivityEnabled}
+          onValueChange={handleToggleProatividade}
+          disabled={loadingMemory || !consentimentosDisponiveis || proactivityActionLoading}
+          trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+          thumbColor={proactivityEnabled ? COLORS.ink : COLORS.surface}
+          ios_backgroundColor={COLORS.border}
+        />
       </View>
       <View style={styles.memorySection}>
         <View style={styles.row}>
@@ -504,22 +523,30 @@ export default function Permissions({ data }) {
               {loadingMemory ? 'Verificando...' : memoryEnabled ? 'Memória autorizada' : 'Memória desativada'}
             </Text>
           </View>
-          <Switch value={memoryEnabled} onValueChange={handleToggleMemory} disabled={loadingMemory || !consentimentosDisponiveis || memoryActionLoading} trackColor={{
-          false: 'rgba(131, 111, 226, 0.25)',
-          true: '#A9A2F1'
-        }} thumbColor={memoryEnabled ? '#4652A4' : '#F4F3F4'} ios_backgroundColor="rgba(131, 111, 226, 0.25)" />
+          <Switch
+            value={memoryEnabled}
+            onValueChange={handleToggleMemory}
+            disabled={loadingMemory || !consentimentosDisponiveis || memoryActionLoading}
+            trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+            thumbColor={memoryEnabled ? COLORS.ink : COLORS.surface}
+            ios_backgroundColor={COLORS.border}
+          />
         </View>
 
-        <Pressable accessibilityRole="button" accessibilityState={{
-        disabled: !memoryEnabled || loadingMemory || !consentimentosDisponiveis
-      }} onPress={() => navigation.navigate('MemoryList')} disabled={!memoryEnabled || loadingMemory || !consentimentosDisponiveis} style={[styles.memoryButton, (!memoryEnabled || loadingMemory || !consentimentosDisponiveis) && styles.memoryButtonDisabled]}>
-          <Text style={styles.memoryButtonText}>Consultar minhas memórias</Text>
-        </Pressable>
+        <CustomButton
+          title="Consultar minhas memórias"
+          variant="outline"
+          onPress={() => navigation.navigate('MemoryList')}
+          disabled={!memoryEnabled || loadingMemory || !consentimentosDisponiveis}
+          loading={loadingMemory}
+          style={styles.memoryButton}
+        />
         {memoryError ? <Text style={styles.memoryError}>{memoryError}</Text> : null}
         {memorySuccess ? <Text style={styles.memorySuccess}>{memorySuccess}</Text> : null}
       </View>
       <Text style={styles.warning}>
         Desativar permissões pode reduzir funcionalidades do app
       </Text>
-    </ProfileCard>;
+    </ProfileCard>
+  );
 }

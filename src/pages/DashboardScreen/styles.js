@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { DASHBOARD_THEME } from '../../constants/dashboardTheme';
 
-const { colors: T, spacing: S, radius: R, shadows: SH } = DASHBOARD_THEME;
+const { colors: T, spacing: S, radius: R, borders: B, shadows: SH } = DASHBOARD_THEME;
 
 export const styles = StyleSheet.create({
   container: {
@@ -104,7 +104,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: R.md,
     backgroundColor: T.surface,
-    ...SH.card,
+    ...B.card,
   },
 
   purchasesButton: {
@@ -114,7 +114,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: R.md,
     backgroundColor: T.surface,
-    ...SH.card,
+    ...B.card,
   },
 
   periodSelectorIcon: {
@@ -153,7 +153,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 13,
     borderRadius: R.md,
     backgroundColor: T.surface,
-    ...SH.card,
+    ...B.card,
   },
 
   financialSummaryHeader: {
@@ -362,12 +362,6 @@ export const styles = StyleSheet.create({
     color: COLORS.perfilProfileCardTitulo,
   },
 
-  emptyPeriodText: {
-    marginTop: 2,
-    fontSize: 12,
-    lineHeight: 17,
-    color: '#777B96',
-  },
 
   periodIndicatorsSection: {
     marginTop: 6,
@@ -379,7 +373,7 @@ export const styles = StyleSheet.create({
     marginLeft: 0,
     marginBottom: 0,
     marginRight: 0,
-    ...SH.card,
+    ...B.card,
   },
 
   periodIndicatorsContent: {
@@ -395,7 +389,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 44,
     borderRadius: R.lg,
     backgroundColor: T.surface,
-    ...SH.card,
+    ...B.card,
   },
 
   stateIcon: {
@@ -425,45 +419,19 @@ export const styles = StyleSheet.create({
   },
 
   retryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
     marginTop: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: COLORS.customButtonFundo,
-  },
-
-  retryText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    width: 'auto',
+    minWidth: 180,
   },
 
   emptyComparison: {
     alignItems: 'center',
     marginTop: 14,
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 16,
     borderRadius: R.lg,
     backgroundColor: T.surface,
-    ...SH.card,
-  },
-
-  emptyComparisonTitle: {
-    marginTop: 9,
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.perfilProfileCardTitulo,
-  },
-
-  emptyComparisonText: {
-    marginTop: 5,
-    fontSize: 13,
-    lineHeight: 19,
-    color: '#7B7F98',
-    textAlign: 'center',
+    ...B.card,
   },
 
   chartCard: {
@@ -471,7 +439,7 @@ export const styles = StyleSheet.create({
     padding: 15,
     borderRadius: R.lg,
     backgroundColor: T.surface,
-    ...SH.card,
+    ...B.card,
   },
 
   chartHeader: {
@@ -586,7 +554,7 @@ export const styles = StyleSheet.create({
     padding: 15,
     borderRadius: R.lg,
     backgroundColor: T.surface,
-    ...SH.card,
+    ...B.card,
   },
 
   comparisonSummaryHeader: {
@@ -889,7 +857,7 @@ export const styles = StyleSheet.create({
     padding: 14,
     borderRadius: R.md,
     backgroundColor: T.surface,
-    ...SH.card,
+    ...B.card,
   },
 
   controlHeader: {

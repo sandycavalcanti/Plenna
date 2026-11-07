@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import AppEmptyState from '../../Common/AppEmptyState';
 import { formatarValorMonetarioParaTela } from '../../CustomTextInput/currency';
 
 export default function Categoria({ gastosCategoria = [] }) {
@@ -84,7 +85,7 @@ export default function Categoria({ gastosCategoria = [] }) {
     return (
       <View style={styles.section}>
         <ProfileCard title="Gastos por categoria" variant="dashboard">
-          <Text style={styles.emptyMessage}>Nenhuma categoria encontrada</Text>
+          <AppEmptyState icon="tag-outline" title="Nenhum gasto por categoria neste período." compact />
         </ProfileCard>
       </View>
     );

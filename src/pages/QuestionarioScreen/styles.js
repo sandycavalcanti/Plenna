@@ -167,14 +167,8 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   secondaryAction: {
-    paddingVertical: 5,
-    paddingHorizontal: 14,
-  },
-  secondaryActionText: {
-    color: COLORS.cadTextoAdicionarLimites,
-    fontSize: 13.5,
-    fontWeight: '700',
-    textAlign: 'center',
+    width: 'auto',
+    minWidth: 170,
   },
   closeButton: {
     position: 'absolute',

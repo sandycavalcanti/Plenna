@@ -15,6 +15,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getChatErrorMessage, getHistory, sendFirstMessage, sendMessage, CHAT_MAX_MESSAGE_CHARS } from '../../api/chat';
 import { COLORS } from '../../constants/colors';
+import CustomButton from '../../components/CustomButton';
 import MarkdownMessage from './markdown';
 import {
   canComposeChat,
@@ -335,9 +336,7 @@ export default function ChatScreen({ navigation }) {
             <MaterialIcons name="cloud-off" size={34} color={COLORS.chatDestinatarioNome} />
             <Text style={styles.stateTitle}>Não foi possível abrir a conversa</Text>
             <Text style={styles.stateText}>{errorMessage}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={loadHistory} disabled={loadingMessages}>
-              <Text style={styles.retryButtonText}>Tentar novamente</Text>
-            </TouchableOpacity>
+            <CustomButton title="Tentar novamente" variant="outline" onPress={loadHistory} loading={loadingMessages} disabled={loadingMessages} style={styles.retryButton} />
           </View>
         ) : loadingMessages ? (
           <View style={styles.stateContainer}>

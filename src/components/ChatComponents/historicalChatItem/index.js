@@ -1,7 +1,8 @@
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/colors';
+import CustomButton from '../../CustomButton';
 import { styles } from './styles';
 
 export default function ChatItem({ title, lastMessage, onPress, onDelete, deleting = false }) {
@@ -22,20 +23,16 @@ export default function ChatItem({ title, lastMessage, onPress, onDelete, deleti
           <Text style={styles.message} numberOfLines={1}>{lastMessage}</Text>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityRole="button"
+      <CustomButton
         accessibilityLabel={`Excluir conversa ${title}`}
-        style={styles.deleteButton}
-        onPress={onDelete}
+        variant="danger"
+        icon="delete-outline"
+        iconOnly
+        loading={deleting}
         disabled={deleting}
-        activeOpacity={0.7}
-      >
-        {deleting ? (
-          <ActivityIndicator size="small" color={COLORS.loginEsqueciSenha} />
-        ) : (
-          <MaterialIcons name="delete-outline" size={23} color={COLORS.loginEsqueciSenha} />
-        )}
-      </TouchableOpacity>
+        onPress={onDelete}
+        style={styles.deleteButton}
+      />
     </View>
   );
 }

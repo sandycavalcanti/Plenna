@@ -80,6 +80,7 @@ async function ambiente() {
     '@react-navigation/native': { useNavigation: () => ({ navigate: (...args) => state.navigations.push(args) }) },
     'src/components/ProfileComponents/ProfileCard.js': { default: 'ProfileCard' },
     'src/components/ProfileComponents/Permissions/styles.js': { default: {} },
+    'src/components/CustomButton.js': { default: 'Pressable' },
     'modules/plenna-usage-stats.js': {
       getModuleStatus: async () => ({ available: true }),
       hasUsageAccess: async () => false,

@@ -170,15 +170,8 @@ export const styles = StyleSheet.create({
   },
   retryButton: {
     marginTop: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 11,
-    borderRadius: 12,
-    backgroundColor: COLORS.chatBotaoEnviar,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    width: 'auto',
+    minWidth: 180,
   },
   errorBanner: {
     minHeight: 40,

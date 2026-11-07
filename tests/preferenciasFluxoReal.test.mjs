@@ -394,7 +394,8 @@ for (const route of ['/users/user', '/preferencia']) {
     assert.deepEqual(h.writes, []);
     assert.equal(h.logs[0].rota, route);
     fail = false;
-    await h.r.nodes((n) => n.type === 'TouchableOpacity' && n.props.accessibilityRole === 'button')[0].props.onPress();
+    const retry = h.r.nodes((n) => n.props.onPress && (n.props.title === 'Tentar carregar novamente' || n.props.title === 'Tentar carregar categorias novamente' || n.props.accessibilityRole === 'button'))[0];
+    await retry.props.onPress();
     await h.r.flush(); await h.button().onPress();
     assert.equal(h.writes.length, 2);
   });

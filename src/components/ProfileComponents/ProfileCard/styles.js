@@ -11,7 +11,7 @@ import { StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants';
 import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
 
-const { colors: DASHBOARD_COLORS, radius: DASHBOARD_RADIUS, shadows: DASHBOARD_SHADOWS } = DASHBOARD_THEME;
+const { colors: DASHBOARD_COLORS, radius: DASHBOARD_RADIUS, borders: DASHBOARD_BORDERS } = DASHBOARD_THEME;
 
 /**
  * Objeto de estilos do componente
@@ -81,7 +81,7 @@ export default StyleSheet.create({
     marginTop: 6,
     marginBottom: 12,
     backgroundColor: DASHBOARD_COLORS.surface,
-    ...DASHBOARD_SHADOWS.card,
+    ...DASHBOARD_BORDERS.card,
   },
 
   dashboardHeader: {
@@ -104,6 +104,56 @@ export default StyleSheet.create({
   },
 
   dashboardContent: {
+    gap: 12,
+  },
+
+  profileContainer: {
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 14,
+    backgroundColor: COLORS.surface,
+  },
+
+  profileHeader: {
+    position: 'relative',
+    top: 0,
+    left: 0,
+    right: 0,
+    marginBottom: 12,
+  },
+
+  profileTitleWrapper: {
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+  },
+
+  profileTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.cadTitulo,
+  },
+
+  profileAction: {
+    width: 'auto',
+    minHeight: 36,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+
+  profileIconAction: {
+    width: 40,
+    minHeight: 40,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderRadius: 13,
+    backgroundColor: COLORS.buttonGhostPressed,
+  },
+
+  profileContent: {
     gap: 12,
   },
 });

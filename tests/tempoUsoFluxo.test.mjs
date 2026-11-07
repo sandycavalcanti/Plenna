@@ -115,6 +115,7 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
     },
     'src/components/ProfileComponents/ProfileCard.js': { default: 'ProfileCard' },
     'src/components/ProfileComponents/Permissions/styles.js': { default: {} },
+    'src/components/CustomButton.js': { default: 'Pressable' },
     '@react-navigation/native': { useNavigation: () => ({ navigate() {} }) },
     '@expo/vector-icons': { MaterialCommunityIcons: 'MaterialCommunityIcons' },
   };

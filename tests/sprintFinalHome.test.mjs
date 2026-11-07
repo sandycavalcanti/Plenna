@@ -5,7 +5,7 @@ import {transformSync} from '@babel/core';
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 async function pure(path){return import('data:text/javascript;base64,'+Buffer.from(await read(path)).toString('base64'));}
 const {destaquesHome,unificarDestaquesHome}=await pure('src/utils/destaquesHome.js');
-const {formatarValorMoedaParaTela}=await pure('src/components/CustomTextInput/currency.js');
+const {formatarValorMeta,formatarPercentualMeta}=await pure('src/utils/metaMoney.js');
 const {distribuicaoClassificacoes}=await pure('src/utils/distribuicaoClassificacoes.js');
 const {apresentarMeiaLua}=await pure('src/utils/meiaLuaHome.js');
 const clock=new Date('2026-10-14T12:00:00Z');
@@ -13,16 +13,16 @@ test('highlights empty, single, three, stable ordering and aggregation without d
  assert.deepEqual(destaquesHome(null,[],0,clock),[]);
  assert.equal(destaquesHome(null,[],2,clock).length,1);
  const data={orcamento:{excessoConhecidoCentavos:3000}};
- const goals=Array.from({length:8},(_,id)=>({id,concluida:false,data:'2026-09-01T00:00:00Z'}));
- const result=destaquesHome(data,goals,4,clock);
+ const metas=Array.from({length:8},(_,id)=>({id,concluida:false,data:'2026-09-01T00:00:00Z'}));
+ const result=destaquesHome(data,metas,4,clock);
  assert.equal(result.length,3);assert.equal(new Set(result.map(x=>x.codigo)).size,3);
  assert.deepEqual(result.map(x=>x.prioridade),[1,2,3]);
- assert.deepEqual(result,destaquesHome(data,goals,4,clock));
+ assert.deepEqual(result,destaquesHome(data,metas,4,clock));
  assert.doesNotMatch(JSON.stringify(result),/compra_id|categoria|IMPULSIVA/);
  assert.equal(destaquesHome(null,[{concluida:true,data:'2020-01-01'}],0,clock).length,0);
  assert.equal(destaquesHome(null,[{data:'invalid'}],0,clock).length,0);
 });
-test('goal date is an invitation to review, never evidence of failed financial progress',()=>{
+test('meta date is an invitation to review, never evidence of failed financial progress',()=>{
  const result=destaquesHome(null,[{data:'2026-10-13T12:00:00Z',concluida:false}],0,clock);
  assert.match(result[0].mensagem,/não comprova/);
  assert.deepEqual(destaquesHome(null,[{data:'2026-10-15',concluida:false}],0,clock),[]);
@@ -41,37 +41,44 @@ test('classification distribution counts each complete population once and disti
  assert.equal(distribuicaoClassificacoes([{compra_classificacao:'PENDENTE',quantidade:3}]).coberturaLegada,true);
  assert.equal(distribuicaoClassificacoes([{compra_classificacao:'OTHER',quantidade_total:2}]).groups.at(-1).codigo,'NAO_IDENTIFICADA');
 });
-const React={createElement:(type,props,...children)=>({type,props:props??{},children})};
+const React={createElement:(type,props,...children)=>typeof type==='function'?type({...props,children}):({type,props:props??{},children})};
+const CustomButton=({title,...props})=>React.createElement('CustomButton',props,title);
 const text=t=>Array.isArray(t)?t.map(text).join(' '):t&&typeof t==='object'?text(t.children):t===null||t===undefined||t===false?'':String(t);
 const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
 const source=await read('src/components/HomeComponents/MetasHome.js');
 const js=transformSync(source.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
-const component=new Function('React','View','Text','Pressable','ActivityIndicator','useState','formatarValorMoedaParaTela',js+';return MetasHome;')(React,'View','Text','Pressable','Spinner',()=>[false,()=>{}],formatarValorMoedaParaTela);
-test('goals actual contents, zero one multiple complete unknown and loading failure',()=>{
- const one={id:1,nome:'Viagem',valor:'300',data:'2026-12-01',concluida:false};
+const MetaProgressBar=({value,accessibilityLabel})=>React.createElement('MetaProgressBar',{value,accessibilityLabel});
+const MetaSummaryCard=({meta})=>React.createElement('MetaSummaryCard',{meta},meta.nome ?? meta.meta_titulo ?? 'Meta sem título','Objetivo',formatarValorMeta(meta.valor ?? meta.meta_valor) || 'Valor não informado','Progresso',formatarPercentualMeta(meta.progressoPercentual ?? meta.progresso_percentual),meta.concluida ? 'Marcada como concluída' : 'Em acompanhamento');
+const COLORS={surface:'#FFFFFF',metaProgressFill:'#893467'};
+const component=new Function('React','View','Text','ActivityIndicator','useState','CustomButton','MetaSummaryCard','COLORS',js+';return MetasHome;')(React,'View','Text','Spinner',()=>[false,()=>{}],CustomButton,MetaSummaryCard,COLORS);
+test('metas actual contents, progress summary, multiple complete unknown and loading failure',()=>{
+ const one={id:1,nome:'Viagem',valor:'300.00',valorReservado:'120.00',progressoPercentual:40,valorRestante:'180.00',data:'2026-12-01',concluida:false};
  assert.match(text(component({metas:[]})),/Criar uma meta/);
  assert.match(text(component({metas:[one]})),/Viagem/);
- assert.match(text(component({metas:[one]})),/não registra aportes/);
- assert.doesNotMatch(text(component({metas:[one]})),/100%|300,00.*restante/);
+  assert.doesNotMatch(text(component({metas:[one]})),/Reservado:\s+R\$ 120,00/);
+  assert.match(text(component({metas:[one]})),/Progresso\s+40%/);
+ assert.doesNotMatch(text(component({metas:[one]})),/não registra aportes/);
+  assert.match(text(component({metas:[{...one,progressoPercentual:125}]})),/Progresso\s+125%/);
  assert.match(text(component({metas:[{...one,concluida:true}]})),/Marcada como concluída/);
  assert.match(text(component({metas:[{...one,valor:null,data:'invalid'}]})),/Valor não informado/);
  assert.doesNotMatch(text(component({metas:[{...one,valor:'bad',data:'invalid'}]})),/NaN|Invalid Date/);
  const many=[one,{...one,id:2,nome:'Curso'},{...one,id:3,nome:'Reserva'}];
- assert.match(text(component({metas:many})),/Ver as 3 metas/);assert.doesNotMatch(text(component({metas:many})),/Reserva/);
+  assert.match(text(component({metas:many})),/Ver as 3 metas/);assert.match(text(component({metas:many})),/Objetivo/);
  assert.ok(nodes(component({loading:true})).some(x=>x.type==='Spinner'));
  assert.match(text(component({error:true})),/Tentar novamente/);
 });
-const hookSource=(await read('src/hooks/useMetasHome.js')).replace(/^import .*;\r?\n/gm,'').replace('export function','function');
+const metaContractSource=(await read('src/utils/metaContract.js')).replace(/^export /gm,'');
+const hookSource=metaContractSource+'\n'+(await read('src/hooks/useMetasHome.js')).replace(/^import .*;\r?\n/gm,'').replace('export function','function');
 function harness(get,session){
  let state;let focus;const refs=[];
  const hook=new Function('useCallback','useRef','useState','useFocusEffect','apiClient','tokenStorage',hookSource+';return useMetasHome();')(x=>x,x=>{const ref={current:x};refs.push(ref);return ref;},x=>{state=x;return[x,x=>state=x];},x=>focus=x,{get},session);
  return {hook,state:()=>state,focus:()=>focus()};
 }
-const raw={meta_id:1,meta_titulo:'Meta',meta_valor:'100',meta_data:null,meta_completado:false};
-test('goal GET uses captured session only; failure and revoked session clear data',async()=>{
+const raw={meta_id:1,meta_titulo:'Meta',meta_valor:'100.00',meta_valor_reservado:'0.00',progresso_percentual:0,valor_restante:'100.00',meta_data:null,meta_completado:false};
+test('meta GET uses captured session only; failure and revoked session clear data',async()=>{
  const controller=new AbortController();const calls=[];
  const h=harness(async(path,options)=>{calls.push({path,options});return{data:[raw]};},{captureSession:async()=>({id:7,signal:controller.signal}),assertSession(){}});
- await h.hook.refresh();assert.equal(h.state().metas.length,1);assert.equal(calls[0].path,'/goals');assert.equal(calls[0].options.rf017SessionId,7);
+ await h.hook.refresh();assert.equal(h.state().metas.length,1);assert.equal(calls[0].path,'/metas');assert.equal(calls[0].options.rf017SessionId,7);
  controller.abort();assert.deepEqual(h.state().metas,[]);assert.equal(h.state().error,true);
  for(const get of [async()=>{throw Error('secret');},async()=>({data:[raw,raw]}),async()=>({data:{}})]){
   const c=new AbortController();const h=harness(get,{captureSession:async()=>({id:1,signal:c.signal}),assertSession(){}});
@@ -80,7 +87,7 @@ test('goal GET uses captured session only; failure and revoked session clear dat
  const none=harness(async()=>{throw Error('must not call');},{captureSession:async()=>null});
  await none.hook.refresh();assert.equal(none.state().error,true);
 });
-test('late goal response cannot override newer request or screen cleanup',async()=>{
+test('late meta response cannot override newer request or screen cleanup',async()=>{
  const controller=new AbortController();const queue=[];
  const h=harness(()=>new Promise(resolve=>queue.push(resolve)),{captureSession:async()=>({id:1,signal:controller.signal}),assertSession(){}});
  const a=h.hook.refresh();await new Promise(r=>setImmediate(r));
@@ -89,7 +96,7 @@ test('late goal response cannot override newer request or screen cleanup',async(
  queue[0]({data:[raw]});await a;assert.equal(h.state().metas[0].nome,'Nova');
  const cleanup=h.focus();await new Promise(r=>setImmediate(r));cleanup();queue[2]({data:[raw]});await new Promise(r=>setImmediate(r));assert.equal(h.state().metas.length,0);
 });
-test('Home hierarchy consumes safe summary and actual goals without old shortcuts',async()=>{
+test('Home hierarchy consumes safe summary and actual metas without old shortcuts',async()=>{
  const s=await read('src/pages/HomeScreen/index.js');
  assert.doesNotMatch(s,/ResumoInterativo|Explore seu consumo|Seus próximos passos|useAnaliseComportamento|fetchCompras/);
  assert.ok(s.indexOf('<CardFinanceiroHome')<s.indexOf('<MetasHome'));assert.ok(s.indexOf('<MetasHome')<s.indexOf('Tempo em aplicativos'));
@@ -106,9 +113,9 @@ test('Home usage preserves seconds without inventing limits',async()=>{
  assert.equal(formatarTempoUso(0),'--');
 });
 
-test('goal calendar date preserves its day and today is not overdue',()=>{
+test('meta calendar date preserves its day and today is not overdue',()=>{
  assert.deepEqual(destaquesHome(null,[{data:'2026-10-14T00:00:00Z',concluida:false}],0,clock),[]);
- assert.match(text(component({metas:[{id:1,nome:'Objetivo',valor:100,data:'2026-12-01T00:00:00Z',concluida:false}]})),/01\/12\/2026/);
+  assert.doesNotMatch(text(component({metas:[{id:1,nome:'Objetivo',valor:100,data:'2026-12-01T00:00:00Z',concluida:false}]})),/01\/12\/2026/);
 });
 
 test('Home prioriza recomendações e não mistura destaques locais',()=>{
@@ -135,7 +142,7 @@ test('Home usa fallbacks somente quando não há recomendação inteligente',()=
 });
 
 test('Home exibe metas na mesma unidade usada pelo Perfil',()=>{
- const values=[[500,'R$ 5,00'],[50000,'R$ 500,00'],[125050,'R$ 1.250,50'],[5000000,'R$ 50.000,00']];
+ const values=[['5.00','R$ 5,00'],['500.00','R$ 500,00'],['1250.50','R$ 1.250,50'],['50000.00','R$ 50.000,00']];
  for(const [valor,esperado] of values){
   const output=text(component({metas:[{id:1,nome:'Cadeira Gamer',valor,data:null,concluida:false}]}));
   assert.match(output,new RegExp(esperado.replace(/[.$]/g,'\\$&')));

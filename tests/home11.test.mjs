@@ -29,9 +29,11 @@ test.beforeEach(()=>{localState=[];hookIndex=0;});
 const useState=initial=>{const index=hookIndex++;if(localState[index]===undefined)localState[index]=initial;return[localState[index],next=>{localState[index]=typeof next==='function'?next(localState[index]):next;}];};
 const gaugeUtil=await readFile(new URL('src/utils/meiaLuaHome.js',base),'utf8');
 const {apresentarMeiaLua}=await import('data:text/javascript;base64,'+Buffer.from(gaugeUtil).toString('base64'));
+const moneySource=await readFile(new URL('src/utils/metaMoney.js',base),'utf8');
+const {valorRealParaCentavos}=await import('data:text/javascript;base64,'+Buffer.from(moneySource).toString('base64'));
 const cardSource=await readFile(new URL('src/components/HomeComponents/CardFinanceiroHome.js',base),'utf8');
 const cardCode=transformSync(cardSource.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
-const CardFinanceiroHome=new Function('React','View','Text','Pressable','ActivityIndicator','StyleSheet','Svg','Path','MaterialCommunityIcons','useState','apresentarMeiaLua',cardCode+';return CardFinanceiroHome;')(React,'View','Text','Pressable','Spinner',{create:x=>x},'Svg','Path','Icon',useState,apresentarMeiaLua);
+const CardFinanceiroHome=new Function('React','View','Text','Pressable','ActivityIndicator','StyleSheet','Svg','Path','MaterialCommunityIcons','useState','apresentarMeiaLua','valorRealParaCentavos',cardCode+';return CardFinanceiroHome;')(React,'View','Text','Pressable','Spinner',{create:x=>x},'Svg','Path','Icon',useState,apresentarMeiaLua,valorRealParaCentavos);
 const HomeRender=new Function('React','View','Text','Pressable','ActivityIndicator','styles','MaterialCommunityIcons','useState','apresentarResumoFinanceiro','apresentarEstadoOrcamento','resumirTempoHoje','formatarTempoUso','financeiroHome','CardFinanceiroHome',`${code};return ResumoInterativo;`)(React,'View','Text','Pressable','Spinner',{},'Icon',useState,apresentarResumoFinanceiro,apresentarEstadoOrcamento,()=>0,()=> '--',financeiroHome,CardFinanceiroHome);
 const Home=props=>{hookIndex=0;return HomeRender(props);};
 const text=t=>t==null||t===false?'':Array.isArray(t)?t.map(text).join(' '):typeof t==='object'?text(t.children):String(t);
@@ -46,7 +48,7 @@ test('separate error loading no purchases and unauthorized Android states',()=>{
  assert.match(text(Home({...props,loading:true})),/Resumo do mês/);assert.ok(nodes(Home({...props,loading:true})).some(n=>n.type==='Spinner'));
  assert.match(text(Home({...props,error:true})),/Erro ao carregar/);
  const empty=homeData({financeiro:{...props.dados.financeiro,totalCentavos:0,totalConhecidoCentavos:0,qualidade:'SEM_COMPRAS',comprasConfirmadas:0}});
- assert.match(text(Home({...props,dados:empty})),/Sem compras confirmadas/);assert.match(text(Home({...props,selecionado:'tempo'})),/Monitoramento não autorizado/);
+ assert.match(text(Home({...props,dados:empty})),/Dados parciais/);assert.match(text(Home({...props,selecionado:'tempo'})),/Monitoramento não autorizado/);
 });
 test('detail navigation emits selected context and never exposes purchase descriptions',()=>{
  const calls=[];const tree=Home({...props,onDetalhes:x=>calls.push(x)});const link=nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver detalhes'));link.props.onPress();assert.deepEqual(calls,['gastos']);assert.doesNotMatch(component,/compra_item_nome|usuario_nome|compra_usuario_anotacao/);
@@ -70,7 +72,7 @@ test('private perspectives and recommendations unavailable without leaking evide
 });
 test('historic budget and unknown total stay absent',()=>{
  const data=homeData({financeiro:{...props.dados.financeiro,totalCentavos:null,qualidade:'INSUFICIENTE',comprasSemValor:3},orcamento:{valorCentavos:null,percentualConhecido:null,disponibilidade:'INDISPONIVEL'}});
- const tree=Home({...props,dados:data});assert.match(text(tree),/Valor não informado/);assert.doesNotMatch(text(tree),/% do orçamento/);
+ const tree=Home({...props,dados:data});assert.match(text(tree),/Utilização indisponível/);assert.match(text(tree),/--/);assert.doesNotMatch(text(tree),/% do orçamento/);
 });
 test('clear surfaces and comfortable targets; Dashboard widths bounded without fixed height',async()=>{
  const homeStyles=await readFile(new URL('src/components/HomeComponents/ResumoInterativo/styles.js',base),'utf8');assert.match(homeStyles,/backgroundColor: '#FFFFFF'/);assert.match(homeStyles,/minHeight: 48/);
@@ -78,8 +80,8 @@ test('clear surfaces and comfortable targets; Dashboard widths bounded without f
 });
 
 test('Home next steps reuse existing navigation without reading private purchases or inventing progress',()=>{
- const calls=[];const tree=Home({...props,onMetas:()=>calls.push('goals'),onDetalhes:x=>calls.push(x)});
+ const calls=[];const tree=Home({...props,onMetas:()=>calls.push('metas'),onDetalhes:x=>calls.push(x)});
  nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver metas')).props.onPress();
  nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Abrir Dashboard')).props.onPress();
- assert.deepEqual(calls,['goals','orientacoes']);assert.doesNotMatch(component,/apiClient|fetchMetas|meta_acumulado|dados\.analise|categoriaId|compra_id/);
+ assert.deepEqual(calls,['metas','orientacoes']);assert.doesNotMatch(component,/apiClient|fetchMetas|meta_acumulado|dados\.analise|categoriaId|compra_id/);
 });

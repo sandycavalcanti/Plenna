@@ -36,7 +36,8 @@ test('component separates loading error empty and insufficient; retry is availab
  assert.match(text(Component({loading:true})),/Carregando/);
  assert.match(text(Component({error:true,onRetry:()=>{}})),/Tentar novamente/);
  const empty=data();empty.analise.indicadores.frequencia.compras=0;empty.recomendacoes.recomendacoes=[];
- assert.match(text(Component({dados:empty})),/Nenhuma compra confirmada/);
+ assert.doesNotMatch(text(Component({dados:empty})),/Nenhuma compra confirmada registrada neste per\u00edodo/);
+ assert.match(text(Component({dados:empty})),/Compras confirmadas/);
  const rendered=text(Component({dados:data()}));assert.doesNotMatch(rendered,/Outubro de 2026/);assert.doesNotMatch(rendered,/avaliação de impulsividade disponível/);assert.match(rendered,/Outros/);assert.match(rendered,/Revise seu limite/);assert.match(rendered,/Ver mais/);assert.doesNotMatch(rendered,/compra:1|Refer?ncias:/);
 });
 test('component limits recommendations to two, removes redundant coverage copy and does not calculate money',()=>{
@@ -54,7 +55,7 @@ test('progressive explanations stay compact, preserve caveats and reset when mon
  opened=null;
  const d=data();
  let tree=Component({dados:d});const compact=text(tree);
- assert.doesNotMatch(compact,/avaliação de impulsividade disponível/);assert.doesNotMatch(compact,/apenas os registros/);assert.match(compact,/vig.ncia hist.rica/);
+ assert.doesNotMatch(compact,/avaliação de impulsividade disponível/);assert.doesNotMatch(compact,/apenas os registros/);assert.doesNotMatch(compact,/vig.ncia hist.rica/);
  assert.doesNotMatch(compact,/Confira seu planejamento atual/);
  const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
  const toggle=nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver mais'));

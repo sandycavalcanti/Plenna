@@ -14,6 +14,8 @@ import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProt
 import { comprasPeriodo } from '../../utils/comprasPeriodo';
 import {consultarResumosCompras} from '../../services/resumosCompras';
 import GerenciarCompra from '../../components/PurchaseComponents/GerenciarCompra';
+import AppScreenHeader from '../../components/Common/AppScreenHeader';
+import CustomButton from '../../components/CustomButton';
 
 /**
  * Tela que apresenta todas as compras retornadas para o usuário autenticado.
@@ -305,27 +307,15 @@ export default function PurchasesScreen({route}={}) {
 
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.headerIconBox}>
-            <MaterialCommunityIcons name="shield-lock-outline" size={23} color={COLORS.cadTitulo} />
-          </View>
-          <View style={styles.headerTextGroup}>
-            <Text style={styles.title}>Minhas compras</Text>
-            <Text style={styles.subtitle}>Confirmação necessária para continuar</Text>
-          </View>
-        </View>
+        <AppScreenHeader icon="shield-lock-outline" title="Minhas compras" subtitle="Confirmação necessária para continuar" style={styles.screenHeader} />
         <View style={styles.stateContainer}>
           {isBusy ? <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /> : null}
           <Text style={styles.stateText}>{message}</Text>
           {protectedAccess.status === PROTECTED_ACCESS_STATES.BIOMETRIC ? (
-            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.usePinFallback}>
-              <Text style={styles.retryButtonText}>Usar PIN</Text>
-            </TouchableOpacity>
+            <CustomButton title="Usar PIN" variant="secondary" onPress={protectedAccess.usePinFallback} style={styles.retryButton} />
           ) : null}
           {protectedAccess.status === PROTECTED_ACCESS_STATES.ERROR ? (
-            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.beginAccess}>
-              <Text style={styles.retryButtonText}>Tentar novamente</Text>
-            </TouchableOpacity>
+            <CustomButton title="Tentar novamente" variant="outline" onPress={protectedAccess.beginAccess} style={styles.retryButton} />
           ) : null}
         </View>
         <PinModal
@@ -371,15 +361,7 @@ export default function PurchasesScreen({route}={}) {
     // com uma lista realmente vazia.
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.headerIconBox}>
-            <MaterialCommunityIcons name="shopping-outline" size={23} color={COLORS.cadTitulo} />
-          </View>
-          <View style={styles.headerTextGroup}>
-            <Text style={styles.title}>Minhas compras</Text>
-            <Text style={styles.subtitle}>Acompanhe e organize suas compras</Text>
-          </View>
-        </View>
+        <AppScreenHeader icon="shopping-outline" title="Minhas compras" subtitle="Acompanhe e organize suas compras" style={styles.screenHeader} />
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} />
           <Text style={styles.stateText}>Carregando compras...</Text>
@@ -392,20 +374,10 @@ export default function PurchasesScreen({route}={}) {
     // O erro possui uma tentativa explícita e não reutiliza o estado vazio.
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.headerIconBox}>
-            <MaterialCommunityIcons name="shopping-outline" size={23} color={COLORS.cadTitulo} />
-          </View>
-          <View style={styles.headerTextGroup}>
-            <Text style={styles.title}>Minhas compras</Text>
-            <Text style={styles.subtitle}>Acompanhe e organize suas compras</Text>
-          </View>
-        </View>
+        <AppScreenHeader icon="shopping-outline" title="Minhas compras" subtitle="Acompanhe e organize suas compras" style={styles.screenHeader} />
         <View style={styles.stateContainer}>
           <Text style={styles.stateText}>{errorMessage}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => loadPurchases()}>
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={() => loadPurchases()} style={styles.retryButton} />
         </View>
       </SafeAreaView>
     );
@@ -413,24 +385,15 @@ export default function PurchasesScreen({route}={}) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Cabeçalho simples, alinhado ao padrão de telas com título do app. */}
-      <View style={styles.header}>
-        {/* O cabeçalho usa composição leve, sem uma faixa colorida pesada. */}
-        <View style={styles.headerIconBox}>
-          <MaterialCommunityIcons name="shopping-outline" size={23} color={COLORS.cadTitulo} />
-        </View>
-        <View style={styles.headerTextGroup}>
-          <Text style={styles.title}>Minhas compras</Text>
-          <Text style={styles.subtitle}>Acompanhe e organize suas compras</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.headerAction}
-          onPress={() => navigation.navigate('Recurrences')}
-          accessibilityRole="button"
-          accessibilityLabel="Abrir recorrências">
-          <MaterialCommunityIcons name="autorenew" size={20} color={COLORS.cadTitulo} />
-        </TouchableOpacity>
-      </View>
+      <AppScreenHeader
+        icon="shopping-outline"
+        title="Minhas compras"
+        subtitle="Acompanhe e organize suas compras"
+        style={styles.screenHeader}
+        rightAction={(
+          <CustomButton accessibilityLabel="Abrir recorrências" variant="ghost" icon="autorenew" iconOnly onPress={() => navigation.navigate('Recurrences')} style={styles.headerAction} />
+        )}
+      />
 
       {/*
         FlatList renderiza cada registro com o componente reutilizável. O

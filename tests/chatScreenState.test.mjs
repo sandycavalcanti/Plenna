@@ -119,7 +119,8 @@ test('históricos exibem exclusão protegida sem confundir abertura com lixeira'
   assert.match(historyScreenSource, /await deleteHistory\(historyId\)/);
   assert.match(historyScreenSource, /deletingIdsRef/);
   assert.match(historyScreenSource, /removedIdsRef/);
-  assert.match(historicalItemSource, /name="delete-outline"/);
+  assert.match(historicalItemSource, /icon="delete-outline"/);
+  assert.match(historicalItemSource, /variant="danger"/);
   assert.match(historicalItemSource, /onPress=\{onDelete\}/);
   assert.match(historicalItemSource, /onPress=\{onPress\}/);
 });

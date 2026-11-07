@@ -273,7 +273,6 @@ export default StyleSheet.create({
   cancelButton: {
     flex: 1,
     minWidth: 120,
-    backgroundColor: '#D6C0D6',
   },
   submitButton: {
     flex: 1,

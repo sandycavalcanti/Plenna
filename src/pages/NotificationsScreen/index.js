@@ -4,8 +4,10 @@ import { useFocusEffect, useIsFocused, useNavigation, useRoute } from '@react-na
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PinModal from '../../components/SecurityComponents/PinModal';
+import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
 import { COLORS } from '../../constants/colors';
+import CustomButton from '../../components/CustomButton';
 import { getNotifications, markNotificationAsRead } from '../../services/notifications/notificationApi';
 import {
   formatNotificationDate,
@@ -14,28 +16,6 @@ import {
   markNotificationAsReadLocally,
 } from '../../services/notifications/notificationPresentation';
 import { styles } from './styles';
-
-function NotificationsHeader({ navigation, subtitle }) {
-  return (
-    <View style={styles.header}>
-      <TouchableOpacity
-        accessibilityLabel="Voltar"
-        accessibilityRole="button"
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <MaterialCommunityIcons name="arrow-left" size={23} color={COLORS.cadTitulo} />
-      </TouchableOpacity>
-      <View style={styles.headerIconBox}>
-        <MaterialCommunityIcons name="bell-outline" size={23} color={COLORS.cadTitulo} />
-      </View>
-      <View style={styles.headerTextGroup}>
-        <Text style={styles.title}>Notificações</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-      </View>
-    </View>
-  );
-}
 
 function renderSecurityState(protectedAccess, navigation) {
   const isBusy = [PROTECTED_ACCESS_STATES.CHECKING, PROTECTED_ACCESS_STATES.BIOMETRIC].includes(protectedAccess.status);
@@ -49,19 +29,15 @@ function renderSecurityState(protectedAccess, navigation) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <NotificationsHeader navigation={navigation} subtitle="Confirmação necessária para continuar" />
+      <AppScreenHeader icon="bell-outline" title="Notificações" subtitle="Confirmação necessária para continuar" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
       <View style={styles.stateContainer}>
         {isBusy ? <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /> : null}
         <Text style={styles.stateText}>{message}</Text>
         {protectedAccess.status === PROTECTED_ACCESS_STATES.BIOMETRIC ? (
-          <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.usePinFallback}>
-            <Text style={styles.retryButtonText}>Usar PIN</Text>
-          </TouchableOpacity>
+          <CustomButton title="Usar PIN" variant="secondary" onPress={protectedAccess.usePinFallback} style={styles.retryButton} />
         ) : null}
         {protectedAccess.status === PROTECTED_ACCESS_STATES.ERROR ? (
-          <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.beginAccess}>
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={protectedAccess.beginAccess} style={styles.retryButton} />
         ) : null}
       </View>
       <PinModal
@@ -201,7 +177,7 @@ export default function NotificationsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <NotificationsHeader navigation={navigation} subtitle="Acompanhe os alertas do seu planejamento" />
+        <AppScreenHeader icon="bell-outline" title="Notificações" subtitle="Acompanhe os alertas do seu planejamento" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
         <View style={styles.stateContainer}>
           <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} />
           <Text style={styles.stateText}>Carregando notificações...</Text>
@@ -213,12 +189,10 @@ export default function NotificationsScreen() {
   if (errorMessage) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <NotificationsHeader navigation={navigation} subtitle="Acompanhe os alertas do seu planejamento" />
+        <AppScreenHeader icon="bell-outline" title="Notificações" subtitle="Acompanhe os alertas do seu planejamento" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
         <View style={styles.stateContainer}>
           <Text style={styles.stateText}>{errorMessage}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => loadNotifications()}>
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={() => loadNotifications()} style={styles.retryButton} />
         </View>
       </SafeAreaView>
     );
@@ -226,7 +200,7 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <NotificationsHeader navigation={navigation} subtitle="Acompanhe os alertas do seu planejamento" />
+      <AppScreenHeader icon="bell-outline" title="Notificações" subtitle="Acompanhe os alertas do seu planejamento" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
       <FlatList
         data={notifications}
         keyExtractor={(item) => String(item.notificacao_id)}

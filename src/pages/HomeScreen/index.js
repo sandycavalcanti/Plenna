@@ -13,7 +13,6 @@ import CardFinanceiroHome from '../../components/HomeComponents/CardFinanceiroHo
 import MetasHome from '../../components/HomeComponents/MetasHome';
 import { useMetasHome } from '../../hooks/useMetasHome';
 import { destaquesHome, unificarDestaquesHome } from '../../utils/destaquesHome';
-import { resumirTempoHoje, formatarTempoUso } from '../../utils/resumoTempoUso';
 import SeletorMensalHome from '../../components/HomeComponents/SeletorMensalHome';
 import { useResumoHome } from '../../hooks/useResumoHome';
 import { useTempoUsoHome } from '../../hooks/useTempoUsoHome';
@@ -27,6 +26,7 @@ import { useRecomendacoesHome } from '../../hooks/useRecomendacoesHome';
 import { obterContextoRecomendacao } from '../../api/recomendacoes';
 import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
 import { cartoesResumo } from '../../utils/selecionarDescobertas';
+import AppEmptyState from '../../components/Common/AppEmptyState';
 
 export default function HomeScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -36,7 +36,7 @@ export default function HomeScreen({ navigation }) {
   const descobertas = useDescobertasResumo(periodo);
   const tempo = useTempoUsoHome(!usageMonitoringReadsEnabled);
   const metas = useMetasHome();
-  const recomendacoes = useRecomendacoesHome();
+  const recomendacoes = useRecomendacoesHome(periodo);
   const [usuario, setUsuario] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -175,22 +175,27 @@ export default function HomeScreen({ navigation }) {
 
         <SeletorMensalHome periodo={periodo} limites={financeiro.dados?.seletor} loading={financeiro.loading} error={financeiro.error} onChange={setPeriodo} />
         <PurchaseHero />
-        <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} /></View>
-        <MetasHome {...metas} onRetry={metas.refresh} onCreate={() => navigation.navigate('EditProfile', { mode: 'goals' })} />
+        <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} orcamentoFixo={usuario?.usuario_meta_valor_mensal} /></View>
+        <MetasHome
+          {...metas}
+          onRetry={metas.refresh}
+          onCreate={() => navigation.navigate('EditProfile', { mode: 'metas' })}
+          onOpen={(meta) => navigation.navigate('MetaDetails', { metaId: meta.id, meta })}
+        />
         {usageMonitoringReadsEnabled ? <UsageTimePanel compact month={periodo} onSettings={() => navigation.navigate('Profile')} onDetails={openUsageDetails} /> : <TempoUsoHome estado={tempo.estado} registros={tempo.registros} onRetry={tempo.refresh} onDetails={openUsageDetails} onSettings={() => navigation.navigate('Profile')} />}
 
         {mostrarParaVoce && (
           <View style={{ marginHorizontal: 18, marginBottom: 14, gap: 10 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: '#594367' }}>Para você</Text>
             {recomendacoes.loading || descobertasEmCarregamento ? <Text style={{ color: '#655A70' }}>Carregando recomendações...</Text> : null}
-            {recomendacoes.error || descobertas.error ? <TouchableOpacity onPress={atualizarParaVoce} accessibilityRole="button"><Text style={{ color: '#893467' }}>Não foi possível carregar todas as informações. Tentar novamente</Text></TouchableOpacity> : null}
+            {recomendacoes.error || descobertas.error ? <TouchableOpacity onPress={atualizarParaVoce} accessibilityRole="button"><Text style={styles.inlineActionText}>Não foi possível carregar todas as informações. Tentar novamente</Text></TouchableOpacity> : null}
             {recomendacoes.consentimentoAtivo === false ? <Text style={{ color: '#655A70' }}>Ative as recomendações personalizadas no Perfil para receber sugestões baseadas em evidências.</Text> : null}
             {itensParaVoce.map((item) => item.tipoItem === 'RECOMENDACAO' ? (
               <View key={item.chave} style={{ padding: 16, minHeight: 48, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 8 }}>
                 <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>{item.titulo}</Text>
                 <Text style={{ color: '#655A70', lineHeight: 19 }}>{item.texto}</Text>
                 <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-                  <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={{ color: '#893467', fontWeight: '600' }}>Conversar sobre isso</Text></TouchableOpacity>
+                  <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={styles.inlineActionText}>Conversar sobre isso</Text></TouchableOpacity>
                   <TouchableOpacity accessibilityRole="button" onPress={() => recomendacoes.updateStatus(item.id, 'DESCARTADA')}><Text style={{ color: '#655A70' }}>Dispensar</Text></TouchableOpacity>
                 </View>
               </View>
@@ -198,7 +203,7 @@ export default function HomeScreen({ navigation }) {
               <TouchableOpacity
                 key={item.chave}
                 accessibilityRole="button"
-                onPress={() => item.acao === 'notificacoes' ? openNotifications() : item.acao === 'metas' ? navigation.navigate('EditProfile', { mode: 'goals' }) : navigation.navigate('Dashboard', { indicador: 'comportamento', periodo })}
+                onPress={() => item.acao === 'notificacoes' ? openNotifications() : item.acao === 'metas' ? navigation.navigate('EditProfile', { mode: 'metas' }) : navigation.navigate('Dashboard', { indicador: 'comportamento', periodo })}
                 style={{ padding: 16, minHeight: 48, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 6 }}
               >
                 <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>{item.titulo}</Text>
@@ -208,9 +213,8 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
         {!recomendacoes.loading && !descobertas.loading && !recomendacoes.error && !descobertas.error && recomendacoes.consentimentoAtivo === true && itensParaVoce.length === 0 && (
-          <View style={{ marginHorizontal: 18, marginBottom: 14, padding: 16, borderRadius: 18, backgroundColor: '#FFFFFF' }}>
-            <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>Nenhuma recomendação no momento</Text>
-            <Text style={{ color: '#655A70', marginTop: 5 }}>Continue acompanhando seus dados para receber sugestões baseadas em evidências.</Text>
+          <View style={styles.recommendationEmpty}>
+            <AppEmptyState icon="lightbulb-outline" title="Nenhuma recomendação disponível." compact />
           </View>
         )}
       </ScrollView>

@@ -22,7 +22,7 @@ function contextoDoItem(item) {
 
  if (/ORCAMENTO|BUDGET|MENSAL/.test(completo)) return 'ORCAMENTO';
  if (/LIMITE|LIMIT/.test(completo)) return 'LIMITE';
- if (/META|OBJETIVO|GOAL/.test(completo)) return 'META';
+ if (/META|OBJETIVO/.test(completo)) return 'META';
  if (/RECORREN|PARCEL/.test(completo)) return 'RECORRENCIA';
  if (/IMPULS|FREQUEN|HABITO/.test(completo)) return 'COMPORTAMENTO';
  if (/NOTIFIC/.test(completo)) return 'NOTIFICACOES';

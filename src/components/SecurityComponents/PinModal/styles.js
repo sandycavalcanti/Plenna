@@ -72,11 +72,15 @@ export const styles = StyleSheet.create({
     marginTop: 4,
   },
   cancel: {
+    alignSelf: 'center',
     marginTop: 12,
-    padding: 10,
-  },
-  cancelText: {
-    color: COLORS.loginLinks,
-    fontSize: 15,
+    width: 132,
+    minWidth: 132,
+    minHeight: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 });

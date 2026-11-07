@@ -118,11 +118,19 @@ export function createRenderer(mocks = {}) {
       if (name === 'react-native') return {
         ...Object.fromEntries(['View', 'Text', 'TextInput', 'ScrollView', 'Modal', 'Pressable', 'FlatList',
           'TouchableOpacity', 'ActivityIndicator', 'Image', 'KeyboardAvoidingView'].map((key) => [key, key])),
+        Platform: { OS: 'ios' },
         Alert: { alert: (...args) => alerts.push(args) },
         StyleSheet: {create:value=>value},
         BackHandler: { addEventListener: () => ({ remove() {} }) },
       };
       if (name === '@react-native-community/slider') return 'Slider';
+      if (name === '@react-native-async-storage/async-storage') return {
+        multiGet: async (keys) => keys.map((key) => [key, null]),
+        getItem: async () => null,
+        setItem: async () => undefined,
+        removeItem: async () => undefined,
+      };
+      if (name === 'expo-crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
       if (name === '@expo/vector-icons') return { MaterialCommunityIcons: 'Icon', Ionicons: 'Icon' };
       if (name === 'react-native-safe-area-context') return { SafeAreaView: 'SafeAreaView' };
       if (name === '@react-navigation/native') return { useNavigation: () => ({ goBack() {}, navigate() {} }) };
@@ -131,6 +139,7 @@ export function createRenderer(mocks = {}) {
       if (name === 'expo-linking') return { addEventListener: () => ({ remove() {} }) };
       if (name.endsWith('/services/security/protectedSession')) return { invalidateProtectedSession() {} };
       if (name.endsWith('/api/tokenStorage')) return { tokenStorage: { async setToken() {} } };
+      if (name === './client' && path.endsWith('src\\api\\metas.js')) return mocks['../../api/client'] || { apiClient: { get: async () => ({ data: [] }), post: async () => ({}), put: async () => ({}), delete: async () => ({}) } };
       if (name.endsWith('/components/CustomTextInput')) return { __esModule: true, default: 'CustomTextInput' };
       if (name.endsWith('/constants/dashboardTheme') || name.endsWith('/constants/colors') || name === './colors') return load(resolve(dirname(path), name + '.js'));
       if (name.includes('constants')) return { COLORS: {} };
