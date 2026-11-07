@@ -99,7 +99,16 @@ export function formatarValorMeta(value) {
 /** Valor editável da meta; a vírgula é apenas apresentação, não mudança de unidade. */
 export function formatarValorMetaParaEntrada(value) {
   const canonical = canonicalRealMoney(value);
-  return canonical ? canonical.replace('.', ',') : String(value ?? '');
+  if (!canonical) return String(value ?? '');
+  const [integerPart, fractionPart] = canonical.split('.');
+  const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${groupedInteger},${fractionPart}`;
+}
+
+/** Finaliza a apresentação editável sem interferir na digitação intermediária. */
+export function formatarValorMetaEmEdicao(value) {
+  const normalized = normalizarValorMeta(value);
+  return normalized.value ? formatarValorMetaParaEntrada(normalized.value) : String(value ?? '');
 }
 
 export function formatarPercentualMeta(value) {

@@ -46,7 +46,7 @@ test('separate error loading no purchases and unauthorized Android states',()=>{
  assert.match(text(Home({...props,loading:true})),/Resumo do mês/);assert.ok(nodes(Home({...props,loading:true})).some(n=>n.type==='Spinner'));
  assert.match(text(Home({...props,error:true})),/Erro ao carregar/);
  const empty=homeData({financeiro:{...props.dados.financeiro,totalCentavos:0,totalConhecidoCentavos:0,qualidade:'SEM_COMPRAS',comprasConfirmadas:0}});
- assert.match(text(Home({...props,dados:empty})),/Sem compras confirmadas/);assert.match(text(Home({...props,selecionado:'tempo'})),/Monitoramento não autorizado/);
+ assert.match(text(Home({...props,dados:empty})),/Dados parciais/);assert.match(text(Home({...props,selecionado:'tempo'})),/Monitoramento não autorizado/);
 });
 test('detail navigation emits selected context and never exposes purchase descriptions',()=>{
  const calls=[];const tree=Home({...props,onDetalhes:x=>calls.push(x)});const link=nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver detalhes'));link.props.onPress();assert.deepEqual(calls,['gastos']);assert.doesNotMatch(component,/compra_item_nome|usuario_nome|compra_usuario_anotacao/);
@@ -70,7 +70,7 @@ test('private perspectives and recommendations unavailable without leaking evide
 });
 test('historic budget and unknown total stay absent',()=>{
  const data=homeData({financeiro:{...props.dados.financeiro,totalCentavos:null,qualidade:'INSUFICIENTE',comprasSemValor:3},orcamento:{valorCentavos:null,percentualConhecido:null,disponibilidade:'INDISPONIVEL'}});
- const tree=Home({...props,dados:data});assert.match(text(tree),/Valor não informado/);assert.doesNotMatch(text(tree),/% do orçamento/);
+ const tree=Home({...props,dados:data});assert.match(text(tree),/Utilização indisponível/);assert.match(text(tree),/--/);assert.doesNotMatch(text(tree),/% do orçamento/);
 });
 test('clear surfaces and comfortable targets; Dashboard widths bounded without fixed height',async()=>{
  const homeStyles=await readFile(new URL('src/components/HomeComponents/ResumoInterativo/styles.js',base),'utf8');assert.match(homeStyles,/backgroundColor: '#FFFFFF'/);assert.match(homeStyles,/minHeight: 48/);

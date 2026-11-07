@@ -23,6 +23,7 @@ import { useRecomendacoesHome } from '../../hooks/useRecomendacoesHome';
 import { obterContextoRecomendacao } from '../../api/recomendacoes';
 import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
 import { cartoesResumo } from '../../utils/selecionarDescobertas';
+import AppEmptyState from '../../components/Common/AppEmptyState';
 
 export default function HomeScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
@@ -173,25 +174,28 @@ export default function HomeScreen({ navigation }) {
           onCreate={() => navigation.navigate('EditProfile', { mode: 'metas' })}
           onOpen={(meta) => navigation.navigate('MetaDetails', { metaId: meta.id, meta })}
         />
-        <View style={{ marginHorizontal: 18, padding: 16, marginBottom: 14, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 8 }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#594367' }}>Tempo em aplicativos · hoje</Text>
-          <Text style={{ fontSize: 24, fontWeight: '700', color: '#893467' }}>{tempo.estado === 'CARREGANDO' ? 'Carregando' : tempo.estado === 'ERRO' ? 'Indisponível' : tempo.estado === 'SEM_CONSENTIMENTO' ? 'Não autorizado' : resumirTempoHoje(tempo.registros) > 0 ? formatarTempoUso(resumirTempoHoje(tempo.registros)) : 'Sem registros hoje'}</Text>
-          <Text>{tempo.estado === 'SEM_CONSENTIMENTO' ? 'Monitoramento não autorizado. Consulte o Perfil.' : 'Somente registros deste celular; tempo de uso não comprova compras.'}</Text>
-          <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Dashboard', { indicador:'tempo' })} style={{ minHeight: 48, justifyContent: 'center' }}><Text style={{ color: '#893467', fontWeight: '600' }}>Entender meu tempo</Text></TouchableOpacity>
+        <View style={styles.timeCard}>
+          <Text style={styles.timeCardTitle}>Tempo em aplicativos · hoje</Text>
+          {tempo.estado === 'SEM_CONSENTIMENTO' ? <AppEmptyState icon="shield-off-outline" title="Monitoramento desativado." compact /> : null}
+          {tempo.estado === 'ERRO' ? <AppEmptyState icon="clock-alert-outline" title="Tempo indisponível." compact /> : null}
+          {tempo.estado === 'CARREGANDO' || tempo.estado === 'NAO_SOLICITADO' ? <AppEmptyState icon="clock-outline" title="Carregando registros..." compact /> : null}
+          {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) > 0 ? <Text style={styles.timeValue}>{formatarTempoUso(resumirTempoHoje(tempo.registros))}</Text> : null}
+          {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) === 0 ? <AppEmptyState icon="clock-outline" title="Nenhum tempo registrado hoje." compact /> : null}
+          <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Dashboard', { indicador:'tempo' })} style={styles.timeLink}><Text style={styles.timeLinkText}>Entender meu tempo</Text></TouchableOpacity>
         </View>
 
         {mostrarParaVoce && (
           <View style={{ marginHorizontal: 18, marginBottom: 14, gap: 10 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: '#594367' }}>Para você</Text>
             {recomendacoes.loading || descobertasEmCarregamento ? <Text style={{ color: '#655A70' }}>Carregando recomendações...</Text> : null}
-            {recomendacoes.error || descobertas.error ? <TouchableOpacity onPress={atualizarParaVoce} accessibilityRole="button"><Text style={{ color: '#893467' }}>Não foi possível carregar todas as informações. Tentar novamente</Text></TouchableOpacity> : null}
+            {recomendacoes.error || descobertas.error ? <TouchableOpacity onPress={atualizarParaVoce} accessibilityRole="button"><Text style={styles.inlineActionText}>Não foi possível carregar todas as informações. Tentar novamente</Text></TouchableOpacity> : null}
             {recomendacoes.consentimentoAtivo === false ? <Text style={{ color: '#655A70' }}>Ative as recomendações personalizadas no Perfil para receber sugestões baseadas em evidências.</Text> : null}
             {itensParaVoce.map((item) => item.tipoItem === 'RECOMENDACAO' ? (
               <View key={item.chave} style={{ padding: 16, minHeight: 48, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 8 }}>
                 <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>{item.titulo}</Text>
                 <Text style={{ color: '#655A70', lineHeight: 19 }}>{item.texto}</Text>
                 <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-                  <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={{ color: '#893467', fontWeight: '600' }}>Conversar sobre isso</Text></TouchableOpacity>
+                  <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={styles.inlineActionText}>Conversar sobre isso</Text></TouchableOpacity>
                   <TouchableOpacity accessibilityRole="button" onPress={() => recomendacoes.updateStatus(item.id, 'DESCARTADA')}><Text style={{ color: '#655A70' }}>Dispensar</Text></TouchableOpacity>
                 </View>
               </View>
@@ -209,9 +213,8 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
         {!recomendacoes.loading && !descobertas.loading && !recomendacoes.error && !descobertas.error && recomendacoes.consentimentoAtivo === true && itensParaVoce.length === 0 && (
-          <View style={{ marginHorizontal: 18, marginBottom: 14, padding: 16, borderRadius: 18, backgroundColor: '#FFFFFF' }}>
-            <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>Nenhuma recomendação no momento</Text>
-            <Text style={{ color: '#655A70', marginTop: 5 }}>Continue acompanhando seus dados para receber sugestões baseadas em evidências.</Text>
+          <View style={styles.recommendationEmpty}>
+            <AppEmptyState icon="lightbulb-outline" title="Nenhuma recomendação disponível." compact />
           </View>
         )}
       </ScrollView>

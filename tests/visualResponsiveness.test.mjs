@@ -47,13 +47,13 @@ test('MetaFormSheet recupera a paleta suave sem criar estilos de botão isolados
   const styles = await read('src/components/Metas/MetaFormSheet/styles.js');
   const buttonStyles = await read('src/components/CustomButton/styles.js');
 
-  assert.match(form, /variant="accent"/);
+  assert.match(form, /variant="primary"/);
   assert.match(form, /variant="secondary"/);
   assert.match(form, /variant="danger"/);
   assert.match(form, /variant="ghost"/);
   assert.match(styles, /backgroundColor: COLORS\.surface/);
   assert.match(styles, /borderColor: COLORS\.border/);
   assert.match(styles, /inputFocused:[\s\S]*?COLORS\.cadTextoAdicionarLimites/);
-  assert.match(buttonStyles, /accentButton:[\s\S]*?COLORS\.buttonAccentBackground/);
+  assert.match(buttonStyles, /primaryButton:[\s\S]*?COLORS\.buttonPrimaryBackground/);
   assert.doesNotMatch(styles, /#FAF7FC|#D9CEE8|#893467/);
 });

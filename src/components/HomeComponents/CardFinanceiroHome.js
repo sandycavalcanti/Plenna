@@ -11,6 +11,7 @@ export default function CardFinanceiroHome({dados,loading,error,onRetry}) {
   if(loading) return <View style={styles.card}><Text style={styles.title}>Compras e orçamento</Text><ActivityIndicator accessibilityLabel="Carregando resumo financeiro" /></View>;
   if(error||!dados) return <View style={styles.card}><Text style={styles.title}>Compras e orçamento</Text><Text>Erro ao carregar os dados financeiros.</Text><Pressable accessibilityRole="button" onPress={onRetry} style={styles.touch}><Text style={styles.link}>Tentar novamente</Text></Pressable></View>;
   const f=dados.financeiro;
+  const hasCompleteCoverage = f.qualidade === 'COMPLETA' && f.cobertura === 'COMPLETA';
   return <View style={styles.card}>
     <Text style={styles.title}>Compras e orçamento</Text>
     <View style={styles.gauge} accessible accessibilityRole="progressbar" accessibilityLabel={chart.mensagem} accessibilityValue={{min:0,max:100,...(chart.percentual===null?{}:{now:Math.min(100,chart.percentual)}),text:chart.percentual===null?'Percentual indisponível':chart.percentual.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%'}}>
@@ -21,17 +22,12 @@ export default function CardFinanceiroHome({dados,loading,error,onRetry}) {
     </View>
     <Text style={[styles.percent,{color:chart.cor}]}>{chart.percentual===null?'--':chart.percentual.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%'}</Text>
     <Text style={styles.caption}>{chart.percentual===null?'Utilização indisponível':'do orçamento utilizado'}</Text>
-    <Text style={[styles.state,{color:chart.cor}]}>{chart.mensagem}</Text>
-    {chart.percentual === null && <Text style={styles.note}>Ainda não é possível calcular a utilização.</Text>}
+    <Text style={[styles.state,{color:chart.cor}]}>{chart.percentual === null ? 'Utilização indisponível' : hasCompleteCoverage ? chart.mensagem : 'Dados parciais'}</Text>
     <View style={styles.metrics}>
-      <View style={styles.metric}><MaterialCommunityIcons name="shopping-outline" size={22} color="#8660A1" accessible={false}/><Text style={styles.caption}>Compras</Text><Text style={styles.amount}>{money(chart.compras)}</Text><Text style={styles.note}>Valor conhecido do período</Text></View>
-      <View style={styles.metric}><MaterialCommunityIcons name="bullseye-arrow" size={22} color="#8660A1" accessible={false}/><Text style={styles.caption}>Orçamento</Text><Text style={styles.amount}>{money(chart.orcamento)}</Text><Text style={styles.note}>Referência mensal disponível</Text></View>
+      <View style={styles.metric}><MaterialCommunityIcons name="shopping-outline" size={22} color="#8660A1" accessible={false}/><Text style={styles.caption}>Compras</Text><Text style={styles.amount}>{money(chart.compras)}</Text></View>
+      <View style={styles.metric}><MaterialCommunityIcons name="bullseye-arrow" size={22} color="#8660A1" accessible={false}/><Text style={styles.caption}>Orçamento</Text><Text style={styles.amount}>{money(chart.orcamento)}</Text></View>
     </View>
-    {chart.restante!==null && chart.percentual<=100 && <Text style={styles.note}>Saldo considerando os gastos registrados: {money(chart.restante)}</Text>}
     {chart.excesso!==null && <Text style={styles.state}>Excesso conhecido: {money(chart.excesso)}</Text>}
-    {f.qualidade==='SEM_COMPRAS' && <Text style={styles.note}>Sem compras confirmadas registradas neste mês.</Text>}
-    {(f.qualidade==='PARCIAL'||f.qualidade==='INSUFICIENTE') && <Text style={styles.note}>{f.comprasSemValor} compra(s) sem valor informado. O total conhecido pode estar incompleto.</Text>}
-    <Text style={styles.note}>Somente registros disponíveis; outros gastos podem não aparecer. Orçamento atual não comprova vigência histórica.</Text>
     <Pressable accessibilityRole="button" accessibilityState={{expanded}} onPress={()=>setExpanded(!expanded)} style={styles.touch}><MaterialCommunityIcons name="information-outline" size={20} color="#76658A" accessible={false}/><Text style={styles.link}>Entenda as cores</Text><MaterialCommunityIcons name={expanded?'chevron-up':'chevron-down'} size={20} color="#76658A" accessible={false}/></Pressable>
     {expanded && <View style={styles.colorList}>{[['#267344','Utilização inicial','Verde: abaixo de 50%'],['#926500','Acompanhe seu orçamento','Amarelo: 50% até menos de 75%'],['#A64C14','Perto do orçamento','Laranja: 75% até 100%'],['#B32646','Orçamento ultrapassado','Vermelho: acima de 100%']].map(([cor,nome,faixa])=><View key={cor} style={styles.colorRow}><MaterialCommunityIcons name="circle" size={9} color={cor} accessible={false}/><View style={styles.colorCopy}><Text style={styles.link}>{nome}</Text><Text style={styles.note}>{faixa}</Text></View></View>)}</View>}
   </View>;

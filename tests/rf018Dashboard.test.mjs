@@ -54,7 +54,7 @@ test('progressive explanations stay compact, preserve caveats and reset when mon
  opened=null;
  const d=data();
  let tree=Component({dados:d});const compact=text(tree);
- assert.doesNotMatch(compact,/avaliação de impulsividade disponível/);assert.doesNotMatch(compact,/apenas os registros/);assert.match(compact,/vig.ncia hist.rica/);
+ assert.doesNotMatch(compact,/avaliação de impulsividade disponível/);assert.doesNotMatch(compact,/apenas os registros/);assert.doesNotMatch(compact,/vig.ncia hist.rica/);
  assert.doesNotMatch(compact,/Confira seu planejamento atual/);
  const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
  const toggle=nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver mais'));

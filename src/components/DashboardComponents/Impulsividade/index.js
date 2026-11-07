@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import AppEmptyState from '../../Common/AppEmptyState';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
@@ -16,7 +17,7 @@ export default function Impulsividade({
   data,
   impulsividade = [],
   title = 'Classificações registradas',
-  emptyMessage = 'Nenhuma compra confirmada registrada neste período',
+  emptyMessage = 'Nenhuma classificação disponível.',
   classificationKey = 'compra_classificacao',
   classificationValue = 'IMPULSIVA',
   totalKey = null,
@@ -34,7 +35,7 @@ export default function Impulsividade({
     return (
       <View style={styles.section}>
         <ProfileCard title={title} variant="dashboard">
-          <Text style={styles.emptyMessage}>{emptyMessage}</Text>
+          <AppEmptyState icon="clipboard-text-outline" title={emptyMessage} compact />
         </ProfileCard>
       </View>
     );
@@ -61,7 +62,7 @@ export default function Impulsividade({
       <View style={styles.section}>
         <ProfileCard title={title} variant="dashboard">
           {distribution.total === 0 ? (
-            <Text style={styles.emptyMessage}>{emptyMessage}</Text>
+            <AppEmptyState icon="clipboard-text-outline" title={emptyMessage} compact />
           ) : (
             <View style={styles.distributionLayout}>
               <View
@@ -128,6 +129,16 @@ export default function Impulsividade({
 
   // Normaliza tanto listas quanto objetos resumidos vindos da API
   const totalQuantity = isArrayData ? sourceData.reduce((sum, item) => sum + Number(item?.quantidade || 0), 0) : Object.values(sourceData).reduce((sum, value) => sum + Number(value || 0), 0);
+
+  if (totalQuantity === 0) {
+    return (
+      <View style={styles.section}>
+        <ProfileCard title={title} variant="dashboard">
+          <AppEmptyState icon="clipboard-text-outline" title={emptyMessage} compact />
+        </ProfileCard>
+      </View>
+    );
+  }
 
   const relevantQuantity = isArrayData
     ? sourceData.find((item) => String(item?.[classificationKey] || '').toUpperCase() === String(classificationValue).toUpperCase())?.quantidade || 0

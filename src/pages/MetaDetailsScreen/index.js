@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
@@ -7,12 +7,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { atualizarMeta, concluirMeta, excluirMeta } from '../../api/metas';
 import { tokenStorage } from '../../api/tokenStorage';
 import { useCofrinhoMetas } from '../../hooks/useCofrinhoMetas';
-import { formatarValorMeta, valorMetaParaCentavos, normalizarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
+import { formatarValorMeta, formatarValorMetaEmEdicao, valorMetaParaCentavos, normalizarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
 import { normalizarMetaRegistro } from '../../utils/metaContract';
 import { COLORS } from '../../constants';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import MetaFormSheet from '../../components/Metas/MetaFormSheet';
 import CustomButton from '../../components/CustomButton';
+import MetaProgressBar from '../../components/Metas/MetaProgressBar';
 import styles from './styles';
 
 const PENDING_OPERATION_PREFIX = '@plenna/goal-savings/pending/';
@@ -175,11 +176,6 @@ export default function MetaDetailsScreen() {
     refreshDetails();
   }, [refreshDetails]));
 
-  const progressWidth = useMemo(() => {
-    const value = Number(meta?.progresso_percentual);
-    return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
-  }, [meta?.progresso_percentual]);
-
   const openMovement = useCallback((tipo) => {
     if (!pendingLoaded) {
       Alert.alert('Aguarde um instante', 'Estamos verificando se existe uma operação pendente para esta meta.');
@@ -194,7 +190,7 @@ export default function MetaDetailsScreen() {
       return;
     }
     setFormError(null);
-    setMovementForm({ tipo, valor: pendingOperation?.valor ?? '' });
+    setMovementForm({ tipo, valor: pendingOperation ? formatarValorMetaEmEdicao(pendingOperation.valor) : '' });
   }, [pendingLoaded, pendingOperation]);
 
   const submitMovement = useCallback(async () => {
@@ -365,7 +361,6 @@ export default function MetaDetailsScreen() {
             </View>
             <View style={styles.summaryIntroCopy}>
               <Text style={styles.summaryKicker}>{meta.meta_completado ? 'Meta concluída' : 'Em acompanhamento'}</Text>
-              <Text style={styles.summaryHint}>Uma reserva simbólica para acompanhar seu objetivo.</Text>
             </View>
           </View>
           {meta.meta_descricao ? <Text style={styles.description}>{meta.meta_descricao}</Text> : null}
@@ -377,7 +372,7 @@ export default function MetaDetailsScreen() {
             <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Valor restante</Text><Text style={styles.summaryValue}>{formatValue(meta.valor_restante)}</Text></View>
             <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Progresso</Text><Text style={[styles.summaryValue, styles.highlightValue]}>{formatarPercentualMeta(meta.progresso_percentual)}</Text></View>
           </View>
-          <View accessible accessibilityLabel={`Barra de progresso: ${formatarPercentualMeta(meta.progresso_percentual)}`} style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progressWidth}%` }]} /></View>
+          <MetaProgressBar value={meta.progresso_percentual} accessibilityLabel={`Barra de progresso: ${formatarPercentualMeta(meta.progresso_percentual)}`} />
           <View style={styles.actionRow}>
             <CustomButton title="Adicionar valor" accessibilityLabel="Adicionar valor à meta" variant="primary" onPress={() => openMovement('DEPOSITO')} disabled={submitting} style={styles.actionButton} />
             <CustomButton title="Retirar valor" accessibilityLabel="Retirar valor da meta" variant="secondary" onPress={() => openMovement('RETIRADA')} disabled={submitting} style={styles.actionButton} />
@@ -445,7 +440,7 @@ export default function MetaDetailsScreen() {
               <Text style={styles.modalTitle}>{movementForm?.tipo === 'RETIRADA' ? 'Retirar valor' : 'Adicionar valor'}</Text>
               <Text style={styles.modalHint}>Esta é uma reserva simbólica para acompanhar a meta e não representa uma movimentação bancária.</Text>
               <Text style={styles.inputLabel}>Valor</Text>
-              <TextInput accessibilityLabel="Valor da movimentação" value={movementForm?.valor ?? ''} onChangeText={(valor) => setMovementForm((current) => ({ ...current, valor }))} placeholder="Ex.: 150,00" keyboardType="decimal-pad" style={styles.input} editable={!submitting && !pendingOperation} autoFocus />
+              <TextInput accessibilityLabel="Valor da movimentação" value={movementForm?.valor ?? ''} onChangeText={(valor) => setMovementForm((current) => ({ ...current, valor }))} onBlur={() => setMovementForm((current) => current ? ({ ...current, valor: formatarValorMetaEmEdicao(current.valor) }) : current)} placeholder="Ex.: 150,00" keyboardType="decimal-pad" style={styles.input} editable={!submitting && !pendingOperation} autoFocus />
               {pendingOperation ? <Text style={styles.pendingHint}>Existe uma operação pendente. Se o resultado anterior ficou incerto, este envio reutilizará o mesmo identificador.</Text> : null}
               {formError ? <Text style={styles.formError}>{formError}</Text> : null}
               <View style={styles.modalActions}>

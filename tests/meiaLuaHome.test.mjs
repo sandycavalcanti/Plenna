@@ -31,14 +31,14 @@ test('historical absent invalid and unknown budgets never show percentage or exc
 test('known partial utilization stays neutral and retains its percentage and caveat',()=>{
  const d=data(49,'NEUTRO');d.financeiro.cobertura='DESCONHECIDA';assert.equal(apresentarMeiaLua(d).estado,'NEUTRO');assert.doesNotMatch(text(render({dados:d})),/Dentro do orçamento/);
  const above=data(115,'VERMELHO');above.financeiro.qualidade='PARCIAL';above.financeiro.comprasSemValor=1;
- assert.match(text(render({dados:above})),/Excesso conhecido/);assert.match(text(render({dados:above})),/sem valor informado/);
+ assert.match(text(render({dados:above})),/Excesso conhecido/);assert.match(text(render({dados:above})),/Dados parciais/);
 });
 test('loading error empty and month changes cannot retain previous chart',()=>{
  const d=data(115,'VERMELHO');assert.doesNotMatch(text(render({dados:d,loading:true})),/115%/);
  assert.doesNotMatch(text(render({dados:d,error:true})),/115%/);
- const empty=data(0,'NEUTRO');empty.financeiro.qualidade='SEM_COMPRAS';assert.match(text(render({dados:empty})),/Sem compras confirmadas/);
+ const empty=data(0,'NEUTRO');empty.financeiro.qualidade='SEM_COMPRAS';assert.match(text(render({dados:empty})),/Dados parciais/);
  const historic={...d,orcamento:{disponibilidade:'INDISPONIVEL',motivo:'ORCAMENTO_HISTORICO_NAO_COMPROVADO'}};
- assert.match(text(render({dados:historic})),/Orçamento deste mês não disponível/);assert.doesNotMatch(text(render({dados:historic})),/115%|Excesso conhecido/);
+ assert.match(text(render({dados:historic})),/Utilização indisponível/);assert.doesNotMatch(text(render({dados:historic})),/115%|Excesso conhecido/);
 });
 test('legend expands; responsive layout and accessible noncolor state',()=>{
  expanded=false;let tree=render({dados:data(50,'AMARELO')});assert.doesNotMatch(text(tree),/Verde: abaixo/);

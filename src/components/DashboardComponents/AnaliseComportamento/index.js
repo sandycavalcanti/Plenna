@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ActivityIndicator, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import AppEmptyState from '../../Common/AppEmptyState';
 import { COLORS } from '../../../constants/colors';
 import { styles } from './styles';
 
@@ -32,7 +33,7 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
       </View>
     );
   } else if (!dados) {
-    content = <Text style={styles.note}>Análise indisponível.</Text>;
+    content = <AppEmptyState icon="chart-box-outline" title="Análise indisponível." compact />;
   } else {
     const { analise, recomendacoes, categorias = [] } = dados;
     const { frequencia, categorias: concentration, financeiro } = analise.indicadores;
@@ -118,7 +119,6 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
         })}
 
         {recommendations.length === 0 && <Text style={styles.note}>Sem orientações disponíveis neste mês.</Text>}
-        {recommendations.length > 0 && <Text style={styles.note}>Referência: tuais, sem vigência histórica comprovada.</Text>}
       </View>
     );
   }

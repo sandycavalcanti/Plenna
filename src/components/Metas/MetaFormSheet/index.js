@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { formatarValorMetaParaEntrada, normalizarValorMeta } from '../../../utils/metaMoney';
+import { formatarValorMetaEmEdicao, formatarValorMetaParaEntrada, normalizarValorMeta } from '../../../utils/metaMoney';
 import CustomButton from '../../CustomButton';
 import styles from './styles';
 
@@ -123,7 +123,7 @@ export default function MetaFormSheet({
                   value={form.valor}
                   onChangeText={(valor) => { setForm((current) => ({ ...current, valor })); setValidationError(null); }}
                   onFocus={() => setFocusedField('valor')}
-                  onBlur={() => setFocusedField(null)}
+                  onBlur={() => { setFocusedField(null); setForm((current) => ({ ...current, valor: formatarValorMetaEmEdicao(current.valor) })); }}
                   placeholder="Ex.: 500,00"
                   keyboardType="decimal-pad"
                   style={[styles.input, styles.moneyInput, focusedField === 'valor' && styles.inputFocused]}
@@ -135,7 +135,7 @@ export default function MetaFormSheet({
 
               <View style={styles.actions}>
                 <CustomButton title="Cancelar" variant="secondary" onPress={onClose} disabled={disabled} style={styles.actionButton} />
-                <CustomButton title={mode === 'edit' ? 'Salvar alterações' : 'Criar meta'} variant="accent" onPress={submit} loading={saving} disabled={disabled} style={styles.actionButton} />
+                <CustomButton title={mode === 'edit' ? 'Salvar alterações' : 'Criar meta'} variant="primary" onPress={submit} loading={saving} disabled={disabled} style={styles.actionButton} />
               </View>
 
               {mode === 'edit' && onDelete ? (

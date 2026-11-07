@@ -48,15 +48,6 @@ export const styles = StyleSheet.create({
   primaryText: {
     color: COLORS.buttonPrimaryText,
   },
-  accentButton: {
-    backgroundColor: COLORS.buttonAccentBackground,
-  },
-  accentPressed: {
-    backgroundColor: COLORS.buttonAccentPressed,
-  },
-  accentText: {
-    color: COLORS.buttonAccentText,
-  },
   secondaryButton: {
     backgroundColor: COLORS.buttonSecondaryBackground,
   },

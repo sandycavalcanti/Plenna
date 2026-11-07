@@ -6,7 +6,6 @@ import { styles } from './styles';
 
 export const BUTTON_VARIANTS = Object.freeze({
   PRIMARY: 'primary',
-  ACCENT: 'accent',
   SECONDARY: 'secondary',
   OUTLINE: 'outline',
   DANGER: 'danger',
@@ -15,7 +14,6 @@ export const BUTTON_VARIANTS = Object.freeze({
 
 const textStyles = {
   primary: styles.primaryText,
-  accent: styles.accentText,
   secondary: styles.secondaryText,
   outline: styles.outlineText,
   danger: styles.dangerText,
@@ -24,7 +22,6 @@ const textStyles = {
 
 const activityColors = {
   primary: COLORS.buttonPrimaryText,
-  accent: COLORS.buttonAccentText,
   secondary: COLORS.buttonSecondaryText,
   outline: COLORS.buttonOutlineText,
   danger: COLORS.buttonDangerText,

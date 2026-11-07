@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import AppEmptyState from '../../Common/AppEmptyState';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 
@@ -57,7 +58,7 @@ export default function FormaPagamento({ gastosFormaPagamento = [] }) {
     return (
       <View style={styles.section}>
         <ProfileCard title="Gastos por forma de pagamento" variant="dashboard">
-          <Text style={styles.emptyMessage}>Nenhum gasto por forma de pagamento disponível</Text>
+          <AppEmptyState icon="credit-card-outline" title="Nenhum gasto por forma de pagamento." compact />
         </ProfileCard>
       </View>
     );

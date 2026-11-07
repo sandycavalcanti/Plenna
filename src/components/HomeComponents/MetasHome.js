@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
 import CustomButton from '../CustomButton';
+import MetaProgressBar from '../Metas/MetaProgressBar';
 
 const Icon = typeof MaterialCommunityIcons === 'undefined' ? View : MaterialCommunityIcons;
 
@@ -32,7 +33,6 @@ function formatarValorExibicaoMeta(value) {
 function renderMetaCard(meta, onOpen) {
   const completed = meta.concluida === true;
   const percent = formatarPercentualMeta(meta.progressoPercentual);
-  const progressWidth = percent === null ? 0 : Math.min(100, Math.max(0, Number(meta.progressoPercentual)));
 
   return (
     <Pressable
@@ -66,9 +66,7 @@ function renderMetaCard(meta, onOpen) {
           <Text style={styles.metaProgressValue}>{percent}</Text>
         </View>
       </View>
-      <View accessible accessibilityLabel={`Progresso da meta: ${percent}`} style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${progressWidth}%` }]} />
-      </View>
+      <MetaProgressBar value={meta.progressoPercentual} accessibilityLabel={`Progresso da meta: ${percent}`} />
     </Pressable>
   );
 }
@@ -252,17 +250,6 @@ const styles = {
     fontSize: 16,
     fontWeight: '800',
     color: COLORS.ink,
-  },
-  progressTrack: {
-    height: 6,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: COLORS.border,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 8,
-    backgroundColor: COLORS.accent,
   },
   loadingState: {
     minHeight: 48,

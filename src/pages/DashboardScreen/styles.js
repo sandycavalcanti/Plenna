@@ -362,12 +362,6 @@ export const styles = StyleSheet.create({
     color: COLORS.perfilProfileCardTitulo,
   },
 
-  emptyPeriodText: {
-    marginTop: 2,
-    fontSize: 12,
-    lineHeight: 17,
-    color: '#777B96',
-  },
 
   periodIndicatorsSection: {
     marginTop: 6,
@@ -434,25 +428,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 14,
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 16,
     borderRadius: R.lg,
     backgroundColor: T.surface,
     ...B.card,
-  },
-
-  emptyComparisonTitle: {
-    marginTop: 9,
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.perfilProfileCardTitulo,
-  },
-
-  emptyComparisonText: {
-    marginTop: 5,
-    fontSize: 13,
-    lineHeight: 19,
-    color: '#7B7F98',
-    textAlign: 'center',
   },
 
   chartCard: {

@@ -47,7 +47,8 @@ const text=t=>Array.isArray(t)?t.map(text).join(' '):t&&typeof t==='object'?text
 const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
 const source=await read('src/components/HomeComponents/MetasHome.js');
 const js=transformSync(source.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
-const component=new Function('React','View','Text','Pressable','ActivityIndicator','useState','formatarValorMeta','formatarPercentualMeta','CustomButton',js+';return MetasHome;')(React,'View','Text','Pressable','Spinner',()=>[false,()=>{}],formatarValorMeta,formatarPercentualMeta,CustomButton);
+const MetaProgressBar=({value,accessibilityLabel})=>React.createElement('MetaProgressBar',{value,accessibilityLabel});
+const component=new Function('React','View','Text','Pressable','ActivityIndicator','useState','formatarValorMeta','formatarPercentualMeta','CustomButton','MetaProgressBar',js+';return MetasHome;')(React,'View','Text','Pressable','Spinner',()=>[false,()=>{}],formatarValorMeta,formatarPercentualMeta,CustomButton,MetaProgressBar);
 test('metas actual contents, progress summary, multiple complete unknown and loading failure',()=>{
  const one={id:1,nome:'Viagem',valor:'300.00',valorReservado:'120.00',progressoPercentual:40,valorRestante:'180.00',data:'2026-12-01',concluida:false};
  assert.match(text(component({metas:[]})),/Criar uma meta/);

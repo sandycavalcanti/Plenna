@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
+import AppEmptyState from '../../Common/AppEmptyState';
 import { styles } from './styles';
 import { COLORS } from '../../../constants';
 import { obterJanelaDiaLocal } from '../../../utils/tempoUsoSync';
@@ -55,13 +56,13 @@ const items = Object.entries(agregado)
   const colors = [COLORS.dadoDois, COLORS.dadoTres, COLORS.dadoUm, COLORS.customButtonFundo];
 
   const getItemColor = (index) => colors[index % colors.length];
-  if (loading || error) return <View style={styles.section}><ProfileCard title={title}><Text style={styles.emptyMessage}>{loading ? 'Carregando registros de hoje...' : 'Não foi possível consultar o tempo de uso. Atualize a tela para tentar novamente.'}</Text></ProfileCard></View>;
+  if (loading || error) return <View style={styles.section}><ProfileCard title={title}><AppEmptyState icon={loading ? 'clock-outline' : 'clock-alert-outline'} title={loading ? 'Carregando registros...' : 'Tempo indisponível.'} compact /></ProfileCard></View>;
   if (items.length === 0) {
 
     return (
       <View style={styles.section}>
         <ProfileCard title={title} variant="dashboard">
-          <Text style={styles.emptyMessage}>Nenhum dado de tempo disponível</Text>
+          <AppEmptyState icon="clock-outline" title="Nenhum tempo registrado." compact />
         </ProfileCard>
       </View>
     );
@@ -86,7 +87,6 @@ const items = Object.entries(agregado)
 
         <Text style={{ color: '#655A70', fontSize: 13, lineHeight: 19, marginVertical: 10 }}>
           Hoje: {formatMinutes(totalMinutes)} registrados em {items.length} aplicativo(s) monitorado(s).
-          {'\n'}Esses registros não comprovam compras nem incluem outros dispositivos.
         </Text>
         <View style={{ backgroundColor: '#FAF7FC', borderRadius: 14, padding: 12, marginBottom: 12 }}>
           <Text style={{ fontWeight: '600', color: '#4A4E7A' }}>Observe seu tempo</Text>

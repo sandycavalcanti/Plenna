@@ -77,4 +77,49 @@ export const styles = StyleSheet.create({
     lineHeight: 12,
     fontWeight: '800',
   },
+
+  timeCard: {
+    marginHorizontal: 18,
+    marginBottom: 14,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: COLORS.surface,
+    gap: 6,
+  },
+
+  timeCardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.cadTitulo,
+  },
+
+  timeValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.metaProgressFill,
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+
+  timeLink: {
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+
+  timeLinkText: {
+    color: COLORS.metaProgressFill,
+    fontWeight: '600',
+  },
+
+  recommendationEmpty: {
+    marginHorizontal: 18,
+    marginBottom: 14,
+    borderRadius: 18,
+    backgroundColor: COLORS.surface,
+  },
+
+  inlineActionText: {
+    color: COLORS.metaProgressFill,
+    fontWeight: '600',
+  },
 });

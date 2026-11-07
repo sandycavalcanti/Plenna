@@ -89,6 +89,13 @@ test('normaliza entrada brasileira sem ponto flutuante e respeita o limite da AP
   assert.equal(money.valorMetaParaCentavos('150.50'), 15050n);
 });
 
+test('finaliza valores de metas no blur sem criar uma segunda máscara', () => {
+  for (const [input, expected] of [['150', '150,00'], ['150,5', '150,50'], ['150,50', '150,50'], ['1500', '1.500,00'], ['1.500,50', '1.500,50']]) {
+    assert.equal(money.formatarValorMetaEmEdicao(input), expected);
+  }
+  assert.equal(money.normalizarValorMeta('1.500,50').value, '1500.50');
+});
+
 test('Home e Perfil abrem detalhes sem usar o toque de navegação para alternar conclusão', async () => {
   const home = await read('src/pages/HomeScreen/index.js');
   const homeComponent = await read('src/components/HomeComponents/MetasHome.js');
@@ -117,7 +124,7 @@ test('detalhes usa contratos de histórico, operações existentes e estados de 
   assert.match(screen, /disabled=\{submitting\}/);
   assert.match(screen, /deposit\(metaId, operation\)/);
   assert.match(screen, /withdraw\(metaId, operation\)/);
-  assert.match(screen, /Math\.min\(100, Math\.max\(0, value\)\)/);
+  assert.match(screen, /MetaProgressBar/);
   assert.match(hook, /mergeMovements/);
   assert.match(hook, /meta_movimentacao_id/);
 });
@@ -150,7 +157,7 @@ test('Home mantém as metas em formato resumido e não expõe o saldo reservado'
   const home = await read('src/components/HomeComponents/MetasHome.js');
   assert.match(home, /Objetivo/);
   assert.match(home, /Progresso/);
-  assert.match(home, /progressTrack/);
+  assert.match(home, /MetaProgressBar/);
   assert.doesNotMatch(home, /Reservado:/);
   assert.doesNotMatch(home, /metaDate/);
 });
