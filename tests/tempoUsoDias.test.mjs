@@ -47,7 +47,9 @@ async function preparar(agora = instante(13)) {
   },
   monitoramentoEmAlteracao: () => false,
   observarAlteracaoMonitoramento: () => () => {},
+  observarMonitoramentoAtivado: () => () => {},
 }],
+    ['src/constants/config.js', {urlAPI:'http://127.0.0.1:3000'}],
     ['src/api/tempoUso.js', {
       async listarAplicativosTempoUso() { return { versao: 1, aplicativos: [{ packageId: 'com.shopee.br', nomeApp: 'Shopee' }] }; },
       async sincronizarTempoUso(payload) {
@@ -57,6 +59,7 @@ async function preparar(agora = instante(13)) {
       },
     }],
     ['modules/plenna-usage-stats.js', {
+      getModuleStatus: async()=>({available:true}),
       async hasUsageAccess() { return true; },
       async getForegroundUsage(inicio, fim) {
         state.consultas.push({ inicio, fim });
@@ -172,10 +175,10 @@ await sync();
 });
 
 test('cooldown do dia anterior não bloqueia recuperação no novo dia', async () => {
-  const { state, mount } = await preparar(instante(14, 0, 1));
+  const { state, sync } = await preparar(instante(14, 0, 1));
   state.cooldown = String(instante(13, 23, 59));
   state.uso = { '2026-09-13': 120 };
-  await mount();
+  await sync();
   assert.equal(state.envios.length, 1);
 });
 
@@ -200,15 +203,15 @@ test('cooldown do mesmo dia bloqueia temporariamente e retorno após 15 minutos 
 });
 
 test('PUT concluído depois da meia-noite não grava cooldown para a janela antiga', async () => {
-  const { state, mount, reativar } = await preparar(instante(13, 23, 59));
+  const { state, sync } = await preparar(instante(13, 23, 59));
   state.uso = { '2026-09-13': 120 };
   state.aoEnviar = () => { state.agora = instante(14, 0, 1); };
-  await mount();
+  await sync();
   assert.equal(state.envios.length, 1);
   assert.equal(state.cacheWrites, 0);
   delete state.aoEnviar;
   state.agora += 15 * 60 * 1000;
-  await reativar();
+  await sync();
   assert.equal(state.envios.length, 2);
   assert.equal(new Date(state.envios[1].registros[0].fim).getTime(), instante(14, 0));
 });
