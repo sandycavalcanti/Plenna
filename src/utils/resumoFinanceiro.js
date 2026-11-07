@@ -34,8 +34,9 @@ export function apresentarEstadoOrcamento(resumo, loading = false, error = false
   const percentual = total / budget * 100;
   if (!Number.isFinite(percentual)) return neutral('Percentual indisponível');
   if (percentual > 100) return { estado: 'VERMELHO', cor: '#B32646', mensagem: 'Total conhecido acima do orçamento', percentual, progresso: 1 };
-  if (resumo.qualidade === 'PARCIAL' || cobertura !== 'COMPLETA') return neutral('Acompanhe os valores registrados; cobertura incompleta ou desconhecida', percentual);
-  if (percentual < 50) return { estado: 'VERDE', cor: '#267344', mensagem: 'Faixa inicial do orçamento registrado', percentual, progresso: percentual / 100 };
-  if (percentual < 75) return { estado: 'AMARELO', cor: '#926500', mensagem: 'Acompanhe o orçamento utilizado', percentual, progresso: percentual / 100 };
-  return { estado: 'LARANJA', cor: '#A64C14', mensagem: percentual === 100 ? 'Orçamento atingido' : 'Faixa próxima ao limite', percentual, progresso: percentual / 100 };
+  const aviso = resumo.qualidade === 'PARCIAL' || cobertura !== 'COMPLETA'
+    ? 'Valores conhecidos; cobertura incompleta ou desconhecida.' : null;
+  if (percentual < 50) return { estado: 'VERDE', cor: '#267344', mensagem: aviso || 'Faixa inicial do orçamento registrado', percentual, progresso: percentual / 100 };
+  if (percentual < 75) return { estado: 'AMARELO', cor: '#926500', mensagem: aviso || 'Acompanhe o orçamento utilizado', percentual, progresso: percentual / 100 };
+  return { estado: 'LARANJA', cor: '#A64C14', mensagem: aviso || (percentual === 100 ? 'Orçamento atingido' : 'Faixa próxima ao limite'), percentual, progresso: percentual / 100 };
 }
