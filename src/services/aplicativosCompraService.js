@@ -39,9 +39,9 @@ export async function obterAplicativosCompra(config) {
     return cache.aplicativos;
   }
 
-  if (!consultaPendente || consultaSessao !== config?.rf017SessionId) {
+  if (!consultaPendente || consultaSessao !== config?.usageMonitoringSessionId) {
     cache = null;
-    consultaSessao = config?.rf017SessionId;
+    consultaSessao = config?.usageMonitoringSessionId;
     const consulta = listarAplicativosTempoUso(config)
       .then((resposta) => {
         const aplicativos = validarCatalogo(resposta);

@@ -1,4 +1,4 @@
-import { hasUsageAccess, getForegroundUsage } from '../../modules/plenna-usage-stats';
+import { getModuleStatus, hasUsageAccess, getForegroundUsage } from '../../modules/plenna-usage-stats';
 import {
   obterJanelasRecuperacaoTempoUso, mesmoDiaLocal, montarPayloadTempoUsoDiario,
 } from '../utils/tempoUsoSync';
@@ -27,7 +27,7 @@ observarAlteracaoMonitoramento(sessaoId => {
 
 function interromper(motivo) {
   const error = new Error(motivo);
-  error.rf017Motivo = motivo;
+  error.usageMonitoringReason = motivo;
   throw error;
 }
 
@@ -45,6 +45,9 @@ async function verificarCondicoes(execucao, config) {
     (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo)
       === 'MONITORAMENTO_TEMPO_USO' && item.consentimento_status === true);
   if (!ativo) interromper('consentimento_inativo');
+  const modulo = await getModuleStatus();
+  verificarOperacao(execucao);
+  if (modulo?.available !== true) interromper('modulo_nativo_indisponivel');
   const permitido = await hasUsageAccess();
   verificarOperacao(execucao);
   if (!permitido) interromper('usage_access_nao_concedido');
@@ -85,9 +88,9 @@ export async function sincronizarTempoUsoDoDia(sessaoEsperada, { signal } = {}) 
   signal?.addEventListener('abort', cancelar);
   execucaoPendente = execucao;
   execucao.promise = executarPreparacao(execucao).catch(error => {
-    if (execucao.controller.signal.aborted || error?.rf017Motivo || error?.code === 'RF017_SESSION_INVALIDATED') {
+    if (execucao.controller.signal.aborted || error?.usageMonitoringReason || error?.code === 'RF017_SESSION_INVALIDATED') {
       if (ultimaPreparacao?.id === sessao.id) ultimaPreparacao = null;
-      return { sincronizado: false, motivo: execucao.motivo ?? error.rf017Motivo ?? 'sessao_invalidada' };
+      return { sincronizado: false, motivo: execucao.motivo ?? error.usageMonitoringReason ?? 'sessao_invalidada' };
     }
     throw error;
   }).finally(() => {
@@ -99,7 +102,7 @@ export async function sincronizarTempoUsoDoDia(sessaoEsperada, { signal } = {}) 
 }
 
 async function executarPreparacao(execucao) {
-  const config = { rf017SessionId: execucao.id, signal: execucao.controller.signal };
+  const config = { usageMonitoringSessionId: execucao.id, signal: execucao.controller.signal };
   await verificarCondicoes(execucao, config);
   const agora = new Date();
   if (ultimaPreparacao?.id === execucao.id &&

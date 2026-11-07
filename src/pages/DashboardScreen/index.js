@@ -1,3 +1,6 @@
+import { useResumoHome } from '../../hooks/useResumoHome';
+import UsageTimePanel from '../../components/UsageTimePanel';
+import { usageMonitoringReadsEnabled } from '../../api/usageMonitoringPolicy';
 import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
 import DescobertasDashboard from '../../components/DashboardComponents/DescobertasDashboard';
 import MovimentacoesCompra from '../../components/DashboardComponents/MovimentacoesCompra';
@@ -823,6 +826,10 @@ export default function DashboardScreen({ route, navigation }) {
   const pagerRef = useRef(null);
   const overviewScrollRef = useRef(null);
   const overviewSectionPositionsRef = useRef({});
+  const usageFocusRequest = route?.params?.focoTempo;
+  const overviewMeasurementVersionRef = useRef(0);
+  const overviewSectionNodesRef = useRef({});
+  const overviewContentRef = useRef(null);
   const pendingOverviewSectionRef = useRef(null);
   const overviewAbortRef = useRef(null);
   const contextAbortRef = useRef(null);
@@ -852,6 +859,8 @@ export default function DashboardScreen({ route, navigation }) {
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const maxMonth = currentMonth;
   const accountStartMonth = getMonthInTimezone(usuario?.usuario_data_criacao);
+  const financeiro = useResumoHome(selectedMonth);
+  const tempoUsoLoading = overviewLoading;
   const comportamento = useAnaliseComportamento(selectedMonth);
   const overviewSection = routeIndicator === 'tempo'
     ? 'tempo'
@@ -868,33 +877,73 @@ export default function DashboardScreen({ route, navigation }) {
   useEffect(() => {
     if (!isValidMonth(incomingPeriod) || compareMonths(incomingPeriod, currentMonth) > 0) return;
     if (accountStartMonth && compareMonths(incomingPeriod, accountStartMonth) < 0) return;
-    setSelectedMonth((current) => (current === incomingPeriod ? current : incomingPeriod));
-    setEvolutionEnd((current) => (current === incomingPeriod ? current : incomingPeriod));
-    setCompareMonthB((current) => (current === incomingPeriod ? current : incomingPeriod));
+    setSelectedMonth(current => current === incomingPeriod ? current : incomingPeriod);
+    // O detalhe da Home seleciona o mês da visão geral e preserva os filtros de comparação.
+    if (routeIndicator === 'tempo') return;
+    setEvolutionEnd(current => current === incomingPeriod ? current : incomingPeriod);
+    setCompareMonthB(current => current === incomingPeriod ? current : incomingPeriod);
     const previousMonth = shiftMonth(incomingPeriod, -1);
-    setCompareMonthA((current) => (current === previousMonth ? current : previousMonth));
-  }, [accountStartMonth, currentMonth, incomingPeriod]);
-
+    setCompareMonthA(current => current === previousMonth ? current : previousMonth);
+  }, [accountStartMonth, currentMonth, incomingPeriod, usageFocusRequest, routeIndicator]);
   useEffect(() => {
-    if (activeTab !== 0 || !overviewSection) return;
+    if (isFocused && overviewSection) setActiveTab(0);
+  }, [isFocused, overviewSection, incomingPeriod, usageFocusRequest]);
+  useEffect(() => {
+    if (!isFocused || activeTab !== 0 || !overviewSection) return;
+    overviewMeasurementVersionRef.current++;
+    overviewSectionPositionsRef.current = {};
     pendingOverviewSectionRef.current = overviewSection;
-    const y = overviewSectionPositionsRef.current[overviewSection];
-    if (typeof y === 'number') {
-      overviewScrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+    return () => {
+      overviewMeasurementVersionRef.current++;
       pendingOverviewSectionRef.current = null;
-    }
-  }, [activeTab, overviewSection, selectedMonth]);
+    };
+  }, [activeTab, overviewSection, incomingPeriod, isFocused, usageFocusRequest]);
 
-  const markOverviewSection = useCallback((section) => (event) => {
+  // Aguarda o período e os cartões carregarem antes de concluir a navegação.
+  // A medição nativa acompanha mudanças de layout sem temporizadores.
+  const scrollToOverviewSection = useCallback(() => {
+    const section = pendingOverviewSectionRef.current;
+    const position = overviewSectionPositionsRef.current[section];
+    if (!section || !isFocused || activeTab !== 0 || overviewLoading || financeiro.loading || tempoUsoLoading) return;
+    if (incomingPeriod && selectedMonth !== incomingPeriod) return;
+    if (!position || position.month !== selectedMonth || !overviewScrollRef.current) return;
+    overviewScrollRef.current.scrollTo({
+      y: Math.max(0, position.y - 12),
+      animated: true
+    });
+    pendingOverviewSectionRef.current = null;
+    navigation.setParams?.({
+      indicador: undefined,
+      periodo: undefined,
+      focoTempo: undefined
+    });
+  }, [isFocused, activeTab, overviewLoading, financeiro.loading, tempoUsoLoading, incomingPeriod, selectedMonth, navigation, usageFocusRequest]);
+  const measureOverviewSection = useCallback(() => {
+    // Mede a posição no conteúdo do ScrollView após a atualização do React.
+    // O retorno nativo de measureLayout considera mudanças assíncronas do layout.
+    if (!pendingOverviewSectionRef.current) return;
+    const version = overviewMeasurementVersionRef.current;
+    const section = pendingOverviewSectionRef.current;
+    const node = overviewSectionNodesRef.current[section];
+    node?.measureLayout?.(overviewContentRef.current, (_x, y) => {
+      if (version !== overviewMeasurementVersionRef.current) return;
+      overviewSectionPositionsRef.current[section] = {
+        y,
+        month: selectedMonth
+      };
+      scrollToOverviewSection();
+    }, () => {});
+  }, [selectedMonth, scrollToOverviewSection]);
+  useEffect(measureOverviewSection, [measureOverviewSection]);
+  const markOverviewSection = useCallback(section => event => {
     const y = event.nativeEvent.layout.y;
-    overviewSectionPositionsRef.current[section] = y;
-    if (pendingOverviewSectionRef.current === section) {
-      overviewScrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
-      pendingOverviewSectionRef.current = null;
-    }
-  }, []);
+    overviewSectionPositionsRef.current[section] = {
+      y,
+      month: selectedMonth
+    };
+    scrollToOverviewSection();
+  }, [selectedMonth, scrollToOverviewSection]);
   const mark = markOverviewSection;
-
   const openPicker = useCallback((target) => setPickerTarget(target), []);
   const closePicker = useCallback(() => setPickerTarget(null), []);
 
@@ -1094,6 +1143,7 @@ export default function DashboardScreen({ route, navigation }) {
     return (
       <ScrollView
         ref={overviewScrollRef}
+        onContentSizeChange={measureOverviewSection}
         style={styles.pageScroll}
         contentContainerStyle={[styles.pageContent, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
@@ -1218,8 +1268,8 @@ export default function DashboardScreen({ route, navigation }) {
           centerValueMode="quantity"
           totalKey="acima_limite"
         />
-        <View onLayout={mark('tempo')}>
-          <TempoApp tempoUso={tempoUso} title="Tempo de uso · Hoje" />
+        <View ref={node => { overviewSectionNodesRef.current.tempo = node; }} collapsable={false} onLayout={mark('tempo')}>
+          {usageMonitoringReadsEnabled ? <UsageTimePanel month={selectedMonth} onSettings={() => navigation.navigate('Profile')} /> : <TempoApp tempoUso={tempoUso} mes={selectedMonth} />}
         </View>
       </ScrollView>
     );
