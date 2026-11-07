@@ -396,7 +396,7 @@ export default function PreferencesForm({
       {categoriesError ? (
         <View>
           <Text accessibilityRole="alert" style={styles.stepTwoErrorText}>{categoriesError}</Text>
-          <CustomButton title="Tentar carregar categorias novamente" onPress={onRecarregarCategorias} disabled={categoriesLoading || saving} />
+          <CustomButton title="Tentar carregar categorias novamente" variant="outline" onPress={onRecarregarCategorias} disabled={categoriesLoading || saving} loading={categoriesLoading} />
         </View>
       ) : null}
 
@@ -490,8 +490,8 @@ export default function PreferencesForm({
       </View>
       {/* Botões de ação */}
       <View style={styles.actionsRow}>
-        {isEditing && onCancel && <CustomButton title="Cancelar" onPress={onCancel} style={styles.cancelButton} disabled={saving} />}
-        <CustomButton title={saving ? 'Salvando...' : isEditing ? 'Salvar Preferências' : 'Finalizar'} onPress={handleSalvar} style={styles.submitButton} disabled={saving || !catalogoPronto} />
+        {isEditing && onCancel && <CustomButton title="Cancelar" variant="secondary" onPress={onCancel} style={styles.cancelButton} disabled={saving} />}
+        <CustomButton title={isEditing ? 'Salvar Preferências' : 'Finalizar'} variant="primary" onPress={handleSalvar} style={styles.submitButton} disabled={saving || !catalogoPronto} loading={saving} />
       </View>
     </>
   );

@@ -127,7 +127,7 @@ test('detalhes não introduz compras, dashboards ou ações financeiras fora do 
   assert.doesNotMatch(screen, /tb_compra|compras|Dashboard|analisar_metas/);
   assert.match(screen, /concluirMeta/);
   assert.match(screen, /Marcar como concluída/);
-  assert.match(screen, /Ainda não há movimentações nesta meta/);
+  assert.match(screen, /Nenhuma movimentação registrada ainda/);
 });
 
 test('todos os consumidores de metas usam o formatter de reais e mantêm o ID da meta', async () => {

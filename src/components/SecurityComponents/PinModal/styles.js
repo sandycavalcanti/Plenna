@@ -73,10 +73,7 @@ export const styles = StyleSheet.create({
   },
   cancel: {
     marginTop: 12,
-    padding: 10,
-  },
-  cancelText: {
-    color: COLORS.loginLinks,
-    fontSize: 15,
+    width: 'auto',
+    minWidth: 120,
   },
 });

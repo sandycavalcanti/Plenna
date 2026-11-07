@@ -20,6 +20,7 @@ import { getDashboardAnalytics } from '../../api/dashboard';
 import { useDataRefresh } from '../../hooks/useDataRefresh';
 import { useAnaliseComportamento } from '../../hooks/useAnaliseComportamento';
 import { logApiErrors } from '../../utils/error';
+import CustomButton from '../../components/CustomButton';
 import { obterJanelaDiaLocal } from '../../utils/tempoUsoSync';
 import { observarAtualizacaoTempoUso } from '../../utils/tempoUsoAtualizacao';
 import { styles } from './styles';
@@ -334,9 +335,7 @@ function MonthPickerModal({ visible, value, maxMonth, minMonth, title, onChange,
             <Text style={styles.selectedMonthHint}>Meses futuros e anteriores à conta ficam bloqueados.</Text>
           </View>
 
-          <TouchableOpacity style={styles.modalDoneButton} onPress={applySelection} activeOpacity={0.85}>
-            <Text style={styles.modalDoneText}>Concluir</Text>
-          </TouchableOpacity>
+          <CustomButton title="Concluir" variant="primary" onPress={applySelection} style={styles.modalDoneButton} />
         </View>
       </Pressable>
     </Modal>
@@ -361,10 +360,7 @@ function ErrorState({ message, onRetry }) {
       </View>
       <Text style={styles.stateTitle}>Não foi possível carregar</Text>
       <Text style={styles.stateDescription}>{message}</Text>
-      <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="refresh" size={18} color="#FFFFFF" />
-        <Text style={styles.retryText}>Tentar novamente</Text>
-      </TouchableOpacity>
+      <CustomButton title="Tentar novamente" variant="outline" icon="refresh" onPress={onRetry} style={styles.retryButton} />
     </View>
   );
 }

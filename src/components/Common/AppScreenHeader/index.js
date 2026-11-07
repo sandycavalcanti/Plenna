@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/colors';
+import CustomButton from '../../CustomButton';
 import styles from './styles';
 
 export default function AppScreenHeader({
@@ -16,14 +17,14 @@ export default function AppScreenHeader({
   return (
     <View style={[styles.container, style]}>
       {showBackButton ? (
-        <Pressable
-          accessibilityRole="button"
+        <CustomButton
           accessibilityLabel="Voltar"
+          variant="ghost"
+          icon="arrow-left"
+          iconOnly
           onPress={onBackPress}
           style={styles.backButton}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.cadTitulo} />
-        </Pressable>
+        />
       ) : null}
       <View style={styles.iconBox}>
         <MaterialCommunityIcons name={icon} size={23} color={COLORS.cadTitulo} />

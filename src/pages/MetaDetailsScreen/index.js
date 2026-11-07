@@ -2,15 +2,17 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { atualizarMeta, concluirMeta, excluirMeta } from '../../api/metas';
 import { tokenStorage } from '../../api/tokenStorage';
 import { useCofrinhoMetas } from '../../hooks/useCofrinhoMetas';
 import { formatarValorMeta, valorMetaParaCentavos, normalizarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
 import { normalizarMetaRegistro } from '../../utils/metaContract';
+import { COLORS } from '../../constants';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import MetaFormSheet from '../../components/Metas/MetaFormSheet';
+import CustomButton from '../../components/CustomButton';
 import styles from './styles';
 
 const PENDING_OPERATION_PREFIX = '@plenna/goal-savings/pending/';
@@ -330,7 +332,7 @@ export default function MetaDetailsScreen() {
     return (
       <View style={styles.movementItem}>
         <View style={[styles.movementIcon, deposit ? styles.depositIcon : styles.withdrawIcon]}>
-          <MaterialCommunityIcons name={deposit ? 'arrow-down' : 'arrow-up'} size={18} color={deposit ? '#4F8D7A' : '#A31414'} />
+          <MaterialCommunityIcons name={deposit ? 'arrow-down' : 'arrow-up'} size={18} color={deposit ? COLORS.buttonPositiveText : COLORS.buttonDangerText} />
         </View>
         <View style={styles.movementCopy}>
           <Text style={styles.movementType}>{movementType(item.meta_movimentacao_tipo)}</Text>
@@ -340,14 +342,6 @@ export default function MetaDetailsScreen() {
       </View>
     );
   }, []);
-
-  const renderLatest = (label, movement) => movement ? (
-    <View style={styles.latestBlock}>
-      <Text style={styles.latestLabel}>{label}</Text>
-      <Text style={styles.latestValue}>{movementType(movement.meta_movimentacao_tipo)} de {formatValue(movement.meta_movimentacao_valor)}</Text>
-      <Text style={styles.latestDate}>{formatMovementDate(movement.meta_movimentacao_data)}</Text>
-    </View>
-  ) : null;
 
   const renderHeader = () => {
     if (!meta) return null;
@@ -360,16 +354,14 @@ export default function MetaDetailsScreen() {
           showBackButton
           onBackPress={() => navigation.goBack()}
           rightAction={(
-            <Pressable accessibilityRole="button" accessibilityLabel="Editar meta" onPress={openEdit} disabled={metaFormSaving || metaDeleting} style={styles.editButton}>
-              <Feather name="edit-2" size={18} color="#893467" />
-            </Pressable>
+            <CustomButton accessibilityLabel="Editar meta" variant="ghost" icon="pencil-outline" iconOnly onPress={openEdit} disabled={metaFormSaving || metaDeleting} style={styles.editButton} />
           )}
           style={styles.screenHeader}
         />
         <View style={styles.card}>
           <View style={styles.summaryIntro}>
             <View style={styles.summaryIcon}>
-              <MaterialCommunityIcons name="target" size={22} color="#893467" />
+              <MaterialCommunityIcons name="target" size={22} color={COLORS.buttonPrimaryBackground} />
             </View>
             <View style={styles.summaryIntroCopy}>
               <Text style={styles.summaryKicker}>{meta.meta_completado ? 'Meta concluída' : 'Em acompanhamento'}</Text>
@@ -386,32 +378,38 @@ export default function MetaDetailsScreen() {
             <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Progresso</Text><Text style={[styles.summaryValue, styles.highlightValue]}>{formatarPercentualMeta(meta.progresso_percentual)}</Text></View>
           </View>
           <View accessible accessibilityLabel={`Barra de progresso: ${formatarPercentualMeta(meta.progresso_percentual)}`} style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progressWidth}%` }]} /></View>
-          {renderLatest('Última movimentação', meta.ultima_movimentacao)}
-          {renderLatest('Último depósito', meta.ultimo_deposito)}
           <View style={styles.actionRow}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Adicionar valor à meta" onPress={() => openMovement('DEPOSITO')} disabled={submitting} style={[styles.actionButton, styles.depositButton]}><Text style={styles.actionButtonText}>Adicionar valor</Text></Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel="Retirar valor da meta" onPress={() => openMovement('RETIRADA')} disabled={submitting} style={[styles.actionButton, styles.withdrawButton]}><Text style={[styles.actionButtonText, styles.withdrawButtonText]}>Retirar valor</Text></Pressable>
+            <CustomButton title="Adicionar valor" accessibilityLabel="Adicionar valor à meta" variant="primary" onPress={() => openMovement('DEPOSITO')} disabled={submitting} style={styles.actionButton} />
+            <CustomButton title="Retirar valor" accessibilityLabel="Retirar valor da meta" variant="secondary" onPress={() => openMovement('RETIRADA')} disabled={submitting} style={styles.actionButton} />
           </View>
-          <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: meta.meta_completado, disabled: completionLoading }} onPress={toggleCompletion} disabled={completionLoading} style={styles.completionButton}>
-            <Text style={styles.completionText}>{meta.meta_completado ? 'Desmarcar como concluída' : 'Marcar como concluída'}</Text>
-          </Pressable>
+          <CustomButton
+            title={meta.meta_completado ? 'Desmarcar como concluída' : 'Marcar como concluída'}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: meta.meta_completado }}
+            variant="outline"
+            onPress={toggleCompletion}
+            disabled={completionLoading}
+            loading={completionLoading}
+            fullWidth
+            style={styles.completionButton}
+          />
           {completionError ? <Text style={styles.formError}>{completionError}</Text> : null}
         </View>
-        <View style={[styles.card, styles.historyHeading]}><Text style={styles.sectionTitle}>Histórico de movimentações</Text><Text style={styles.sectionHint}>Acompanhe cada depósito e retirada da meta.</Text></View>
+        <View style={styles.historySectionHeader}><Text style={styles.sectionTitle}>Histórico de movimentações</Text><Text style={styles.sectionHint}>Acompanhe os valores adicionados e retirados desta meta.</Text></View>
       </>
     );
   };
 
   if (!metaId) {
-    return <SafeAreaView style={styles.container}><View style={styles.state}><Text style={styles.stateText}>Não foi possível abrir esta meta.</Text><Pressable accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.retry}><Text style={styles.retryText}>Voltar</Text></Pressable></View></SafeAreaView>;
+    return <SafeAreaView style={styles.container}><View style={styles.state}><Text style={styles.stateText}>Não foi possível abrir esta meta.</Text><CustomButton title="Voltar" variant="secondary" onPress={() => navigation.goBack()} style={styles.retryButton} /></View></SafeAreaView>;
   }
 
   if (!meta && (refreshing || !metaError)) {
-    return <SafeAreaView style={styles.container}><View style={styles.state}><ActivityIndicator accessibilityLabel="Carregando detalhes da meta" color="#893467" /><Text style={styles.stateText}>Carregando detalhes da meta...</Text></View></SafeAreaView>;
+    return <SafeAreaView style={styles.container}><View style={styles.state}><ActivityIndicator accessibilityLabel="Carregando detalhes da meta" color={COLORS.buttonPrimaryBackground} /><Text style={styles.stateText}>Carregando detalhes da meta...</Text></View></SafeAreaView>;
   }
 
   if (!meta) {
-    return <SafeAreaView style={styles.container}><View style={styles.state}><Text style={styles.stateText}>{metaError}</Text><Pressable accessibilityRole="button" onPress={refreshDetails} style={styles.retry}><Text style={styles.retryText}>Tentar novamente</Text></Pressable></View></SafeAreaView>;
+    return <SafeAreaView style={styles.container}><View style={styles.state}><Text style={styles.stateText}>{metaError}</Text><CustomButton title="Tentar novamente" variant="outline" onPress={refreshDetails} style={styles.retryButton} /></View></SafeAreaView>;
   }
 
   return (
@@ -422,8 +420,8 @@ export default function MetaDetailsScreen() {
         renderItem={renderMovement}
         contentContainerStyle={styles.list}
         ListHeaderComponent={renderHeader}
-        ListEmptyComponent={historyLoading ? <View style={styles.state}><ActivityIndicator accessibilityLabel="Carregando histórico" color="#893467" /></View> : <View style={styles.state}><Text style={styles.stateText}>Ainda não há movimentações nesta meta.</Text><Text style={styles.stateText}>Adicione um valor quando quiser registrar seu progresso.</Text></View>}
-        ListFooterComponent={historyError ? <View style={styles.footer}><Text style={styles.stateText}>{historyError}</Text><Pressable accessibilityRole="button" onPress={() => loadHistory(!movementState.itens.length)} style={styles.retry}><Text style={styles.retryText}>Tentar novamente</Text></Pressable></View> : historyLoading && movementState.itens.length > 0 ? <View style={styles.footer}><ActivityIndicator accessibilityLabel="Carregando mais movimentações" color="#893467" /></View> : movementState.nextCursor ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => loadHistory(false)} style={styles.retry}><Text style={styles.retryText}>Carregar mais</Text></Pressable></View> : movementState.itens.length > 0 ? <Text style={styles.footer}>Fim do histórico</Text> : null}
+        ListEmptyComponent={historyLoading ? <View style={styles.historyEmpty}><ActivityIndicator accessibilityLabel="Carregando histórico" color={COLORS.buttonPrimaryBackground} /></View> : <View style={styles.historyEmpty}><Text style={styles.stateText}>Nenhuma movimentação registrada ainda.</Text></View>}
+        ListFooterComponent={historyError ? <View style={styles.footer}><Text style={styles.stateText}>{historyError}</Text><CustomButton title="Tentar novamente" variant="outline" onPress={() => loadHistory(!movementState.itens.length)} style={styles.retryButton} /></View> : historyLoading && movementState.itens.length > 0 ? <View style={styles.footer}><ActivityIndicator accessibilityLabel="Carregando mais movimentações" color={COLORS.buttonPrimaryBackground} /></View> : movementState.nextCursor ? <View style={styles.footer}><CustomButton title="Carregar mais" variant="secondary" onPress={() => loadHistory(false)} style={styles.retryButton} /></View> : null}
         onEndReached={() => loadHistory(false)}
         onEndReachedThreshold={0.4}
         refreshing={refreshing}
@@ -451,8 +449,8 @@ export default function MetaDetailsScreen() {
               {pendingOperation ? <Text style={styles.pendingHint}>Existe uma operação pendente. Se o resultado anterior ficou incerto, este envio reutilizará o mesmo identificador.</Text> : null}
               {formError ? <Text style={styles.formError}>{formError}</Text> : null}
               <View style={styles.modalActions}>
-                <Pressable accessibilityRole="button" onPress={() => setMovementForm(null)} disabled={submitting} style={styles.cancelButton}><Text style={styles.cancelText}>Cancelar</Text></Pressable>
-                <Pressable accessibilityRole="button" onPress={submitMovement} disabled={submitting} style={styles.submitButton}>{submitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitText}>Confirmar</Text>}</Pressable>
+                <CustomButton title="Cancelar" variant="secondary" onPress={() => setMovementForm(null)} disabled={submitting} style={styles.modalActionButton} />
+                <CustomButton title="Confirmar" variant="primary" onPress={submitMovement} loading={submitting} disabled={submitting} style={styles.modalActionButton} />
               </View>
             </Pressable>
           </Pressable>

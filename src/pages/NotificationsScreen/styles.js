@@ -134,14 +134,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: COLORS.customButtonFundo,
-    borderRadius: 30,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  retryButtonText: {
-    color: COLORS.customButtonTexto,
-    fontSize: 15,
-    fontWeight: '600',
+    width: 'auto',
+    minWidth: 160,
   },
 });

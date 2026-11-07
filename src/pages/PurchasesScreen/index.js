@@ -15,6 +15,7 @@ import { comprasPeriodo } from '../../utils/comprasPeriodo';
 import {consultarResumosCompras} from '../../services/resumosCompras';
 import GerenciarCompra from '../../components/PurchaseComponents/GerenciarCompra';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
+import CustomButton from '../../components/CustomButton';
 
 /**
  * Tela que apresenta todas as compras retornadas para o usuário autenticado.
@@ -311,14 +312,10 @@ export default function PurchasesScreen({route}={}) {
           {isBusy ? <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /> : null}
           <Text style={styles.stateText}>{message}</Text>
           {protectedAccess.status === PROTECTED_ACCESS_STATES.BIOMETRIC ? (
-            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.usePinFallback}>
-              <Text style={styles.retryButtonText}>Usar PIN</Text>
-            </TouchableOpacity>
+            <CustomButton title="Usar PIN" variant="secondary" onPress={protectedAccess.usePinFallback} style={styles.retryButton} />
           ) : null}
           {protectedAccess.status === PROTECTED_ACCESS_STATES.ERROR ? (
-            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.beginAccess}>
-              <Text style={styles.retryButtonText}>Tentar novamente</Text>
-            </TouchableOpacity>
+            <CustomButton title="Tentar novamente" variant="outline" onPress={protectedAccess.beginAccess} style={styles.retryButton} />
           ) : null}
         </View>
         <PinModal
@@ -380,9 +377,7 @@ export default function PurchasesScreen({route}={}) {
         <AppScreenHeader icon="shopping-outline" title="Minhas compras" subtitle="Acompanhe e organize suas compras" style={styles.screenHeader} />
         <View style={styles.stateContainer}>
           <Text style={styles.stateText}>{errorMessage}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => loadPurchases()}>
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={() => loadPurchases()} style={styles.retryButton} />
         </View>
       </SafeAreaView>
     );
@@ -396,13 +391,7 @@ export default function PurchasesScreen({route}={}) {
         subtitle="Acompanhe e organize suas compras"
         style={styles.screenHeader}
         rightAction={(
-          <TouchableOpacity
-            style={styles.headerAction}
-            onPress={() => navigation.navigate('Recurrences')}
-            accessibilityRole="button"
-            accessibilityLabel="Abrir recorrências">
-            <MaterialCommunityIcons name="autorenew" size={20} color={COLORS.cadTitulo} />
-          </TouchableOpacity>
+          <CustomButton accessibilityLabel="Abrir recorrências" variant="ghost" icon="autorenew" iconOnly onPress={() => navigation.navigate('Recurrences')} style={styles.headerAction} />
         )}
       />
 

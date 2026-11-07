@@ -230,6 +230,10 @@ function sheet({ action, item, fail = false } = {}) {
         },
       },
     },
+    '../CustomButton': {
+      __esModule: true,
+      default: ({ title, ...props }) => r.React.createElement('Button', props, title),
+    },
   });
   r.mount(
     r.load('src/components/PurchaseComponents/GerenciarCompra.js').default,

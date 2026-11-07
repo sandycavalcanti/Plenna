@@ -7,6 +7,7 @@ import PinModal from '../../components/SecurityComponents/PinModal';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
 import { COLORS } from '../../constants/colors';
+import CustomButton from '../../components/CustomButton';
 import { getNotifications, markNotificationAsRead } from '../../services/notifications/notificationApi';
 import {
   formatNotificationDate,
@@ -33,14 +34,10 @@ function renderSecurityState(protectedAccess, navigation) {
         {isBusy ? <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /> : null}
         <Text style={styles.stateText}>{message}</Text>
         {protectedAccess.status === PROTECTED_ACCESS_STATES.BIOMETRIC ? (
-          <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.usePinFallback}>
-            <Text style={styles.retryButtonText}>Usar PIN</Text>
-          </TouchableOpacity>
+          <CustomButton title="Usar PIN" variant="secondary" onPress={protectedAccess.usePinFallback} style={styles.retryButton} />
         ) : null}
         {protectedAccess.status === PROTECTED_ACCESS_STATES.ERROR ? (
-          <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.beginAccess}>
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={protectedAccess.beginAccess} style={styles.retryButton} />
         ) : null}
       </View>
       <PinModal
@@ -195,9 +192,7 @@ export default function NotificationsScreen() {
         <AppScreenHeader icon="bell-outline" title="Notificações" subtitle="Acompanhe os alertas do seu planejamento" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
         <View style={styles.stateContainer}>
           <Text style={styles.stateText}>{errorMessage}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => loadNotifications()}>
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={() => loadNotifications()} style={styles.retryButton} />
         </View>
       </SafeAreaView>
     );

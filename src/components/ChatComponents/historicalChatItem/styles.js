@@ -49,9 +49,9 @@ export const styles = StyleSheet.create({
   },
   deleteButton: {
     width: 44,
-    height: 44,
+    minHeight: 44,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     marginLeft: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

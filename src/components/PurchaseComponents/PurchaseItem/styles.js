@@ -61,6 +61,9 @@ export const styles = StyleSheet.create({
     // botão textual no rodapé. Ela só é renderizada para compras confirmadas.
     width: 32,
     height: 32,
+    minHeight: 32,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     alignItems: 'center',
     marginLeft: 3,
     justifyContent: 'center',
@@ -184,11 +187,9 @@ export const styles = StyleSheet.create({
   },
   itemDeleteButton: {
     width: 34,
-    height: 34,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
+    minHeight: 34,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   purchaseActionRow: {
     alignItems: 'flex-end',
@@ -214,9 +215,6 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
   },
   statusActionsGroup: { flexDirection: 'row', width: '100%', gap: 10, marginLeft: 0 },
-  ignoreButton: { flex: 1, minHeight: 40, paddingHorizontal: 14, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: '#FBE4AE' },
-  ignoreButtonText: { color: '#8A5A00', fontSize: 13, fontWeight: '700' },
-  confirmButton: { flex: 1, minHeight: 40, paddingHorizontal: 14, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: COLORS.cadTitulo },
-  confirmButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-  disabledAction: { opacity: 0.6 },
+  ignoreButton: { flex: 1, width: 'auto', minHeight: 40 },
+  confirmButton: { flex: 1, width: 'auto', minHeight: 40 },
 });

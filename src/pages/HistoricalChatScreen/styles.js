@@ -16,11 +16,9 @@ export const styles = StyleSheet.create({
   },
   newButton: {
     width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.chatBotaoEnviar,
+    minHeight: 42,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   searchRow: {
     flex: 1,
@@ -79,15 +77,8 @@ export const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 11,
-    borderRadius: 12,
-    backgroundColor: COLORS.chatBotaoEnviar,
-  },
-  emptyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    width: 'auto',
+    minWidth: 180,
   },
   errorBanner: {
     marginHorizontal: 16,
@@ -112,5 +103,10 @@ export const styles = StyleSheet.create({
     color: COLORS.loginEsqueciSenha,
     fontSize: 12,
     fontWeight: '700',
+  },
+  retryButton: {
+    width: 'auto',
+    minWidth: 66,
+    minHeight: 34,
   },
 });

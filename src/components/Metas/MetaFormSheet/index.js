@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { formatarValorMetaParaEntrada, normalizarValorMeta } from '../../../utils/metaMoney';
+import CustomButton from '../../CustomButton';
 import styles from './styles';
 
 function initialForm(meta) {
@@ -73,9 +73,15 @@ export default function MetaFormSheet({
                   <Text style={styles.eyebrow}>{mode === 'edit' ? 'Editar meta' : 'Nova meta'}</Text>
                   <Text style={styles.title}>{mode === 'edit' ? 'Ajuste seu objetivo' : 'Crie um objetivo para acompanhar'}</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel="Fechar formulário da meta" onPress={onClose} disabled={disabled} style={styles.closeButton}>
-                  <Feather name="x" size={20} color="#76658A" />
-                </Pressable>
+                <CustomButton
+                  accessibilityLabel="Fechar formulário da meta"
+                  variant="ghost"
+                  icon="close"
+                  iconOnly
+                  onPress={onClose}
+                  disabled={disabled}
+                  style={styles.closeButton}
+                />
               </View>
               <Text style={styles.subtitle}>Preencha os dados e acompanhe seu avanço no cofrinho.</Text>
 
@@ -128,14 +134,12 @@ export default function MetaFormSheet({
               {formError ? <Text accessibilityRole="alert" style={styles.error}>{formError}</Text> : null}
 
               <View style={styles.actions}>
-                <Pressable accessibilityRole="button" onPress={onClose} disabled={disabled} style={styles.cancelButton}><Text style={styles.cancelText}>Cancelar</Text></Pressable>
-                <Pressable accessibilityRole="button" onPress={submit} disabled={disabled} style={styles.submitButton}>{saving ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitText}>{mode === 'edit' ? 'Salvar alterações' : 'Criar meta'}</Text>}</Pressable>
+                <CustomButton title="Cancelar" variant="secondary" onPress={onClose} disabled={disabled} style={styles.actionButton} />
+                <CustomButton title={mode === 'edit' ? 'Salvar alterações' : 'Criar meta'} variant="primary" onPress={submit} loading={saving} disabled={disabled} style={styles.actionButton} />
               </View>
 
               {mode === 'edit' && onDelete ? (
-                <Pressable accessibilityRole="button" onPress={onDelete} disabled={disabled} style={styles.deleteButton}>
-                  {deleting ? <ActivityIndicator color="#A31414" /> : <><Feather name="trash-2" size={16} color="#A31414" /><Text style={styles.deleteText}>Excluir esta meta</Text></>}
-                </Pressable>
+                <CustomButton title="Excluir esta meta" variant="danger" icon="trash-can-outline" onPress={onDelete} loading={deleting} disabled={disabled} fullWidth style={styles.deleteButton} />
               ) : null}
             </ScrollView>
           </Pressable>

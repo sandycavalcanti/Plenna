@@ -425,20 +425,9 @@ export const styles = StyleSheet.create({
   },
 
   retryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
     marginTop: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: COLORS.customButtonFundo,
-  },
-
-  retryText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    width: 'auto',
+    minWidth: 180,
   },
 
   emptyComparison: {

@@ -14,11 +14,11 @@ import {
   Switch,
   Alert,
   AppState,
-  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import ProfileCard from '../ProfileCard';
+import CustomButton from '../../CustomButton';
 import styles from './styles';
 
 import {
@@ -593,15 +593,14 @@ export default function Permissions({ data }) {
           />
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !memoryEnabled || loadingMemory || !consentimentosDisponiveis }}
+        <CustomButton
+          title="Consultar minhas memórias"
+          variant="outline"
           onPress={() => navigation.navigate('MemoryList')}
           disabled={!memoryEnabled || loadingMemory || !consentimentosDisponiveis}
-          style={[styles.memoryButton, (!memoryEnabled || loadingMemory || !consentimentosDisponiveis) && styles.memoryButtonDisabled]}
-        >
-          <Text style={styles.memoryButtonText}>Consultar minhas memórias</Text>
-        </Pressable>
+          loading={loadingMemory}
+          style={styles.memoryButton}
+        />
         {memoryError ? <Text style={styles.memoryError}>{memoryError}</Text> : null}
         {memorySuccess ? <Text style={styles.memorySuccess}>{memorySuccess}</Text> : null}
       </View>

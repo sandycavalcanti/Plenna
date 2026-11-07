@@ -4,6 +4,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import CustomButton from '../../components/CustomButton';
 import ChatItem from '../../components/ChatComponents/historicalChatItem';
 import { deleteHistory, getChatErrorMessage, listHistories } from '../../api/chat';
 import { COLORS } from '../../constants/colors';
@@ -137,23 +138,14 @@ export default function HistoricalChatScreen({ navigation }) {
           ) : null}
         </View>
 
-        <TouchableOpacity
-          accessibilityLabel="Nova conversa"
-          accessibilityRole="button"
-          style={styles.newButton}
-          onPress={handleCreateHistory}
-        >
-          <MaterialIcons name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        <CustomButton accessibilityLabel="Nova conversa" variant="primary" icon="plus" iconOnly onPress={handleCreateHistory} style={styles.newButton} />
       </View>
 
       {errorMessage ? (
         <View style={styles.errorBanner}>
           <MaterialIcons name="cloud-off" size={19} color={COLORS.loginEsqueciSenha} />
           <Text style={styles.errorText}>{errorMessage}</Text>
-          <TouchableOpacity accessibilityRole="button" onPress={() => loadHistories()}>
-            <Text style={styles.retryText}>Tentar</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar" variant="ghost" onPress={() => loadHistories()} style={styles.retryButton} />
         </View>
       ) : null}
 
@@ -192,9 +184,7 @@ export default function HistoricalChatScreen({ navigation }) {
                 {normalizedSearch ? 'Tente outro termo de pesquisa.' : 'Crie uma conversa para começar a organizar seus pensamentos.'}
               </Text>
               {!normalizedSearch ? (
-                <TouchableOpacity style={styles.emptyButton} onPress={handleCreateHistory}>
-                  <Text style={styles.emptyButtonText}>Começar conversa</Text>
-                </TouchableOpacity>
+                <CustomButton title="Começar conversa" variant="primary" onPress={handleCreateHistory} style={styles.emptyButton} />
               ) : null}
             </View>
           )}

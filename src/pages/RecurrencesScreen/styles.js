@@ -47,11 +47,9 @@ export const styles = StyleSheet.create({
   },
   headerAction: {
     width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
+    minHeight: 38,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   listContent: {
     paddingHorizontal: spacing.lg,
@@ -179,27 +177,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
-  },
-  secondaryActionText: {
-    color: colors.ink,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  primaryAction: {
-    backgroundColor: colors.hero,
-  },
-  primaryActionText: {
-    color: '#FFFFFF',
-  },
-  dangerAction: {
-    backgroundColor: '#F9E9EF',
-  },
-  dangerActionText: {
-    color: '#9A4165',
-  },
-  actionDisabled: {
-    opacity: 0.55,
+    width: 'auto',
   },
   expandedContent: {
     marginTop: spacing.md,
@@ -315,17 +293,8 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   retryButton: {
-    minHeight: 42,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.hero,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
+    width: 'auto',
+    minWidth: 170,
   },
   modalOverlay: {
     flex: 1,
@@ -358,11 +327,9 @@ export const styles = StyleSheet.create({
   },
   closeButton: {
     width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
+    minHeight: 34,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   fieldLabel: {
     color: colors.ink,
@@ -503,22 +470,7 @@ export const styles = StyleSheet.create({
   },
   modalAction: {
     flex: 1,
-    minHeight: 44,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
-  },
-  modalActionPrimary: {
-    backgroundColor: colors.hero,
-  },
-  modalActionText: {
-    color: colors.ink,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  modalActionPrimaryText: {
-    color: '#FFFFFF',
+    width: 'auto',
   },
   modalList: {
     maxHeight: 360,

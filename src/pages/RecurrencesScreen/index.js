@@ -22,6 +22,7 @@ import CustomTextInput from '../../components/CustomTextInput';
 import { valorMoedaParaNumero } from '../../components/CustomTextInput/currency';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
+import CustomButton from '../../components/CustomButton';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
 import { styles } from './styles';
 
@@ -513,14 +514,10 @@ export default function RecurrencesScreen() {
           {isBusy ? <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /> : null}
           <Text style={styles.stateText}>{message}</Text>
           {protectedAccess.status === PROTECTED_ACCESS_STATES.BIOMETRIC ? (
-            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.usePinFallback}>
-              <Text style={styles.retryButtonText}>Usar PIN</Text>
-            </TouchableOpacity>
+            <CustomButton title="Usar PIN" variant="secondary" onPress={protectedAccess.usePinFallback} style={styles.retryButton} />
           ) : null}
           {protectedAccess.status === PROTECTED_ACCESS_STATES.ERROR ? (
-            <TouchableOpacity style={styles.retryButton} onPress={protectedAccess.beginAccess}>
-              <Text style={styles.retryButtonText}>Tentar novamente</Text>
-            </TouchableOpacity>
+            <CustomButton title="Tentar novamente" variant="outline" onPress={protectedAccess.beginAccess} style={styles.retryButton} />
           ) : null}
         </View>
         <PinModal
@@ -542,9 +539,7 @@ export default function RecurrencesScreen() {
       return (
         <View style={styles.upcomingBox}>
           <Text style={styles.summaryLabel}>{upcomingErrorById[id]}</Text>
-          <TouchableOpacity style={styles.secondaryAction} onPress={() => loadUpcoming(recurrence)} activeOpacity={0.82}>
-            <Text style={styles.secondaryActionText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={() => loadUpcoming(recurrence)} style={styles.secondaryAction} />
         </View>
       );
     }
@@ -614,40 +609,35 @@ export default function RecurrencesScreen() {
         </View>
 
         <View style={styles.cardActions}>
-          <TouchableOpacity style={styles.secondaryAction} onPress={() => loadDetails(item)} activeOpacity={0.82}>
-            <Text style={styles.secondaryActionText}>{expandedId === id ? 'Ocultar detalhes' : 'Detalhes'}</Text>
-          </TouchableOpacity>
+          <CustomButton title={expandedId === id ? 'Ocultar detalhes' : 'Detalhes'} variant="secondary" onPress={() => loadDetails(item)} style={styles.secondaryAction} />
           {canEdit ? (
-            <TouchableOpacity style={styles.secondaryAction} onPress={() => openEditor(item)} disabled={editorLoading} activeOpacity={0.82}>
-              <Text style={styles.secondaryActionText}>Editar</Text>
-            </TouchableOpacity>
+            <CustomButton title="Editar" variant="outline" onPress={() => openEditor(item)} disabled={editorLoading} style={styles.secondaryAction} />
           ) : null}
           {canPause ? (
-            <TouchableOpacity
-              style={[styles.secondaryAction, actionRunning && styles.actionDisabled]}
+            <CustomButton
+              title="Pausar"
+              variant="secondary"
               onPress={() => runAction(item, 'pausar', 'pausar', 'Recorrência pausada.')}
               disabled={Boolean(actionId)}
-              activeOpacity={0.82}>
-              <Text style={styles.secondaryActionText}>{actionRunning ? 'Aguarde...' : 'Pausar'}</Text>
-            </TouchableOpacity>
+              loading={actionRunning}
+              style={styles.secondaryAction} />
           ) : null}
           {canResume ? (
-            <TouchableOpacity
-              style={[styles.secondaryAction, styles.primaryAction, actionRunning && styles.actionDisabled]}
+            <CustomButton
+              title="Retomar"
+              variant="primary"
               onPress={() => runAction(item, 'retomar', 'retomar', 'Recorrência retomada.')}
               disabled={Boolean(actionId)}
-              activeOpacity={0.82}>
-              <Text style={[styles.secondaryActionText, styles.primaryActionText]}>{actionRunning ? 'Aguarde...' : 'Retomar'}</Text>
-            </TouchableOpacity>
+              loading={actionRunning}
+              style={styles.secondaryAction} />
           ) : null}
           {canCancel ? (
-            <TouchableOpacity
-              style={[styles.secondaryAction, styles.dangerAction]}
+            <CustomButton
+              title="Cancelar"
+              variant="danger"
               onPress={() => confirmCancel(item)}
               disabled={Boolean(actionId)}
-              activeOpacity={0.82}>
-              <Text style={[styles.secondaryActionText, styles.dangerActionText]}>Cancelar</Text>
-            </TouchableOpacity>
+              style={styles.secondaryAction} />
           ) : null}
         </View>
 
@@ -662,9 +652,7 @@ export default function RecurrencesScreen() {
                     <Text style={styles.itemRowValue}>{formatMoney(recurrenceItem.valor)}</Text>
                   </View>
                 ))}
-                <TouchableOpacity style={styles.secondaryAction} onPress={() => loadUpcoming(item)} disabled={upcomingLoadingId === id} activeOpacity={0.82}>
-                  <Text style={styles.secondaryActionText}>Atualizar próximas datas</Text>
-                </TouchableOpacity>
+                <CustomButton title="Atualizar próximas datas" variant="outline" onPress={() => loadUpcoming(item)} disabled={upcomingLoadingId === id} loading={upcomingLoadingId === id} style={styles.secondaryAction} />
                 {renderUpcoming(item)}
               </>
             )}
@@ -685,9 +673,7 @@ export default function RecurrencesScreen() {
                 <Text style={styles.modalTitle}>Editar recorrência</Text>
                 <Text style={styles.modalSubtitle}>Ajuste somente a programação futura.</Text>
               </View>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setEditor(null)}>
-                <MaterialCommunityIcons name="close" size={20} color={COLORS.dadoUm} />
-              </TouchableOpacity>
+              <CustomButton accessibilityLabel="Fechar edição de recorrência" variant="ghost" icon="close" iconOnly onPress={() => setEditor(null)} style={styles.closeButton} />
             </View>
 
             <ScrollView style={styles.modalList} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -781,12 +767,8 @@ export default function RecurrencesScreen() {
             </ScrollView>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalAction} onPress={() => setEditor(null)} disabled={editorSaving}>
-                <Text style={styles.modalActionText}>Voltar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalAction, styles.modalActionPrimary, editorSaving && styles.actionDisabled]} onPress={saveEditor} disabled={editorSaving}>
-                <Text style={[styles.modalActionText, styles.modalActionPrimaryText]}>{editorSaving ? 'Salvando...' : 'Salvar alterações'}</Text>
-              </TouchableOpacity>
+              <CustomButton title="Voltar" variant="secondary" onPress={() => setEditor(null)} disabled={editorSaving} style={styles.modalAction} />
+              <CustomButton title="Salvar alterações" variant="primary" onPress={saveEditor} loading={editorSaving} disabled={editorSaving} style={styles.modalAction} />
             </View>
           </Pressable>
         </Pressable>
@@ -916,7 +898,7 @@ export default function RecurrencesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <AppScreenHeader icon="calendar-sync-outline" title="Recorrências" subtitle="Organize suas compras programadas" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
-        <View style={styles.stateContainer}><Text style={styles.stateText}>{errorMessage}</Text><TouchableOpacity style={styles.retryButton} onPress={() => loadRecurrences()}><Text style={styles.retryButtonText}>Tentar novamente</Text></TouchableOpacity></View>
+        <View style={styles.stateContainer}><Text style={styles.stateText}>{errorMessage}</Text><CustomButton title="Tentar novamente" variant="outline" onPress={() => loadRecurrences()} style={styles.retryButton} /></View>
       </SafeAreaView>
     );
   }
@@ -931,9 +913,7 @@ export default function RecurrencesScreen() {
         onBackPress={() => navigation.goBack()}
         style={styles.screenHeader}
         rightAction={(
-          <TouchableOpacity style={styles.headerAction} onPress={() => loadRecurrences(true)} disabled={refreshing} accessibilityLabel="Atualizar recorrências">
-            <MaterialCommunityIcons name="refresh" size={20} color={COLORS.dadoUm} />
-          </TouchableOpacity>
+          <CustomButton accessibilityLabel="Atualizar recorrências" variant="ghost" icon="refresh" iconOnly onPress={() => loadRecurrences(true)} disabled={refreshing} loading={refreshing} style={styles.headerAction} />
         )}
       />
       <FlatList

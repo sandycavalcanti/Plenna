@@ -6,10 +6,11 @@ import { categoriaEhOutros } from '../../utils/categorias';
  */
 
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Image, Text, Alert, KeyboardAvoidingView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Image, Text, Alert, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PreferencesForm from '../../components/PreferencesForm';
+import CustomButton from '../../components/CustomButton';
 import { calcularOrcamento } from '../../utils/orcamento';
 import { apiClient } from '../../api/client';
 import { distribuirSobraEmOutros, obterIdCategoriaOutros, validarCatalogoCategorias } from '../../utils/categorias';
@@ -314,9 +315,7 @@ export default function EditPreferencesScreen() {
     return (
       <View style={styles.loadingContainer}>
         <Text accessibilityRole="alert">Não foi possível carregar suas preferências e categorias.</Text>
-        <TouchableOpacity accessibilityRole="button" onPress={carregarDados}>
-          <Text>Tentar carregar novamente</Text>
-        </TouchableOpacity>
+        <CustomButton title="Tentar carregar novamente" variant="outline" onPress={carregarDados} style={{ width: 'auto', marginTop: 16 }} />
       </View>
     );
   }

@@ -13,6 +13,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import CustomButton from '../../components/CustomButton';
 import { styles } from './styles';
 // Importação dos componentes que compõem a tela de perfil
 import ProfileHeader from '../../components/ProfileComponents/ProfileHeader';
@@ -204,13 +205,16 @@ export default function ProfileScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dadoUm} />}>
         <View style={styles.accountActionRow}>
           <View style={styles.accountActionWrapper}>
-            <TouchableOpacity
-              style={[styles.accountActionButton, accountActionLoading && styles.accountActionButtonDisabled]}
+            <CustomButton
+              accessibilityLabel="Abrir ações da conta"
+              variant="ghost"
+              icon="dots-vertical"
+              iconOnly
               onPress={handleAccountMenu}
-              activeOpacity={0.8}
-              disabled={accountActionLoading}>
-              <Feather name="more-vertical" size={26} color={COLORS.perfilIconeEditar} />
-            </TouchableOpacity>
+              loading={accountActionLoading}
+              disabled={accountActionLoading}
+              style={styles.accountActionButton}
+            />
 
             {accountMenuVisible ? (
               <View style={styles.accountDropdown}>

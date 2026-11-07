@@ -147,20 +147,11 @@ export default StyleSheet.create({
     width: '100%',
   },
   addMetaAction: {
+    width: 'auto',
     minHeight: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
     paddingVertical: 8,
     paddingHorizontal: 11,
     borderRadius: 13,
-    backgroundColor: '#893467',
-  },
-  addMetaActionText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
   },
   metaEditorCard: {
     width: '100%',
@@ -197,14 +188,11 @@ export default StyleSheet.create({
   },
   metaEditorIconButton: {
     width: 34,
-    height: 34,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F7F3FA',
+    minHeight: 34,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   metaEditorDeleteButton: {
-    backgroundColor: '#FFF7F7',
   },
   metaCardMetrics: {
     flexDirection: 'row',

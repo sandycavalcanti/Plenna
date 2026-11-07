@@ -252,17 +252,13 @@ export default function QuestionarioScreen({ navigation }) {
             <ActivityIndicator size="small" color={COLORS.cadTitulo} />
           ) : isEditing ? (
             <View style={styles.actionsArea}>
-              <CustomButton title={saving ? 'Salvando...' : 'Salvar respostas'} style={styles.stepThreeButton} onPress={atualizarUsuario} disabled={!podeSalvar || saving} />
-              <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
-                <Text style={styles.secondaryActionText}>Deixar para depois</Text>
-              </TouchableOpacity>
+              <CustomButton title="Salvar respostas" style={styles.stepThreeButton} onPress={atualizarUsuario} disabled={!podeSalvar || saving} loading={saving} />
+              <CustomButton title="Deixar para depois" variant="secondary" onPress={() => navigation.replace('App')} style={styles.secondaryAction} />
             </View>
           ) : (
             <View style={styles.actionsArea}>
               <CustomButton title="Concluir cadastro" onPress={() => navigation.replace('App')} />
-              <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace('App')} style={styles.secondaryAction}>
-                <Text style={styles.secondaryActionText}>Agora não</Text>
-              </TouchableOpacity>
+              <CustomButton title="Agora não" variant="secondary" onPress={() => navigation.replace('App')} style={styles.secondaryAction} />
             </View>
           )}
         </ScrollView>

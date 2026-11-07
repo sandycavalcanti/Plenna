@@ -395,7 +395,6 @@ export default StyleSheet.create({
   saveButton: {
     width: '100%',
     minHeight: 48,
-    backgroundColor: colors.hero,
   },
   disabledSaveHint: {
     color: colors.body,
@@ -446,18 +445,9 @@ export default StyleSheet.create({
     marginTop: spacing.sm,
   },
   retryButton: {
-    minHeight: 42,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.hero,
+    width: 'auto',
+    minWidth: 180,
     marginTop: spacing.lg,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
   },
   modalOverlay: {
     flex: 1,

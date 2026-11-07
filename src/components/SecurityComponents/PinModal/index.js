@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { styles } from './styles';
+import CustomButton from '../../CustomButton';
 
 const PIN_LENGTH = 6;
 const pinKeyboardBehavior = typeof Platform !== 'undefined' && Platform.OS === 'android' ? 'height' : 'padding';
@@ -162,9 +163,7 @@ export default function PinModal({ visible, mode = 'unlock', onSubmit, onCancel,
 
             <Text style={styles.error}>{errorMessage}</Text>
 
-            <TouchableOpacity style={styles.cancel} onPress={handleCancel} disabled={busy}>
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </TouchableOpacity>
+            <CustomButton title="Cancelar" variant="secondary" onPress={handleCancel} disabled={busy} style={styles.cancel} />
           </View>
         </KeyboardAvoidingView>
       </View>

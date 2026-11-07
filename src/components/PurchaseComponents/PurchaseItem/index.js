@@ -1,7 +1,8 @@
 import React from 'react';
-import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/colors';
+import CustomButton from '../../CustomButton';
 import { styles } from './styles';
 
 /**
@@ -199,18 +200,16 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
         <View style={styles.headerValueGroup}>
           <Text style={styles.value}>{formatCurrency(purchase.compra_valor)}</Text>
           {purchase.compra_status === 'CONFIRMADA' ? (
-            <TouchableOpacity
-              accessibilityLabel={onManage?'Gerenciar compra':'Excluir compra e todos os itens'}
+            <CustomButton
+              accessibilityLabel={onManage ? 'Gerenciar compra' : 'Excluir compra e todos os itens'}
+              variant={onManage ? 'ghost' : 'danger'}
+              icon={onManage ? 'dots-horizontal' : 'trash-can-outline'}
+              iconOnly
+              loading={isDeleting}
               disabled={isDeleting || hasItemDeleting}
               onPress={confirmDelete}
               style={styles.purchaseDeleteIconButton}
-            >
-              {isDeleting ? (
-                <ActivityIndicator size="small" color={COLORS.cadTextoAdicionarLimites} />
-              ) : (
-                <Feather name={onManage?'more-horizontal':'trash-2'} size={25} color={COLORS.cadTextoAdicionarLimites} />
-              )}
-            </TouchableOpacity>
+            />
           ) : null}
         </View>
       </View>
@@ -269,18 +268,16 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
                   </View>
                 </View>
                 <Text style={styles.itemValue}>{formatCurrency(item.compra_item_valor)}</Text>
-                {!isPending ? <TouchableOpacity
-                  accessibilityLabel={`${onManage?'Gerenciar':'Excluir'} item ${item.compra_item_nome}`}
+                {!isPending ? <CustomButton
+                  accessibilityLabel={`${onManage ? 'Gerenciar' : 'Excluir'} item ${item.compra_item_nome}`}
+                  variant={onManage ? 'ghost' : 'danger'}
+                  icon={onManage ? 'dots-horizontal' : 'trash-can-outline'}
+                  iconOnly
+                  loading={isItemDeleting}
                   disabled={isDeleting || hasItemDeleting}
                   onPress={() => confirmDeleteItem(item)}
                   style={styles.itemDeleteButton}
-                >
-                  {isItemDeleting ? (
-                    <ActivityIndicator size="small" color={COLORS.cadTextoAdicionarLimites} />
-                  ) : (
-                    <Feather name={onManage?'more-horizontal':'trash-2'} size={20} color={COLORS.cadTextoAdicionarLimites} />
-                  )}
-                </TouchableOpacity> : null}
+                /> : null}
               </View>
             );
           })
@@ -297,14 +294,8 @@ export default function PurchaseItem({ purchase, isDeleting, hasItemDeleting, is
       {isPending ? <View style={styles.purchaseActionRow}>
         {isPending ? (
           <View style={styles.statusActionsGroup}>
-            <TouchableOpacity accessibilityLabel="Ignorar compra" disabled={isStatusActionRunning} onPress={confirmIgnoreStatus} style={[styles.ignoreButton, isStatusActionRunning && styles.disabledAction]}>
-              {isStatusActionRunning && statusAction === 'ignore' ? <ActivityIndicator size="small" color="#8A5A00" /> : null}
-              <Text style={styles.ignoreButtonText}>Ignorar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity accessibilityLabel="Confirmar compra" disabled={isStatusActionRunning} onPress={confirmPurchaseStatus} style={[styles.confirmButton, isStatusActionRunning && styles.disabledAction]}>
-              {isStatusActionRunning && statusAction === 'confirm' ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
-              <Text style={styles.confirmButtonText}>Confirmar</Text>
-            </TouchableOpacity>
+            <CustomButton title="Ignorar" accessibilityLabel="Ignorar compra" variant="secondary" loading={isStatusActionRunning && statusAction === 'ignore'} disabled={isStatusActionRunning} onPress={confirmIgnoreStatus} style={styles.ignoreButton} />
+            <CustomButton title="Confirmar" accessibilityLabel="Confirmar compra" variant="primary" loading={isStatusActionRunning && statusAction === 'confirm'} disabled={isStatusActionRunning} onPress={confirmPurchaseStatus} style={styles.confirmButton} />
           </View>
         ) : null}
       </View> : null}

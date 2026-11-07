@@ -12,14 +12,14 @@ export default StyleSheet.create({
     gap: 10,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    minHeight: 44,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.customTextInputFundo,
+    backgroundColor: COLORS.buttonGhostPressed,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.12)',
+    borderColor: COLORS.buttonOutlineBorder,
   },
   iconBox: {
     width: 42,

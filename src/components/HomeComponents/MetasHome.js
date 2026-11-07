@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
+import CustomButton from '../CustomButton';
 
 const Icon = typeof MaterialCommunityIcons === 'undefined' ? View : MaterialCommunityIcons;
 
@@ -91,16 +92,12 @@ export default function MetasHome({ metas = [], loading, error, onRetry, onCreat
       ) : error ? (
         <View style={styles.messageState}>
           <Text style={styles.message}>Não foi possível consultar suas metas.</Text>
-          <Pressable onPress={onRetry} accessibilityRole="button" style={styles.action}>
-            <Text style={styles.actionText}>Tentar novamente</Text>
-          </Pressable>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={onRetry} style={styles.action} />
         </View>
       ) : metas.length === 0 ? (
         <View style={styles.messageState}>
           <Text style={styles.message}>Qual objetivo você quer acompanhar?</Text>
-          <Pressable onPress={onCreate} accessibilityRole="button" style={styles.action}>
-            <Text style={styles.actionText}>Criar uma meta</Text>
-          </Pressable>
+          <CustomButton title="Criar uma meta" variant="primary" onPress={onCreate} style={styles.action} />
         </View>
       ) : (
         <View style={styles.metasList}>
@@ -110,14 +107,13 @@ export default function MetasHome({ metas = [], loading, error, onRetry, onCreat
             </View>
           ))}
           {metas.length > 2 ? (
-            <Pressable
-              accessibilityRole="button"
+            <CustomButton
+              title={all ? 'Mostrar menos' : `Ver as ${metas.length} metas`}
+              variant="ghost"
               accessibilityState={{ expanded: all }}
               onPress={() => setAll(!all)}
               style={styles.action}
-            >
-              <Text style={styles.actionText}>{all ? 'Mostrar menos' : `Ver as ${metas.length} metas`}</Text>
-            </Pressable>
+            />
           ) : null}
         </View>
       )}
@@ -283,11 +279,7 @@ const styles = {
   },
   action: {
     minHeight: 44,
-    justifyContent: 'center',
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.accent,
+    width: 'auto',
+    alignSelf: 'flex-start',
   },
 };

@@ -89,20 +89,8 @@ export default StyleSheet.create({
   memoryButton: {
     alignSelf: 'flex-end',
     marginTop: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 9,
-    backgroundColor: '#8660A1',
-  },
-
-  memoryButtonDisabled: {
-    opacity: 0.45,
-  },
-
-  memoryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
+    width: 'auto',
+    minHeight: 42,
   },
 
   memoryItem: {

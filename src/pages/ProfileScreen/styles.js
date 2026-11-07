@@ -36,14 +36,10 @@ export const styles = StyleSheet.create({
   },
 
   accountActionButton: {
-    padding: 2,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  accountActionButtonDisabled: {
-    opacity: 0.55,
+    width: 44,
+    minHeight: 44,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 
   accountDropdown: {

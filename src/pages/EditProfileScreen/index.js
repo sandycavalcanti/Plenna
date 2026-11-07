@@ -403,7 +403,7 @@ export default function EditProfileScreen() {
                 {renderOptionGroup('O que mais te faz comprar ou consumir algo?', triggerOptions, user.gatilhoConsumo, (option) => setUser((u) => ({ ...u, gatilhoConsumo: option })))}
               </ProfileCard>
               <View style={styles.actionsRow}>
-                <CustomButton title={saving ? 'Salvando...' : 'Salvar'} onPress={salvarInfo} style={styles.saveButton} />
+                <CustomButton title="Salvar" onPress={salvarInfo} style={styles.saveButton} disabled={saving} loading={saving} />
               </View>
             </View>
           ) : (
@@ -414,10 +414,7 @@ export default function EditProfileScreen() {
                   <Text style={styles.metasIntroTitle}>Seus objetivos</Text>
                   <Text style={styles.metasIntroSubtitle}>Crie metas claras e acompanhe cada avanço no seu cofrinho.</Text>
                 </View>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adicionar meta" activeOpacity={0.85} onPress={abrirNovaMeta} style={styles.addMetaAction}>
-                  <Feather name="plus" size={17} color="#FFFFFF" />
-                  <Text style={styles.addMetaActionText}>Adicionar</Text>
-                </TouchableOpacity>
+                <CustomButton title="Adicionar" accessibilityLabel="Adicionar meta" variant="primary" icon="plus" onPress={abrirNovaMeta} style={styles.addMetaAction} />
               </View>
 
               {metas.map((m, idx) => (
@@ -434,12 +431,8 @@ export default function EditProfileScreen() {
                       <Text style={styles.metaEditorTitle} numberOfLines={1}>{m.meta_titulo || 'Nova meta'}</Text>
                     </View>
                     <View style={styles.metaEditorActions}>
-                      <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Editar meta ${m.meta_titulo || ''}`} onPress={(event) => { event.stopPropagation?.(); abrirEdicaoMeta(m); }} style={styles.metaEditorIconButton}>
-                        <Feather name="edit-2" size={16} color="#76658A" />
-                      </TouchableOpacity>
-                      <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Excluir meta ${m.meta_titulo || ''}`} onPress={(event) => { event.stopPropagation?.(); confirmarExclusaoMeta(m); }} style={[styles.metaEditorIconButton, styles.metaEditorDeleteButton]}>
-                        <Feather name="trash-2" size={16} color="#A31414" />
-                      </TouchableOpacity>
+                      <CustomButton accessibilityLabel={`Editar meta ${m.meta_titulo || ''}`} variant="ghost" icon="pencil-outline" iconOnly onPress={(event) => { event.stopPropagation?.(); abrirEdicaoMeta(m); }} style={styles.metaEditorIconButton} />
+                      <CustomButton accessibilityLabel={`Excluir meta ${m.meta_titulo || ''}`} variant="danger" icon="trash-can-outline" iconOnly onPress={(event) => { event.stopPropagation?.(); confirmarExclusaoMeta(m); }} style={[styles.metaEditorIconButton, styles.metaEditorDeleteButton]} />
                     </View>
                   </View>
                   <View style={styles.metaCardMetrics}>

@@ -340,9 +340,7 @@ export default function CreateCompraScreen() {
           </View>
           <Text style={styles.errorTitle}>Não foi possível carregar</Text>
           <Text style={styles.errorText}>{initialLoadError}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={listarDadosIniciais} activeOpacity={0.85}>
-            <Text style={styles.retryButtonText}>Tentar novamente</Text>
-          </TouchableOpacity>
+          <CustomButton title="Tentar novamente" variant="outline" onPress={listarDadosIniciais} style={styles.retryButton} />
         </View>
       </SafeAreaView>
     );
@@ -580,9 +578,10 @@ export default function CreateCompraScreen() {
 
           <View style={styles.actionsCard}>
             <CustomButton
-              title={saving ? 'Salvando...' : purchaseMode === 'RECORRENTE' ? 'Salvar recorrência' : 'Salvar compra'}
+              title={purchaseMode === 'RECORRENTE' ? 'Salvar recorrência' : 'Salvar compra'}
               onPress={handleSalvar}
               disabled={saving}
+              loading={saving}
               style={styles.saveButton}
             />
             {purchaseMode === 'RECORRENTE' ? <Text style={styles.disabledSaveHint}>O cadastro salva apenas a programação. A compra será criada pelo backend na data prevista.</Text> : null}

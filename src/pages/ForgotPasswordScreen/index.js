@@ -126,7 +126,7 @@ export default function ForgotPasswordScreen({ navigation }) {
               <>
                 <Text style={styles.texto}>Digite seu e-mail</Text>
                 <CustomTextInput placeholder="Email" textValue={email} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} />
-                <CustomButton title={loading ? 'Enviando...' : 'Enviar código'} onPress={enviarCodigo} disabled={loading} />
+                <CustomButton title="Enviar código" onPress={enviarCodigo} disabled={loading} loading={loading} />
               </>
             )}
 
@@ -135,13 +135,14 @@ export default function ForgotPasswordScreen({ navigation }) {
               <>
                 <Text style={styles.texto}>Digite o código enviado</Text>
                 <CustomTextInput placeholder="Código" textValue={codigo} keyboardType="number-pad" maxLength={6} />
-                <CustomButton title={loading ? 'Verificando...' : 'Verificar'} onPress={verificarCodigo} disabled={loading} />
+                <CustomButton title="Verificar" onPress={verificarCodigo} disabled={loading} loading={loading} />
                 <CustomButton
                   title={segundosParaReenvio > 0 ? `Reenviar código em ${segundosParaReenvio}s` : 'Reenviar código'}
+                  variant="secondary"
                   onPress={enviarCodigo}
                   disabled={loading || segundosParaReenvio > 0}
                 />
-                <CustomButton title="Alterar e-mail" onPress={() => setStep(1)} disabled={loading} />
+                <CustomButton title="Alterar e-mail" variant="secondary" onPress={() => setStep(1)} disabled={loading} />
               </>
             )}
 
@@ -151,7 +152,7 @@ export default function ForgotPasswordScreen({ navigation }) {
                 <Text style={styles.texto}>Crie uma nova senha</Text>
                 <CustomTextInput placeholder="Nova senha" secureTextEntry textValue={novaSenha} />
                 <CustomTextInput placeholder="Confirmar senha" secureTextEntry textValue={confirmarSenha} />
-                <CustomButton title={loading ? 'Alterando...' : 'Alterar senha'} onPress={alterarSenha} disabled={loading} />
+                <CustomButton title="Alterar senha" onPress={alterarSenha} disabled={loading} loading={loading} />
               </>
             )}
           </View>

@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { randomUUID } from 'expo-crypto';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
+import CustomButton from '../CustomButton';
 import {
   criarGravadorEvento,
   confirmarOperacoesRecuperadas,
@@ -480,25 +481,15 @@ export default function GerenciarCompra({
                     </Text>
                   </Pressable>
                 )}
-                <Pressable
+                <CustomButton
                   accessibilityRole="button"
+                  title={action === 'EXCLUSAO_REGISTRO' ? 'Confirmar exclusão do registro' : 'Confirmar registro'}
+                  variant={action === 'EXCLUSAO_REGISTRO' ? 'danger' : 'primary'}
+                  loading={busy}
                   disabled={busy}
                   onPress={save}
-                  style={[
-                    s.primary,
-                    action === 'EXCLUSAO_REGISTRO' && {
-                      backgroundColor: '#B32646',
-                    },
-                  ]}
-                >
-                  <Text style={s.primaryText}>
-                    {busy
-                      ? 'Registrando…'
-                      : action === 'EXCLUSAO_REGISTRO'
-                        ? 'Confirmar exclusão do registro'
-                        : 'Confirmar registro'}
-                  </Text>
-                </Pressable>
+                  style={s.primary}
+                />
                 <Pressable
                   accessibilityRole="button"
                   disabled={busy}
@@ -553,12 +544,11 @@ const s = StyleSheet.create({
   },
   primary: {
     minHeight: 52,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,
-    backgroundColor: '#704389',
   },
-  primaryText: { color: '#FFF', fontWeight: '600' },
   error: { color: '#B32646', fontSize: 14 },
   link: { color: '#893467', fontWeight: '600' },
   history: {
