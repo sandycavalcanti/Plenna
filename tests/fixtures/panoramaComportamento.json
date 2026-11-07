@@ -1,0 +1,6 @@
+{
+  "versaoContrato": 1,
+  "recorrencias": {"origem": "VINCULOS_REGISTRADOS", "comprasVinculadas": 2, "vinculosDistintos": 1, "cobertura": "REGISTROS_DISPONIVEIS"},
+  "comparacao": {"disponibilidade": "INDISPONIVEL", "motivos": ["COBERTURA_NAO_COMPLETA"], "atual": null, "anterior": null, "frequencia": null, "medianaCentavos": null},
+  "limitacoes": ["Vínculos registrados não comprovam assinatura ou periodicidade."]
+}

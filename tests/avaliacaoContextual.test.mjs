@@ -66,6 +66,17 @@ const response = (extra = {}) => ({
   resultado: result(),
   ...extra,
 });
+
+test('F33: consulta por identidade histórica preserva a avaliação e impede recálculo', async () => {
+  let state;const calls=[];
+  const instance=criarConsultaAvaliacao({compraId:1,avaliacaoId:7,
+    storage:{captureSession:async()=>({id:1,signal:new AbortController().signal}),assertSession:()=>{}},
+    client:{get:async(url)=>{calls.push(url);return {data:response({avaliacaoId:7,atualidade:'DESATUALIZADA'})};},post:async()=>{throw Error('UNEXPECTED_WRITE');}},
+    onChange:value=>{state=value;}});
+  await instance.consultar();assert.equal(state.status,'ready');assert.equal(state.dados.avaliacaoId,7);
+  assert.deepEqual(calls,['/v2/compras/1/avaliacoes/7']);
+  await assert.rejects(instance.calcular(1),/READ_ONLY/);instance.dispose();
+});
 function service(overrides = {}) {
   let state;
   const calls = [],
@@ -111,7 +122,7 @@ test('assessment consultation uses captured session and explicit calculation use
   assert.equal(h.calls[0][0], '/v2/compras/1/avaliacoes/atual');
   await h.instance.calcular(1);
   assert.deepEqual(h.calls[1][1], { revisaoEsperada: 1 });
-  assert.equal(h.calls[1][2].rf017SessionId, 1);
+  assert.equal(h.calls[1][2].usageMonitoringSessionId, 1);
   h.instance.dispose();
 });
 test('invalid result, foreign purchase, version and malformed arrays are refused', () => {

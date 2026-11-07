@@ -14,6 +14,15 @@ const fixture = JSON.parse(
   ),
 );
 const response = () => structuredClone(fixture);
+test('Monitoramento de tempo em aplicativos descriptive zero remains valid history and missing duration remains distinct', () => {
+  const d=response();
+  d.monitoramento={disponibilidade:'PARCIAL',dias:['2026-11-02'],referencias:['rf017-v2:episode:2026-11-02:1'],
+    associacaoComCompra:'INDISPONIVEL',minutosRegistrados:0,porDia:[{data:'2026-11-02',minutos:0}],
+    porAplicativo:[{packageId:'com.shopee.br',nome:'Shopee',minutos:0}]};
+  assert.equal(validarHistoricoCompra(d,1),d);
+  d.monitoramento.minutosRegistrados=null;d.monitoramento.disponibilidade='INDISPONIVEL';assert.equal(validarHistoricoCompra(d,1),d);
+  d.monitoramento.minutosRegistrados=-1;assert.throws(()=>validarHistoricoCompra(d,1));
+});
 test('contextual-2 historical complement is accepted only with matching declared dependencies', () => {
   const d = response();
   d.contextual.versaoMotor = 'contextual-2';
@@ -67,7 +76,7 @@ test('API-generated partial-coverage contract is accepted and fetched under the 
   await h.instance.consultar();
   assert.equal(h.state().status, 'ready');
   assert.equal(h.calls[0][0], '/v2/compras/1/indicadores-historicos');
-  assert.equal(h.calls[0][1].rf017SessionId, 7);
+  assert.equal(h.calls[0][1].usageMonitoringSessionId, 7);
   assert.ok(h.calls[0][1].signal);
   h.instance.dispose();
 });

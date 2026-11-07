@@ -1,0 +1,76 @@
+{
+  "versaoContrato": 1,
+  "versaoMotor": "contextual-2",
+  "compraId": 1,
+  "contextoRevisao": 1,
+  "estado": "DADOS_INSUFICIENTES",
+  "observacoes": [],
+  "declaracoes": [
+    {
+      "codigo": "R2_PLANEJAMENTO",
+      "mensagem": "Planejamento: você informou que não lembra.",
+      "referencias": [
+        "contexto:1:revisao:1:planejamento"
+      ],
+      "campo": "planejamento",
+      "valor": "NAO_LEMBRO"
+    },
+    {
+      "codigo": "R4_PROMOCAO",
+      "mensagem": "Influência promocional: você preferiu não responder.",
+      "referencias": [
+        "contexto:1:revisao:1:influenciaPromocional"
+      ],
+      "campo": "influenciaPromocional",
+      "valor": "PREFIRO_NAO_RESPONDER"
+    }
+  ],
+  "autopercepcao": null,
+  "interpretacao": {
+    "mensagem": "Não há contexto suficiente para uma reflexão contextual. Isso não significa ausência de sinais.",
+    "reflexao": null,
+    "referencias": []
+  },
+  "evidencias": [
+    {
+      "referencia": "compra:1",
+      "natureza": "REGISTRADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:planejamento",
+      "natureza": "DECLARADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:influenciaPromocional",
+      "natureza": "DECLARADO"
+    }
+  ],
+  "limitacoes": [
+    "NAO_DIAGNOSTICA_IMPULSIVIDADE",
+    "REFERENCIA_ATUAL_SEM_VIGENCIA_HISTORICA",
+    "HORARIO_EFETIVO_NAO_COMPROVADO",
+    "HISTORICO_SEM_COBERTURA_COMPLETA",
+    "LIMITE_INDISPONIVEL",
+    "planejamento:NAO_LEMBRO",
+    "influenciaPromocional:PREFIRO_NAO_RESPONDER",
+    "CONTEXTO_INSUFICIENTE_PARA_REFLEXAO"
+  ],
+  "regrasAplicadas": [
+    {
+      "codigo": "R2_PLANEJAMENTO",
+      "versao": 1,
+      "justificativa": "Registro de declaração voluntária, sem inferência e sem alteração da classificação legada.",
+      "referencias": [
+        "contexto:1:revisao:1:planejamento"
+      ]
+    },
+    {
+      "codigo": "R4_PROMOCAO",
+      "versao": 1,
+      "justificativa": "Registro de declaração voluntária, sem inferência e sem alteração da classificação legada.",
+      "referencias": [
+        "contexto:1:revisao:1:influenciaPromocional"
+      ]
+    }
+  ]
+}
