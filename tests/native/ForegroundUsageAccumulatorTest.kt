@@ -145,5 +145,64 @@ fun main() {
     check(ForegroundUsageAccumulator.queryStart(START * 3) == START * 2)
     check(ForegroundUsageAccumulator.queryStart(1000) == 0L)
   }
+  test("v2 catalog filtering keeps state bounded over 100000 unrelated events") {
+    val a = ForegroundUsageAccumulator(START, END, setOf(APP))
+    repeat(100000) { a.accept(RESUMED, START + it, "unrelated.$it", "A") }
+    a.accept(RESUMED, START + 100000, APP, "A")
+    a.accept(PAUSED, START + 101000, APP, "A")
+    assertUsage(mapOf(APP to 1L), a)
+  }
+  test("v2 missing context and estimated closing are explicit quality flags") {
+    val a = ForegroundUsageAccumulator(START, END, setOf(APP))
+    a.accept(PAUSED, START, APP, "missing")
+    a.accept(RESUMED, START + 1000, APP, "A")
+    a.finish()
+    check(a.qualityFlags.containsAll(listOf("MISSING_CONTEXT", "OPEN_INTERVAL_ESTIMATED")))
+  }
+  test("v2 reboot gap and clock regression are explicit") {
+    val a = ForegroundUsageAccumulator(START, END)
+    a.accept(STARTUP, START + 1000)
+    a.accept(RESUMED, START, APP, "A")
+    check(a.qualityFlags.containsAll(listOf("REBOOT_GAP", "CLOCK_ANOMALY")))
+    assertUsage(emptyMap(), a)
+  }
+  test("v2 partial authorization never counts prefix as eligible usage") {
+    val a = ForegroundUsageAccumulator(START + 1800000, END, setOf(APP))
+    a.accept(RESUMED, START, APP, "A")
+    a.accept(PAUSED, END - 1000, APP, "A")
+    assertUsage(mapOf(APP to 1799L), a)
+  }
+  for (hours in listOf(23L,25L)) test("v2 $hours hour window preserves physical duration") {
+    val until = START + hours * 3600000L
+    val a = ForegroundUsageAccumulator(START, until)
+    a.accept(RESUMED, START - 1, APP, "A")
+    assertUsage(mapOf(APP to hours*3600), a)
+  }
+  test("SHEIN exact package closed session is eligible and unrelated package is excluded") {
+    val a = ForegroundUsageAccumulator(START, END, setOf("com.zzkko"))
+    a.accept(RESUMED, START, "com.zzkko", "SheinActivity")
+    a.accept(PAUSED, START + 12500, "com.zzkko", "SheinActivity")
+    a.accept(RESUMED, START + 13000, "other.package", "OtherActivity")
+    a.accept(PAUSED, START + 15000, "other.package", "OtherActivity")
+    assertUsage(mapOf("com.zzkko" to 12L), a)
+  }
+  test("SHEIN ongoing session is clipped and marked as estimated") {
+    val a = ForegroundUsageAccumulator(START, START + 8000, setOf("com.zzkko"))
+    a.accept(RESUMED, START + 1000, "com.zzkko", "A")
+    assertUsage(mapOf("com.zzkko" to 7L), a)
+    check(a.qualityFlags.contains("OPEN_INTERVAL_ESTIMATED"))
+  }
+  test("SHEIN subsecond session remains an observed zero and is not rounded up") {
+    val a = ForegroundUsageAccumulator(START, END, setOf("com.zzkko"))
+    a.accept(RESUMED, START, "com.zzkko", "A")
+    a.accept(PAUSED, START + 800, "com.zzkko", "A")
+    assertUsage(mapOf("com.zzkko" to 0L), a)
+  }
+  test("SHEIN before eligibility is not attributed to the new association") {
+    val a = ForegroundUsageAccumulator(START, END, setOf("com.zzkko"))
+    a.accept(RESUMED, START - 10000, "com.zzkko", "A")
+    a.accept(PAUSED, START - 1000, "com.zzkko", "A")
+    assertUsage(emptyMap(), a)
+  }
   println("$passed Kotlin tests passed")
 }

@@ -1,3 +1,7 @@
+import { alterarConsentimentoMonitoramento } from '../../services/monitoramentoConsentService';
+import { hasUsageAccess, openUsageAccessSettings } from '../../../modules/plenna-usage-stats';
+import { registrarConsentimento } from '../../api/consentimento';
+import { monitoringTitle, monitoringExplanation, monitoringManagement } from '../../utils/monitoramentoCopy';
 import { categoriaEhOutros } from '../../utils/categorias';
 import React, { useEffect, useState, useRef } from 'react';
 import { styles } from './styles';
@@ -67,6 +71,7 @@ export default function SignUpScreen({ navigation, route }) {
   const [valorMaximoCompra, setValorMaximoCompra] = useState('');
   const [stepTwoTouched, setStepTwoTouched] = useState(false);
   const [stepTwoAttempted, setStepTwoAttempted] = useState(false);
+  const [checkboxMonitoramento, setCheckboxMonitoramento] = useState(false);
   const [checkboxAutorizacao, setCheckboxAutorizacao] = useState(false);
   const [checkboxTermos, setCheckboxTermos] = useState(false);
 
@@ -296,6 +301,31 @@ async function CadastrarUsuario() {
     // O cadastro também inicia uma nova sessão de usuário e não pode herdar
     // uma área de compras desbloqueada anteriormente neste processo.
     invalidateProtectedSession();
+
+      if (checkboxMonitoramento) {
+        try {
+          const session = await tokenStorage.captureSession();
+          const monitoring = await alterarConsentimentoMonitoramento(true, session, registrarConsentimento, tokenStorage.assertSession);
+          if (monitoring.activationPending) Alert.alert('Consentimento salvo', 'Sua conta foi criada. Conclua a ativação do monitoramento no Perfil quando o aparelho estiver disponível.');else {
+            const permitted = await hasUsageAccess();
+            tokenStorage.assertSession(session.id);
+            if (!permitted) Alert.alert('Tempo em aplicativos', 'Para medir o uso dos aplicativos de compra, permita o acesso aos dados de uso no Android. Você pode fazer isso depois no Perfil.', [{
+              text: 'Agora não',
+              style: 'cancel'
+            }, {
+              text: 'Abrir configurações',
+              onPress: () => {
+                try {
+                  tokenStorage.assertSession(session.id);
+                  openUsageAccessSettings().catch(() => {});
+                } catch {}
+              }
+            }]);
+          }
+        } catch {
+          Alert.alert('Monitoramento pendente', 'Sua conta foi criada. Confira o consentimento e a permissão Android no Perfil.');
+        }
+      }
 
     if (checkboxAutorizacao) {
       await vincularEmailGoogle();
@@ -556,6 +586,11 @@ async function CadastrarUsuario() {
             </Text>
           </TouchableOpacity>
 
+          <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxMonitoramento(!checkboxMonitoramento)} accessibilityRole="checkbox" accessibilityState={{ checked: checkboxMonitoramento }}>
+            <View style={[styles.checkbox, checkboxMonitoramento && styles.checkboxChecked]}>{checkboxMonitoramento && <Text style={styles.checkboxMark}>✓</Text>}</View>
+            <Text style={styles.checkboxText}>{monitoringTitle}</Text>
+          </TouchableOpacity>
+          <Text style={styles.checkboxText}>Opcional. {monitoringExplanation} {monitoringManagement}</Text>
          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
     </View>
   </ScrollView>

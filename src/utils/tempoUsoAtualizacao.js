@@ -7,10 +7,8 @@ const observadores = new Set();
  */
 export function observarAtualizacaoTempoUso(observador) {
   if (typeof observador !== 'function') return () => {};
-
   observadores.add(observador);
   let ativo = true;
-
   return () => {
     if (!ativo) return;
     ativo = false;
@@ -23,7 +21,7 @@ export function observarAtualizacaoTempoUso(observador) {
  * Um observador com erro não impede os demais de receberem a atualização.
  */
 export function emitirAtualizacaoTempoUso() {
-  [...observadores].forEach((observador) => {
+  [...observadores].forEach(observador => {
     try {
       observador();
     } catch {
@@ -32,3 +30,4 @@ export function emitirAtualizacaoTempoUso() {
     }
   });
 }
+export const publicarAtualizacaoTempoUso = emitirAtualizacaoTempoUso;

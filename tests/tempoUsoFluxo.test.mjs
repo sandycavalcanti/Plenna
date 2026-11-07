@@ -1,6 +1,8 @@
+import {lifecycle,consentFlow,settle as settleV2} from './helpers/usageV2Lifecycle.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import vm from 'node:vm';
 import { transformSync } from '@babel/core';
 
@@ -16,7 +18,7 @@ function deferred() {
 async function ambiente({ consentimento = true, permission = true, dev = false } = {}) {
   const state = {
     consentimento, permission, coletas: [], puts: [], posts: [], gets: [],
-    effects: [], listeners: new Set(), native: null, post: null, get: null,
+    effects: [], listeners: new Set(), native: null, post: null, get: null, put: null,
     storage: new Map(), states: [], removed: 0,
   };
   const context = vm.createContext({ AbortController, Date, console, __DEV__: dev });
@@ -60,7 +62,12 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
       state.consentimento = body.status;
       return { data: { consentimento_status: body.status } };
     },
-    put: async (...args) => { state.puts.push(args); throw new Error('PUT proibido nesta etapa'); },
+    put: async (path, body, config) => {
+      assert.equal(path, '/tempo-uso/sync');
+      state.puts.push([path, body, config]);
+      if (state.put) return state.put(path, body, config);
+      return { data: { recebidos: body.registros.length, persistidos: body.registros.length } };
+    },
   };
   const mocks = {
     'react': { ...react, default: react },
@@ -72,6 +79,9 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
   ActivityIndicator: 'ActivityIndicator',
   Pressable: 'Pressable',
   TextInput: 'TextInput',
+  StyleSheet: { create: styles => styles },
+  Modal: 'Modal',
+  ScrollView: 'ScrollView',
   Alert: {
     alert: (...args) => {
       state.alert = args;
@@ -88,8 +98,13 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
       removeItem: async key => state.storage.delete(key),
     } },
     'src/api/client.js': { apiClient },
+    'src/constants/config.js': {urlAPI:'http://127.0.0.1:3000'},
+    'src/services/gmailOAuthService.js': {
+      consultarStatusGmail: async () => ({ autorizacaoEmail: false, conexaoEmail: { conectado: false } }),
+      conectarGmailInterativo: async () => { throw new Error('OAuth não exercitado neste teste de monitoramento'); },
+    },
     'modules/plenna-usage-stats.js': {
-      getModuleStatus: async () => ({ available: true }),
+      getModuleStatus: async () => ({ available: state.moduleAvailable !== false }),
       hasUsageAccess: async () => state.permission,
       openUsageAccessSettings: async () => { state.opened = true; return true; },
       getForegroundUsage: async (...args) => {
@@ -101,11 +116,17 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
     'src/components/ProfileComponents/ProfileCard.js': { default: 'ProfileCard' },
     'src/components/ProfileComponents/Permissions/styles.js': { default: {} },
     '@react-navigation/native': { useNavigation: () => ({ navigate() {} }) },
+    '@expo/vector-icons': { MaterialCommunityIcons: 'MaterialCommunityIcons' },
   };
   const base = new URL('../', import.meta.url);
   const cache = new Map();
   async function load(name) {
     if (cache.has(name)) return cache.get(name);
+    const pending = build(name);
+    cache.set(name, pending);
+    return pending;
+  }
+  async function build(name) {
     let mod;
     if (mocks[name]) {
       const values = mocks[name];
@@ -114,17 +135,20 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
       }, { context, identifier: name });
     } else {
       let source = await readFile(new URL(name, base), 'utf8');
-      if (name.includes('/Permissions/')) source = transformSync(source, {
+      if (name.startsWith('src/components/')) source = transformSync(source, {
         filename: name, configFile: false, babelrc: false,
         plugins: ['@babel/plugin-transform-react-jsx'],
       }).code;
       mod = new vm.SourceTextModule(source, { context, identifier: name });
     }
-    cache.set(name, mod);
     await mod.link((specifier, parent) => {
       if (!specifier.startsWith('.')) return load(specifier);
       let resolved = new URL(specifier, new URL(parent.identifier, base)).href.slice(base.href.length);
-      if (!resolved.endsWith('.js')) resolved += '.js';
+      if (!resolved.endsWith('.js')) {
+        const file = resolved + '.js';
+        const index = resolved + '/index.js';
+        resolved = mocks[file] || existsSync(new URL(file, base)) ? file : index;
+      }
       return load(resolved);
     });
     return mod;
@@ -159,12 +183,14 @@ test('sem autenticação não consulta consentimento nem coleta', async () => {
   assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'sem_token');
   assert.equal(state.gets.length, 0);
   assert.equal(state.coletas.length, 0);
+  assert.equal(state.puts.length, 0);
 });
 
 test('sem Usage Access não coleta', async () => {
   const { state, service } = await ambiente({ permission: false });
   assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'usage_access_nao_concedido');
   assert.equal(state.coletas.length, 0);
+  assert.equal(state.puts.length, 0);
 });
 
 test('consentimento é consultado novamente após catálogo e antes da coleta', async () => {
@@ -172,6 +198,7 @@ test('consentimento é consultado novamente após catálogo e antes da coleta', 
   state.get = async path => { if (path === '/tempo-uso/aplicativos') state.consentimento = false; };
   assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'consentimento_inativo');
   assert.equal(state.coletas.length, 0);
+  assert.equal(state.puts.length, 0);
 });
 
 test('revogação remota durante coleta descarta resultado e impede próxima janela', async () => {
@@ -238,7 +265,9 @@ test('cooldown é isolado por sessão e não usa chave persistida de outro usuá
   const { state, service, token } = await ambiente();
   state.storage.set('@plenna:tempoUsoUltimoSync', String(Date.now()));
   const first = await service.sincronizarTempoUsoDoDia();
-  assert.equal(first.motivo, 'envio_bloqueado_no_laboratorio');
+  assert.equal(first.sincronizado, true);
+  assert.equal(first.motivo, null);
+  assert.equal(state.puts.length, 1);
   assert.equal(state.coletas.length, 3);
   assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'cooldown_ativo');
   await token.setToken('usuario-B');
@@ -246,15 +275,15 @@ test('cooldown é isolado por sessão e não usa chave persistida de outro usuá
   assert.equal(state.coletas.length, 6);
   state.consentimento = false;
   assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'consentimento_inativo');
-  assert.equal(state.puts.length, 0);
+  assert.equal(state.puts.length, 2);
 });
 
 test('execuções concorrentes compartilham uma única preparação', async () => {
   const { state, service } = await ambiente();
   const results = await Promise.all(Array.from({ length: 5 }, () => service.sincronizarTempoUsoDoDia()));
   assert.equal(state.coletas.length, 3);
-  assert.ok(results.every(result => result.motivo === 'envio_bloqueado_no_laboratorio'));
-  assert.equal(state.puts.length, 0);
+  assert.ok(results.every(result => result.sincronizado === true && result.motivo === null));
+  assert.equal(state.puts.length, 1);
 });
 
 test('nova conta aguarda consulta nativa antiga terminar antes de coletar', async () => {
@@ -270,7 +299,8 @@ test('nova conta aguarda consulta nativa antiga terminar antes de coletar', asyn
   state.native = null;
   gate.resolve([]);
   assert.equal((await old).motivo, 'sessao_invalidada');
-  assert.equal((await next).motivo, 'envio_bloqueado_no_laboratorio');
+  assert.equal((await next).sincronizado, true);
+  assert.equal(state.puts.length, 1);
   assert.equal(state.coletas.length, 4);
 });
 
@@ -279,6 +309,7 @@ test('falha ao consultar consentimento impede coleta', async () => {
   state.get = async () => { throw new Error('offline'); };
   await assert.rejects(service.sincronizarTempoUsoDoDia(), /offline/);
   assert.equal(state.coletas.length, 0);
+  assert.equal(state.puts.length, 0);
 });
 
 test('sinal já cancelado não inicia operação', async () => {
@@ -288,6 +319,7 @@ test('sinal já cancelado não inicia operação', async () => {
   assert.equal((await service.sincronizarTempoUsoDoDia(undefined, { signal: controller.signal })).motivo, 'operacao_cancelada');
   assert.equal(state.coletas.length, 0);
   assert.equal(state.gets.length, 0);
+  assert.equal(state.puts.length, 0);
 });
 
 test('Usage Access removido durante coleta descarta o resultado', async () => {
@@ -306,7 +338,8 @@ test('falha da revogação libera apenas estado transitório e volta a consultar
   state.post = async () => { throw new Error('offline'); };
   await assert.rejects(consent.registrarConsentimento('MONITORAMENTO_TEMPO_USO', false), /offline/);
   // O servidor ainda autoriza: não há um segundo cadastro local de consentimento.
-  assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'envio_bloqueado_no_laboratorio');
+  assert.equal((await service.sincronizarTempoUsoDoDia()).sincronizado, true);
+  assert.equal(state.puts.length, 1);
   assert.equal(state.coletas.length, 3);
   assert.ok(state.gets.some(item => item.path === '/consentimento'));
 });
@@ -316,7 +349,7 @@ test('confirmação de consentimento da conta antiga não altera a conta nova', 
   const sessao = await token.captureSession();
   await token.setToken('usuario-B');
   await assert.rejects(consent.registrarConsentimento('MONITORAMENTO_TEMPO_USO', false, {
-    rf017SessionId: sessao.id,
+    usageMonitoringSessionId: sessao.id,
   }), error => error.code === 'RF017_SESSION_INVALIDATED');
   assert.equal(state.posts.length, 0);
 });
@@ -330,52 +363,19 @@ test('concessão após revogação invalida cooldown e revalida autorização', 
   await consent.registrarConsentimento('MONITORAMENTO_TEMPO_USO', true);
   await service.sincronizarTempoUsoDoDia();
   assert.equal(state.coletas.length, 6);
-  assert.equal(state.puts.length, 0);
+  assert.equal(state.puts.length, 2);
 });
 
-test('hook inicial/foreground respeita consentimento, permissão, sessão e concorrência', async () => {
-  const { state, namespace, token } = await ambiente({ consentimento: false });
-  const hook = await namespace('src/hooks/useTempoUsoSync.js');
-  hook.useTempoUsoSync();
-  const cleanup = state.effects[0]();
-  await settle();
-  assert.equal(state.coletas.length, 0);
-  state.consentimento = true;
-  state.permission = false;
-  state.foreground();
-  await settle();
-  assert.equal(state.coletas.length, 0);
-  state.permission = true;
-  state.foreground();
-  state.foreground();
-  await settle();
-  assert.equal(state.coletas.length, 3);
-  state.consentimento = false;
-  state.foreground();
-  await settle();
-  assert.equal(state.coletas.length, 3);
-  await token.clearToken();
-  state.foreground();
-  await settle();
-  assert.equal(state.coletas.length, 3);
-  assert.equal(state.puts.length, 0);
-  cleanup();
-  assert.equal(state.listeners.size, 0);
+test('hook v2 initial/foreground respects consent, permission and account',async()=>{
+ const h=await lifecycle();const cleanup=h.mount();await settleV2();assert.equal(h.state.collections,0);
+ h.state.consent=true;h.foreground();await settleV2();assert.equal(h.state.collections,0);
+ h.state.permission=true;h.foreground();await settleV2();assert.equal(h.state.sends,1);
+ h.logout();h.foreground();await settleV2();assert.equal(h.state.sends,1);cleanup();assert.equal(h.state.listeners.size,0);
 });
-
-test('desmontagem do hook cancela resultado nativo pendente', async () => {
-  const { state, namespace } = await ambiente();
-  const gate = deferred();
-  state.native = () => gate.promise;
-  (await namespace('src/hooks/useTempoUsoSync.js')).useTempoUsoSync();
-  const cleanup = state.effects[0]();
-  await settle();
-  cleanup();
-  assert.equal(state.gets[0].config.signal.aborted, true);
-  gate.resolve([]);
-  await settle();
-  assert.equal(state.coletas.length, 1);
-  assert.equal(state.listeners.size, 0);
+test('hook v2 cleanup discards pending native result',async()=>{
+ const h=await lifecycle();h.state.consent=true;h.state.permission=true;let release;
+ h.state.gate=new Promise(r=>{release=r;});const cleanup=h.mount();await settleV2();assert.equal(h.state.collections,1);
+ cleanup();release();await settleV2();assert.equal(h.state.sends,0);assert.equal(h.state.listeners.size,0);
 });
 
 test('Permissions mantém diagnóstico sem coleta e atualiza permissão ao retornar', async () => {
@@ -397,11 +397,78 @@ test('Permissions mantém diagnóstico sem coleta e atualiza permissão ao retor
   cleanup();
 });
 
-for (const dev of [false, true]) test(`transporte continua sem PUT (__DEV__=${dev})`, async () => {
-  const { state, namespace } = await ambiente({ dev });
+for (const dev of [false, true]) test(`transporte envia contrato e config sem depender de __DEV__=${dev}`, async () => {
+  const { state, namespace, token } = await ambiente({ dev });
   const api = await namespace('src/api/tempoUso.js');
-  const result = await api.sincronizarTempoUso({ schemaVersion: 1, registros: [] });
-  assert.equal(result.bloqueadoNoLaboratorio, true);
+  const payload = { schemaVersion: 1, registros: [] };
+  const session = await token.captureSession();
+  const config = { usageMonitoringSessionId: session.id, signal: session.signal };
+  const result = await api.sincronizarTempoUso(payload, config);
+  assert.equal(result.recebidos, 0);
   assert.equal(result.persistidos, 0);
-  assert.equal(state.puts.length, 0);
+  assert.equal(state.puts.length, 1);
+  assert.equal(state.puts[0][0], '/tempo-uso/sync');
+  assert.equal(state.puts[0][1], payload);
+  assert.equal(state.puts[0][2], config);
+});
+
+for (const status of [401, 403, null]) test(`falha HTTP/rede ${status} nao marca sucesso ou cooldown`, async () => {
+  const { state, service } = await ambiente();
+  const error = Object.assign(new Error('synthetic-request-failure'), status ? { response: { status } } : {});
+  state.put = async () => { throw error; };
+  await assert.rejects(service.sincronizarTempoUsoDoDia(), actual => actual === error);
+  assert.equal(state.puts.length, 1);
+  // Recuperacao requer novas verificacoes, sem retry automatico de escrita.
+  state.put = null;
+  state.consentimento = false;
+  assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'consentimento_inativo');
+  assert.equal(state.puts.length, 1);
+  state.consentimento = true;
+  assert.equal((await service.sincronizarTempoUsoDoDia()).sincronizado, true);
+  assert.equal(state.puts.length, 2);
+});
+
+test('revogacao local durante PUT aborta e descarta retorno sem sucesso', async () => {
+  const { state, service, consent } = await ambiente();
+  const entered = deferred(); const response = deferred(); let request;
+  state.put = async (_path, body, config) => {
+    request = config; entered.resolve(); await response.promise;
+    return { data: { recebidos: body.registros.length, persistidos: body.registros.length } };
+  };
+  const running = service.sincronizarTempoUsoDoDia();
+  await entered.promise;
+  await consent.registrarConsentimento('MONITORAMENTO_TEMPO_USO', false);
+  assert.equal(request.signal.aborted, true);
+  response.resolve();
+  const result = await running;
+  assert.equal(result.sincronizado, false); assert.equal(result.motivo, 'consentimento_alterado');
+  assert.equal((await service.sincronizarTempoUsoDoDia()).motivo, 'consentimento_inativo');
+  assert.equal(state.puts.length, 1);
+});
+
+test('successful authorized sync refreshes observers once; cooldown and unsubscribe do not', async()=>{
+ const {service,namespace}=await ambiente();
+ const events=await namespace('src/utils/tempoUsoAtualizacao.js');
+ let count=0;const unsubscribe=events.observarAtualizacaoTempoUso(()=>count++);
+ const first=await service.sincronizarTempoUsoDoDia();assert.equal(first.sincronizado,true);assert.equal(count,1);
+ await service.sincronizarTempoUsoDoDia();assert.equal(count,1);
+ unsubscribe();events.publicarAtualizacaoTempoUso();assert.equal(count,1);
+});
+test('revoked monitoring never publishes a successful refresh',async()=>{
+ const {service,namespace}=await ambiente({consentimento:false});
+ const events=await namespace('src/utils/tempoUsoAtualizacao.js');let count=0;
+ const unsubscribe=events.observarAtualizacaoTempoUso(()=>count++);
+ assert.equal((await service.sincronizarTempoUsoDoDia()).sincronizado,false);assert.equal(count,0);unsubscribe();
+});
+
+test('shared consent flow activates installation only after persistence',async()=>{
+ const h=await consentFlow();await h.run();await settleV2();assert.deepEqual(h.calls,[['MONITORAMENTO_TEMPO_USO',true],'activate','sync']);
+});
+test('failed consent activation never starts native collection or PUT',async()=>{
+ const h=await consentFlow(true);await assert.rejects(h.run(),/OFFLINE/);assert.deepEqual(h.calls,[['MONITORAMENTO_TEMPO_USO',true]]);
+});
+
+test('unavailable native module is not reported as empty observed usage',async()=>{
+ const {state,service}=await ambiente();state.moduleAvailable=false;
+ const result=await service.sincronizarTempoUsoDoDia();assert.equal(result.motivo,'modulo_nativo_indisponivel');assert.equal(state.coletas.length,0);assert.equal(state.puts.length,0);
 });

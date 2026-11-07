@@ -13,12 +13,8 @@ export function useTempoUsoHome(enabled) {
     try {
       const session = await tokenStorage.captureSession();
       if (!session) throw new Error('SESSION_REQUIRED');
-      const config = { signal: session.signal, rf017SessionId: session.id };
-      const { data } = await apiClient.get('/consentimento', config);
-      tokenStorage.assertSession(session.id);
-      if (!Array.isArray(data)) throw new Error('INVALID_CONTRACT');
-      const allowed = data.some(c => (c.consentimento_tipo_codigo ?? c.tb_consentimento_tipo?.consentimento_tipo_codigo) === 'MONITORAMENTO_TEMPO_USO' && c.consentimento_status === true);
-      if (!allowed) { if (id === request.current) setState({ estado: 'SEM_CONSENTIMENTO', registros: [] }); return; }
+      const config = { signal: session.signal, usageMonitoringSessionId: session.id };
+      // Consentimento e permissão controlam novas coletas, não a leitura da conta.
       const response = await apiClient.get('/tempo-uso', config);
       tokenStorage.assertSession(session.id);
       if (!Array.isArray(response.data)) throw new Error('INVALID_CONTRACT');

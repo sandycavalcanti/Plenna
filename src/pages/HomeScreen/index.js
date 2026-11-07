@@ -1,3 +1,7 @@
+import { obterJanelaDiaLocal } from '../../utils/tempoUsoSync';
+import TempoUsoHome from '../../components/HomeComponents/TempoUsoHome';
+import { usageMonitoringReadsEnabled } from '../../api/usageMonitoringPolicy';
+import UsageTimePanel from '../../components/UsageTimePanel';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Animated, View, Text, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
@@ -30,7 +34,7 @@ export default function HomeScreen({ navigation }) {
   const [periodo, setPeriodo] = useState(() => periodoMensalSaoPaulo());
   const financeiro = useResumoHome(periodo);
   const descobertas = useDescobertasResumo(periodo);
-  const tempo = useTempoUsoHome(true);
+  const tempo = useTempoUsoHome(!usageMonitoringReadsEnabled);
   const metas = useMetasHome();
   const recomendacoes = useRecomendacoesHome();
   const [usuario, setUsuario] = useState(null);
@@ -40,6 +44,11 @@ export default function HomeScreen({ navigation }) {
   const bellRotation = useRef(new Animated.Value(0)).current;
   const bellAnimationRef = useRef(null);
 
+  const openUsageDetails = () => navigation.navigate('Dashboard', {
+    indicador: 'tempo',
+    periodo: obterJanelaDiaLocal().dataLocal.slice(0, 7),
+    focoTempo: Date.now()
+  });
   const refetchAllData = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -168,12 +177,7 @@ export default function HomeScreen({ navigation }) {
         <PurchaseHero />
         <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} /></View>
         <MetasHome {...metas} onRetry={metas.refresh} onCreate={() => navigation.navigate('EditProfile', { mode: 'goals' })} />
-        <View style={{ marginHorizontal: 18, padding: 16, marginBottom: 14, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 8 }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#594367' }}>Tempo em aplicativos · hoje</Text>
-          <Text style={{ fontSize: 24, fontWeight: '700', color: '#893467' }}>{tempo.estado === 'CARREGANDO' ? 'Carregando' : tempo.estado === 'ERRO' ? 'Indisponível' : tempo.estado === 'SEM_CONSENTIMENTO' ? 'Não autorizado' : resumirTempoHoje(tempo.registros) > 0 ? formatarTempoUso(resumirTempoHoje(tempo.registros)) : 'Sem registros hoje'}</Text>
-          <Text>{tempo.estado === 'SEM_CONSENTIMENTO' ? 'Monitoramento não autorizado. Consulte o Perfil.' : 'Somente registros deste celular; tempo de uso não comprova compras.'}</Text>
-          <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Dashboard', { indicador:'tempo' })} style={{ minHeight: 48, justifyContent: 'center' }}><Text style={{ color: '#893467', fontWeight: '600' }}>Entender meu tempo</Text></TouchableOpacity>
-        </View>
+        {usageMonitoringReadsEnabled ? <UsageTimePanel compact month={periodo} onSettings={() => navigation.navigate('Profile')} onDetails={openUsageDetails} /> : <TempoUsoHome estado={tempo.estado} registros={tempo.registros} onRetry={tempo.refresh} onDetails={openUsageDetails} onSettings={() => navigation.navigate('Profile')} />}
 
         {mostrarParaVoce && (
           <View style={{ marginHorizontal: 18, marginBottom: 14, gap: 10 }}>

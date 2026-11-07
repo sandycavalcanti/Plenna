@@ -1,3 +1,4 @@
+import {lifecycle,settle as settleV2} from './helpers/usageV2Lifecycle.mjs';
 ﻿import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -45,7 +46,7 @@ async function preparar(initialToken = 'token-ficticio-A') {
          state.calls.push({
         url: requestConfig.url,
         authorization: requestConfig.headers?.authorization,
-        rf017SessionId: config.rf017SessionId,
+        usageMonitoringSessionId: config.usageMonitoringSessionId,
       });
           await pause('/tempo-uso/aplicativos');
 
@@ -71,7 +72,7 @@ async function preparar(initialToken = 'token-ficticio-A') {
     async sincronizarTempoUso(payload, config = {}) {
   state.calls.push({
     url: '/tempo-uso/sync',
-    rf017SessionId: config.rf017SessionId,
+    usageMonitoringSessionId: config.usageMonitoringSessionId,
   });
 
   await pause('/tempo-uso/sync');
@@ -100,6 +101,7 @@ async function preparar(initialToken = 'token-ficticio-A') {
     } } }],
     [new URL('src/constants/config.js', root).href, { urlAPI: 'https://teste.invalid' }],
     [new URL('modules/plenna-usage-stats.js', root).href, {
+      getModuleStatus: async()=>({available:true}),
       async hasUsageAccess() { await pause('usageAccess'); return true; },
       async getForegroundUsage() {
         state.nativeCalls++; await pause('coleta');
@@ -156,7 +158,7 @@ assert.ok(
   const puts = state.calls.filter(c => c.url === '/tempo-uso/sync');
 
 assert.equal(puts.length, 1);
-assert.equal(typeof puts[0].rf017SessionId, 'number');
+assert.equal(typeof puts[0].usageMonitoringSessionId, 'number');
 });
 
 for (const stage of ['/consentimento', 'usageAccess', '/tempo-uso/aplicativos', 'coleta']) {
@@ -213,7 +215,7 @@ test('nova sessão aguarda coleta antiga e sincroniza após descarte da sessão 
  const puts = state.calls.filter(c => c.url === '/tempo-uso/sync');
 
   assert.equal(puts.length, 1);
-  assert.ok(puts[0].rf017SessionId);
+  assert.ok(puts[0].usageMonitoringSessionId);
 });
 
 test('token ausente nÃ£o consulta API nem coleta', async () => {
@@ -294,17 +296,8 @@ test('gravaÃ§Ãµes concorrentes preservam ordem login/logout no armazenamento
 });
 
 
-test('duas montagens do hook compartilham execução; logout impede sucesso', async () => {
-  const { state, tokenStorage, mountHook } = await preparar();
-  const g = state.gates.coleta = gate();
-  const cleanupA = await mountHook();
-  await g.entered;
-  const cleanupB = await mountHook();
-  await new Promise(setImmediate);
-  assert.equal(state.nativeCalls, 1);
-  await tokenStorage.clearToken();
-  g.release();
-  await new Promise(setImmediate);
-  assert.equal(state.calls.some(c => c.url === '/tempo-uso/sync'), false);
-  cleanupA(); cleanupB();
+test('two v2 hook mounts share engine; logout cancels pending native result',async()=>{
+ const h=await lifecycle();h.state.consent=true;h.state.permission=true;let release;h.state.gate=new Promise(r=>{release=r;});
+ const a=h.mount();await settleV2();const b=h.mount();await settleV2();assert.equal(h.state.collections,1);
+ h.logout();release();await settleV2();assert.equal(h.state.sends,0);a();b();
 });
