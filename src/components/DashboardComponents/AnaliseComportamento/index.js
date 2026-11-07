@@ -63,7 +63,6 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
           </View>
         </View>
 
-        {frequencia.compras === 0 && <Text style={styles.note}>Nenhuma compra confirmada registrada neste período.</Text>}
         {financeiro.comprasSemValor > 0 && <Text style={styles.note}>{financeiro.comprasSemValor} compra(s) sem valor. Os totais conhecidos podem estar incompletos.</Text>}
         {groups.length > 0 && (
           <View style={styles.groupSection}>
@@ -118,7 +117,6 @@ export default function AnaliseComportamento({ dados, loading, error, onRetry })
           );
         })}
 
-        {recommendations.length === 0 && <Text style={styles.note}>Sem orientações disponíveis neste mês.</Text>}
       </View>
     );
   }

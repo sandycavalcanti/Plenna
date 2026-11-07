@@ -7,10 +7,12 @@ const helper=await readFile(new URL('src/utils/meiaLuaHome.js',base),'utf8');
 const {apresentarMeiaLua}=await import('data:text/javascript;base64,'+Buffer.from(helper).toString('base64'));
 const data=(percent,state)=>({financeiro:{qualidade:'COMPLETO',cobertura:'COMPLETA',comprasSemValor:0,totalConhecidoCentavos:percent*200},orcamento:{disponibilidade:'REFERENCIA_ATUAL',valorCentavos:20000,percentualConhecido:percent,estadoUtilizacao:state,excessoConhecidoCentavos:percent>100?(percent-100)*200:0}});
 const source=await readFile(new URL('src/components/HomeComponents/CardFinanceiroHome.js',base),'utf8');
+const moneySource=await readFile(new URL('src/utils/metaMoney.js',base),'utf8');
+const {valorRealParaCentavos}=await import('data:text/javascript;base64,'+Buffer.from(moneySource).toString('base64'));
 const code=transformSync(source.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
 let expanded=false;
 const React={createElement:(type,props,...children)=>({type,props:props||{},children})};
-const render=new Function('React','View','Text','Pressable','ActivityIndicator','StyleSheet','Svg','Path','MaterialCommunityIcons','useState','apresentarMeiaLua',code+';return CardFinanceiroHome;')(React,'View','Text','Pressable','Spinner',{create:x=>x},'Svg','Path','Icon',initial=>[expanded,x=>{expanded=x;}],apresentarMeiaLua);
+const render=new Function('React','View','Text','Pressable','ActivityIndicator','StyleSheet','Svg','Path','MaterialCommunityIcons','useState','apresentarMeiaLua','valorRealParaCentavos',code+';return CardFinanceiroHome;')(React,'View','Text','Pressable','Spinner',{create:x=>x},'Svg','Path','Icon',initial=>[expanded,x=>{expanded=x;}],apresentarMeiaLua,valorRealParaCentavos);
 const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
 const text=t=>Array.isArray(t)?t.map(text).join(' '):t&&typeof t==='object'?text(t.children):t==null||t===false?'':String(t);
 for(const [p,state,color] of [[0,'VERDE','#267344'],[16.6,'VERDE','#267344'],[86,'LARANJA','#A64C14'],[49,'VERDE','#267344'],[50,'AMARELO','#926500'],[74,'AMARELO','#926500'],[75,'LARANJA','#A64C14'],[100,'LARANJA','#A64C14'],[115,'VERMELHO','#B32646']])test('semicircle '+p+'%',()=>{

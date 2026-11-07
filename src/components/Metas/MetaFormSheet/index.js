@@ -70,7 +70,6 @@ export default function MetaFormSheet({
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
               <View style={styles.header}>
                 <View style={styles.headerCopy}>
-                  <Text style={styles.eyebrow}>{mode === 'edit' ? 'Editar meta' : 'Nova meta'}</Text>
                   <Text style={styles.title}>{mode === 'edit' ? 'Ajuste seu objetivo' : 'Crie um objetivo para acompanhar'}</Text>
                 </View>
                 <CustomButton

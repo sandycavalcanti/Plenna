@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { listarRecomendacoes, atualizarStatusRecomendacao } from '../api/recomendacoes';
 
-export function useRecomendacoesHome() {
+export function useRecomendacoesHome(periodo) {
   const [state, setState] = useState({ itens: [], loading: true, error: false, consentimentoAtivo: null });
   const request = useRef(0);
 
@@ -10,7 +10,7 @@ export function useRecomendacoesHome() {
     const id = ++request.current;
     setState((current) => ({ ...current, loading: true, error: false }));
     try {
-      const result = await listarRecomendacoes({ limite: 10 });
+      const result = await listarRecomendacoes({ limite: 10, periodo });
       if (id !== request.current) return;
       if (!result || !Array.isArray(result.itens) || typeof result.consentimentoAtivo !== 'boolean') {
         throw new Error('RECOMENDACOES_CONTRACT_INVALID');
@@ -24,7 +24,7 @@ export function useRecomendacoesHome() {
         setState({ itens: [], loading: false, error: true, consentimentoAtivo: null });
       }
     }
-  }, []);
+  }, [periodo]);
 
   const updateStatus = useCallback(async (id, status) => {
     await atualizarStatusRecomendacao(id, status);
@@ -36,7 +36,7 @@ export function useRecomendacoesHome() {
   useFocusEffect(useCallback(() => {
     refresh();
     return () => { request.current += 1; };
-  }, [refresh]));
+  }, [periodo, refresh]));
 
   return { ...state, refresh, updateStatus };
 }

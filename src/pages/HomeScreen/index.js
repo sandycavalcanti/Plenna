@@ -33,7 +33,7 @@ export default function HomeScreen({ navigation }) {
   const descobertas = useDescobertasResumo(periodo);
   const tempo = useTempoUsoHome(true);
   const metas = useMetasHome();
-  const recomendacoes = useRecomendacoesHome();
+  const recomendacoes = useRecomendacoesHome(periodo);
   const [usuario, setUsuario] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -111,6 +111,7 @@ export default function HomeScreen({ navigation }) {
     cartoesResumo(descobertas.dados),
   );
   const descobertasEmCarregamento = descobertas.loading && !descobertas.dados;
+  const tempoTemDados = tempo.estado === 'DISPONIVEL' && resumirTempoHoje(tempo.registros) > 0;
   const atualizarParaVoce = useCallback(() => {
     recomendacoes.refresh();
     descobertas.refresh();
@@ -167,7 +168,7 @@ export default function HomeScreen({ navigation }) {
 
         <SeletorMensalHome periodo={periodo} limites={financeiro.dados?.seletor} loading={financeiro.loading} error={financeiro.error} onChange={setPeriodo} />
         <PurchaseHero />
-        <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} /></View>
+        <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} orcamentoFixo={usuario?.usuario_meta_valor_mensal} /></View>
         <MetasHome
           {...metas}
           onRetry={metas.refresh}
@@ -181,7 +182,7 @@ export default function HomeScreen({ navigation }) {
           {tempo.estado === 'CARREGANDO' || tempo.estado === 'NAO_SOLICITADO' ? <AppEmptyState icon="clock-outline" title="Carregando registros..." compact /> : null}
           {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) > 0 ? <Text style={styles.timeValue}>{formatarTempoUso(resumirTempoHoje(tempo.registros))}</Text> : null}
           {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) === 0 ? <AppEmptyState icon="clock-outline" title="Nenhum tempo registrado hoje." compact /> : null}
-          <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Dashboard', { indicador:'tempo' })} style={styles.timeLink}><Text style={styles.timeLinkText}>Entender meu tempo</Text></TouchableOpacity>
+          {tempoTemDados ? <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Dashboard', { indicador:'tempo' })} style={styles.timeLink}><Text style={styles.timeLinkText}>Entender meu tempo</Text></TouchableOpacity> : null}
         </View>
 
         {mostrarParaVoce && (

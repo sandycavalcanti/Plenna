@@ -3,11 +3,12 @@ import { View, Text, Pressable, ActivityIndicator, StyleSheet } from 'react-nati
 import Svg, { Path } from 'react-native-svg';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { apresentarMeiaLua } from '../../utils/meiaLuaHome';
+import { valorRealParaCentavos } from '../../utils/metaMoney';
 const money=cents=>cents===null?'--':(cents/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const length=Math.PI*100;
-export default function CardFinanceiroHome({dados,loading,error,onRetry}) {
+export default function CardFinanceiroHome({dados,loading,error,onRetry,orcamentoFixo}) {
   const [expanded,setExpanded]=useState(false);
-  const chart=apresentarMeiaLua(loading||error?null:dados);
+  const chart=apresentarMeiaLua(loading||error?null:dados, valorRealParaCentavos(orcamentoFixo));
   if(loading) return <View style={styles.card}><Text style={styles.title}>Compras e orçamento</Text><ActivityIndicator accessibilityLabel="Carregando resumo financeiro" /></View>;
   if(error||!dados) return <View style={styles.card}><Text style={styles.title}>Compras e orçamento</Text><Text>Erro ao carregar os dados financeiros.</Text><Pressable accessibilityRole="button" onPress={onRetry} style={styles.touch}><Text style={styles.link}>Tentar novamente</Text></Pressable></View>;
   const f=dados.financeiro;

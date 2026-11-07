@@ -74,6 +74,12 @@ export function valorMetaParaCentavos(value) {
   return BigInt(canonical.replace('.', ''));
 }
 
+export function valorRealParaCentavos(value) {
+  const normalized = normalizarValorMeta(value);
+  if (!normalized.cents || normalized.cents > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+  return Number(normalized.cents);
+}
+
 function canonicalRealMoney(value, allowZero = true) {
   if (value === null || value === undefined || value === '') return null;
   const text = String(value).trim().replace(',', '.');

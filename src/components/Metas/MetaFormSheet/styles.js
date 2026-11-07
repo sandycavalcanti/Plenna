@@ -7,7 +7,6 @@ export default StyleSheet.create({
   content: { padding: 20, paddingBottom: 30, gap: 13 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerCopy: { flex: 1, gap: 2 },
-  eyebrow: { color: COLORS.cadTextoAdicionarLimites, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 },
   title: { color: COLORS.cadTitulo, fontSize: 20, lineHeight: 25, fontWeight: '800' },
   subtitle: { color: COLORS.dadoUm, lineHeight: 19 },
   closeButton: { width: 38, minHeight: 38, borderRadius: 13, paddingHorizontal: 0, paddingVertical: 0, backgroundColor: COLORS.buttonGhostPressed },
