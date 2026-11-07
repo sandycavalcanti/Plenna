@@ -21,6 +21,7 @@ import { RECURRENCE_FREQUENCIES } from '../../utils/recurrencePreview';
 import CustomTextInput from '../../components/CustomTextInput';
 import { valorMoedaParaNumero } from '../../components/CustomTextInput/currency';
 import PinModal from '../../components/SecurityComponents/PinModal';
+import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
 import { styles } from './styles';
 
@@ -507,15 +508,7 @@ export default function RecurrencesScreen() {
 
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.recurrenceIcon}>
-            <MaterialCommunityIcons name="shield-lock-outline" size={22} color={COLORS.cadTitulo} />
-          </View>
-          <View style={styles.headerCopy}>
-            <Text style={styles.headerTitle}>Recorrências</Text>
-            <Text style={styles.headerSubtitle}>Confirmação necessária para continuar</Text>
-          </View>
-        </View>
+        <AppScreenHeader icon="shield-lock-outline" title="Recorrências" subtitle="Confirmação necessária para continuar" style={styles.screenHeader} />
         <View style={styles.stateContainer}>
           {isBusy ? <ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /> : null}
           <Text style={styles.stateText}>{message}</Text>
@@ -913,12 +906,7 @@ export default function RecurrencesScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.dadoUm} />
-          </TouchableOpacity>
-          <View style={styles.headerCopy}><Text style={styles.headerTitle}>Recorrências</Text><Text style={styles.headerSubtitle}>Organize suas compras programadas</Text></View>
-        </View>
+        <AppScreenHeader icon="calendar-sync-outline" title="Recorrências" subtitle="Organize suas compras programadas" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
         <View style={styles.stateContainer}><ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /><Text style={styles.stateText}>Carregando recorrências...</Text></View>
       </SafeAreaView>
     );
@@ -927,12 +915,7 @@ export default function RecurrencesScreen() {
   if (errorMessage) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.dadoUm} />
-          </TouchableOpacity>
-          <View style={styles.headerCopy}><Text style={styles.headerTitle}>Recorrências</Text><Text style={styles.headerSubtitle}>Organize suas compras programadas</Text></View>
-        </View>
+        <AppScreenHeader icon="calendar-sync-outline" title="Recorrências" subtitle="Organize suas compras programadas" showBackButton onBackPress={() => navigation.goBack()} style={styles.screenHeader} />
         <View style={styles.stateContainer}><Text style={styles.stateText}>{errorMessage}</Text><TouchableOpacity style={styles.retryButton} onPress={() => loadRecurrences()}><Text style={styles.retryButtonText}>Tentar novamente</Text></TouchableOpacity></View>
       </SafeAreaView>
     );
@@ -940,18 +923,19 @@ export default function RecurrencesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} accessibilityLabel="Voltar">
-          <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.dadoUm} />
-        </TouchableOpacity>
-        <View style={styles.headerCopy}>
-          <Text style={styles.headerTitle}>Recorrências</Text>
-          <Text style={styles.headerSubtitle}>Compras programadas e seus próximos ciclos</Text>
-        </View>
-        <TouchableOpacity style={styles.headerAction} onPress={() => loadRecurrences(true)} disabled={refreshing} accessibilityLabel="Atualizar recorrências">
-          <MaterialCommunityIcons name="refresh" size={20} color={COLORS.dadoUm} />
-        </TouchableOpacity>
-      </View>
+      <AppScreenHeader
+        icon="calendar-sync-outline"
+        title="Recorrências"
+        subtitle="Compras programadas e seus próximos ciclos"
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+        style={styles.screenHeader}
+        rightAction={(
+          <TouchableOpacity style={styles.headerAction} onPress={() => loadRecurrences(true)} disabled={refreshing} accessibilityLabel="Atualizar recorrências">
+            <MaterialCommunityIcons name="refresh" size={20} color={COLORS.dadoUm} />
+          </TouchableOpacity>
+        )}
+      />
       <FlatList
         data={recurrences}
         keyExtractor={(item) => String(item.id)}

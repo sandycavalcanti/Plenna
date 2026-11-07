@@ -96,6 +96,11 @@ export default StyleSheet.create({
     color: COLORS.dadoUm,
     lineHeight: 17,
   },
+  metaScreenHeader: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 2,
+  },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   sectionCard: {
     width: '100%',
@@ -166,10 +171,6 @@ export default StyleSheet.create({
     backgroundColor: '#FFFFFF',
     gap: 14,
   },
-  metaEditorCardCollapsed: {
-    gap: 8,
-    paddingBottom: 12,
-  },
   metaEditorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -205,17 +206,61 @@ export default StyleSheet.create({
   metaEditorDeleteButton: {
     backgroundColor: '#FFF7F7',
   },
-  metaCollapsedHint: {
-    color: '#8F8398',
-    fontSize: 12,
+  metaCardMetrics: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: 12,
   },
-  metaDescriptionInput: {
-    backgroundColor: COLORS.customTextInputFundo,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 80,
-    textAlignVertical: 'top',
+  metaCardProgressCopy: {
+    alignItems: 'flex-end',
+  },
+  metaMetricLabel: {
+    color: '#8F8398',
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 3,
+  },
+  metaMetricValue: {
+    color: '#594367',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  metaProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  metaProgressTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: '#F0EAF5',
+  },
+  metaProgressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#893467',
+  },
+  metaProgressPercent: {
+    minWidth: 44,
+    color: '#893467',
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
+  metaStatus: {
+    color: '#76658A',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  metaEmptyState: {
+    color: '#76658A',
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    paddingVertical: 18,
   },
   // meta card
   metaCard: {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View, Text, Alert, ActivityIndicator, TextInput, Image, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { KeyboardAvoidingView, Platform, ScrollView, View, Text, Alert, ActivityIndicator, Image, TouchableOpacity, Pressable } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,9 +10,18 @@ import { logApiErrors } from '../../utils/error';
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
-import { COLORS } from '../../constants';
-import { formatarValorMetaParaEntrada, prepararPayloadMeta } from '../../utils/metaMoney';
+import AppScreenHeader from '../../components/Common/AppScreenHeader';
+import MetaFormSheet from '../../components/Metas/MetaFormSheet';
+import { formatarPercentualMeta, formatarValorMeta } from '../../utils/metaMoney';
 import { normalizarRespostaMetas } from '../../utils/metaContract';
+import { atualizarMeta, criarMeta, excluirMeta } from '../../api/metas';
+import { tokenStorage } from '../../api/tokenStorage';
+
+const PENDING_OPERATION_PREFIX = '@plenna/goal-savings/pending/';
+
+function pendingKey(metaId, sessionScope) {
+  return `${PENDING_OPERATION_PREFIX}${sessionScope}:${metaId}`;
+}
 
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
@@ -112,14 +122,6 @@ function dataBRParaBanco(digitos) {
   return new Date(Date.UTC(ano, mes - 1, dia)).toISOString();
 }
 
-function gerarChaveLocalMeta(metaId) {
-  if (metaId) {
-    return String(metaId);
-  }
-
-  return `nova-meta-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function EditProfileScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -140,8 +142,12 @@ export default function EditProfileScreen() {
     incomodoConsumo: '',
   });
   const [metas, setMetas] = useState([]);
-  const [metasRemovidasIds, setMetasRemovidasIds] = useState([]);
-  const [chavesMetasColapsadas, setChavesMetasColapsadas] = useState([]);
+  const [metaForm, setMetaForm] = useState({ visible: false, mode: 'create', meta: null });
+  const [metaFormError, setMetaFormError] = useState(null);
+  const [metaFormSaving, setMetaFormSaving] = useState(false);
+  const [metaDeleting, setMetaDeleting] = useState(false);
+  const [pendingMetaIds, setPendingMetaIds] = useState(() => new Set());
+  const [pendingCheckError, setPendingCheckError] = useState(false);
 
   useEffect(() => {
     carregar();
@@ -164,20 +170,41 @@ export default function EditProfileScreen() {
         incomodoConsumo: dados.usuario_incomodo_consumo || '',
       });
 
-      const respostaMetas = await apiClient.get('/metas');
-      const metasApi = normalizarRespostaMetas(respostaMetas.data);
-      const metasComChave = metasApi.map((meta) => ({
-        ...meta,
-        meta_valor: formatarValorMetaParaEntrada(meta.meta_valor),
-        localKey: gerarChaveLocalMeta(meta.meta_id),
-      }));
-      setMetas(metasComChave);
-      setMetasRemovidasIds([]);
-      setChavesMetasColapsadas(metasComChave.map((meta) => meta.localKey));
+      await carregarMetas();
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar dados do perfil');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function carregarMetas() {
+    const respostaMetas = await apiClient.get('/metas');
+    const metasApi = normalizarRespostaMetas(respostaMetas.data);
+    setMetas(metasApi);
+    carregarOperacoesPendentes(metasApi);
+    return metasApi;
+  }
+
+  async function carregarOperacoesPendentes(metasApi) {
+    setPendingCheckError(false);
+    try {
+      const session = await tokenStorage.captureSession();
+      const sessionScope = String(session?.id ?? 'anonymous');
+      const keys = metasApi
+        .filter((meta) => meta.meta_id)
+        .map((meta) => ({ metaId: meta.meta_id, key: pendingKey(meta.meta_id, sessionScope) }));
+      const stored = await AsyncStorage.multiGet(keys.map(({ key }) => key));
+      const activeIds = new Set();
+      stored.forEach(([key, value]) => {
+        if (!value) return;
+        const match = keys.find((item) => item.key === key);
+        if (match) activeIds.add(match.metaId);
+      });
+      setPendingMetaIds(activeIds);
+    } catch {
+      setPendingMetaIds(new Set());
+      setPendingCheckError(true);
     }
   }
 
@@ -215,86 +242,74 @@ export default function EditProfileScreen() {
     }
   }
 
-  async function salvarMetas() {
-    setSaving(true);
+  function abrirNovaMeta() {
+    setMetaFormError(null);
+    setMetaForm({ visible: true, mode: 'create', meta: null });
+  }
+
+  function abrirEdicaoMeta(meta) {
+    setMetaFormError(null);
+    setMetaForm({ visible: true, mode: 'edit', meta });
+  }
+
+  async function salvarMetaFormulario(data) {
+    setMetaFormSaving(true);
+    setMetaFormError(null);
     try {
-      const metasOriginais = [...metas];
-
-      // Valida e converte valores antes de enviar
-      for (const m of metasOriginais) {
-        const titulo = (m.meta_titulo || '').trim();
-        if (!titulo) {
-          Alert.alert('Campo obrigatório', 'Todas as metas precisam de um título.');
-          setSaving(false);
-          return;
-        }
-
-        let payload;
-        try {
-          payload = prepararPayloadMeta({
-            titulo,
-            descricao: m.meta_descricao || '',
-            valor: m.meta_valor,
-          });
-        } catch {
-          Alert.alert('Valor inválido', 'Preencha um valor numérico válido para todas as metas.');
-          setSaving(false);
-          return;
-        }
-
-        if (m.meta_id) {
-          await apiClient.put(`/metas/${m.meta_id}`, payload);
-        } else {
-          await apiClient.post('/metas', payload);
-        }
+      if (metaForm.mode === 'edit' && metaForm.meta?.meta_id) {
+        await atualizarMeta(metaForm.meta.meta_id, data);
+      } else {
+        await criarMeta(data);
       }
-
-      for (const metaId of metasRemovidasIds) {
-        await apiClient.delete(`/metas/${metaId}`);
-      }
-
-      Alert.alert('Sucesso', 'Metas atualizadas.');
-      navigation.goBack();
+      await carregarMetas();
+      setMetaForm({ visible: false, mode: 'create', meta: null });
+      Alert.alert('Sucesso', metaForm.mode === 'edit' ? 'Meta atualizada.' : 'Meta criada.');
     } catch (error) {
-      logApiErrors(error, 'Erro ao salvar metas');
+      setMetaFormError(error?.response?.data?.message || 'Não foi possível salvar a meta. Confira os dados e tente novamente.');
+      logApiErrors(error, 'Erro ao salvar meta');
+      throw error;
     } finally {
-      setSaving(false);
+      setMetaFormSaving(false);
     }
   }
 
-  function atualizarMeta(index, campo, valor) {
-    setMetas((prev) => {
-      const copia = [...prev];
-      copia[index] = { ...copia[index], [campo]: valor };
-      return copia;
-    });
-  }
-
-  function adicionarMeta() {
-    const localKey = gerarChaveLocalMeta();
-
-    setMetas((prev) => [...prev, { localKey, meta_titulo: '', meta_descricao: '', meta_valor: '' }]);
-    setChavesMetasColapsadas((current) => [...current, localKey]);
-  }
-
-  function removerMeta(index) {
-    setMetas((prev) => {
-      const meta = prev[index];
-
-      if (meta?.meta_id) {
-        setMetasRemovidasIds((current) => (current.includes(meta.meta_id) ? current : [...current, meta.meta_id]));
-      }
-
-      if (meta?.localKey) {
-        setChavesMetasColapsadas((current) => current.filter((key) => key !== meta.localKey));
-      }
-
-      return prev.filter((_, currentIndex) => currentIndex !== index);
-    });
-  }
-
-  function alternarMetaColapsada(localKey) {
-    setChavesMetasColapsadas((current) => (current.includes(localKey) ? current.filter((key) => key !== localKey) : [...current, localKey]));
+  function confirmarExclusaoMeta(meta) {
+    if (!meta?.meta_id) return;
+    if (pendingCheckError) {
+      Alert.alert('Não foi possível verificar a operação', 'Tente novamente antes de excluir a meta, para preservar qualquer operação pendente.');
+      return;
+    }
+    if (pendingMetaIds.has(meta.meta_id)) {
+      Alert.alert('Operação pendente', 'Resolva a operação pendente antes de excluir esta meta.');
+      return;
+    }
+    Alert.alert(
+      'Excluir meta?',
+      'Essa ação também removerá o histórico associado. Não será possível desfazer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            setMetaDeleting(true);
+            setMetaFormError(null);
+            try {
+              if (meta?.meta_id) await excluirMeta(meta.meta_id);
+              setMetas((current) => current.filter((item) => item.meta_id !== meta?.meta_id));
+              setMetaForm({ visible: false, mode: 'create', meta: null });
+              Alert.alert('Sucesso', 'Meta excluída.');
+              await carregarMetas();
+            } catch (error) {
+              setMetaFormError(error?.response?.data?.message || 'Não foi possível excluir a meta.');
+              logApiErrors(error, 'Erro ao excluir meta');
+            } finally {
+              setMetaDeleting(false);
+            }
+          },
+        },
+      ],
+    );
   }
 
   function parseNumber(raw) {
@@ -352,13 +367,20 @@ export default function EditProfileScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
         <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-          <View style={styles.heroCard}>
-            {mode === 'metas' ? <View style={styles.heroMark}><Feather name="target" size={28} color="#893467" /></View> : <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />}
-            <Text style={[styles.heroTitle, mode === 'metas' && styles.metaHeroTitle]}>{mode === 'metas' ? 'Editar Metas' : 'Editar Informações'}</Text>
-            <Text style={styles.heroSubtitle}>
-              {mode === 'metas' ? 'Gerencie suas metas financeiras — adicione, edite ou remova.' : 'Gerencie suas informações pessoais — adicione, edite ou remova.'}
-            </Text>
-          </View>
+          {mode === 'metas' ? (
+            <AppScreenHeader
+              icon="target"
+              title="Gerenciar metas"
+              subtitle="Crie objetivos claros e acompanhe cada avanço no seu cofrinho."
+              style={styles.metaScreenHeader}
+            />
+          ) : (
+            <View style={styles.heroCard}>
+              <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
+              <Text style={styles.heroTitle}>Editar Informações</Text>
+              <Text style={styles.heroSubtitle}>Gerencie suas informações pessoais — adicione, edite ou remova.</Text>
+            </View>
+          )}
 
           {mode === 'info' ? (
             <View style={styles.sectionsWrap}>
@@ -392,16 +414,19 @@ export default function EditProfileScreen() {
                   <Text style={styles.metasIntroTitle}>Seus objetivos</Text>
                   <Text style={styles.metasIntroSubtitle}>Crie metas claras e acompanhe cada avanço no seu cofrinho.</Text>
                 </View>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adicionar meta" activeOpacity={0.85} onPress={adicionarMeta} style={styles.addMetaAction}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adicionar meta" activeOpacity={0.85} onPress={abrirNovaMeta} style={styles.addMetaAction}>
                   <Feather name="plus" size={17} color="#FFFFFF" />
                   <Text style={styles.addMetaActionText}>Adicionar</Text>
                 </TouchableOpacity>
               </View>
 
               {metas.map((m, idx) => (
-                <View
-                  key={m.localKey || m.meta_id || `meta-${idx}`}
-                  style={[styles.metaEditorCard, chavesMetasColapsadas.includes(m.localKey) && styles.metaEditorCardCollapsed]}
+                <Pressable
+                  key={m.meta_id || `meta-${idx}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Abrir detalhes da meta ${m.meta_titulo || ''}`}
+                  onPress={() => { if (m.meta_id) navigation.navigate('MetaDetails', { metaId: m.meta_id, meta: m }); }}
+                  style={styles.metaEditorCard}
                 >
                   <View style={styles.metaEditorHeader}>
                     <View style={styles.metaEditorTitleCopy}>
@@ -409,57 +434,49 @@ export default function EditProfileScreen() {
                       <Text style={styles.metaEditorTitle} numberOfLines={1}>{m.meta_titulo || 'Nova meta'}</Text>
                     </View>
                     <View style={styles.metaEditorActions}>
-                      <TouchableOpacity accessibilityRole="button" accessibilityLabel={chavesMetasColapsadas.includes(m.localKey) ? 'Expandir meta' : 'Recolher meta'} onPress={() => alternarMetaColapsada(m.localKey)} style={styles.metaEditorIconButton}>
-                        <Feather name={chavesMetasColapsadas.includes(m.localKey) ? 'chevron-down' : 'chevron-up'} size={18} color="#76658A" />
+                      <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Editar meta ${m.meta_titulo || ''}`} onPress={(event) => { event.stopPropagation?.(); abrirEdicaoMeta(m); }} style={styles.metaEditorIconButton}>
+                        <Feather name="edit-2" size={16} color="#76658A" />
                       </TouchableOpacity>
-                      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remover meta" onPress={() => removerMeta(idx)} style={[styles.metaEditorIconButton, styles.metaEditorDeleteButton]}>
+                      <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Excluir meta ${m.meta_titulo || ''}`} onPress={(event) => { event.stopPropagation?.(); confirmarExclusaoMeta(m); }} style={[styles.metaEditorIconButton, styles.metaEditorDeleteButton]}>
                         <Feather name="trash-2" size={16} color="#A31414" />
                       </TouchableOpacity>
                     </View>
                   </View>
-                  {!chavesMetasColapsadas.includes(m.localKey) ? (
-                    <>
-                      <View style={styles.fieldBlock}>
-                        <Text style={styles.fieldLabel}>Título</Text>
-                        <CustomTextInput placeholder="Título" value={m.meta_titulo} onChangeText={(t) => atualizarMeta(idx, 'meta_titulo', t)} style={styles.inputWrapper} />
-                      </View>
-
-                      <View style={styles.fieldBlock}>
-                        <Text style={styles.fieldLabel}>Descrição</Text>
-                        <TextInput
-                          placeholder="Descrição"
-                          placeholderTextColor={'rgba(0,0,0,0.4)'}
-                          value={m.meta_descricao || ''}
-                          onChangeText={(t) => atualizarMeta(idx, 'meta_descricao', t)}
-                          style={styles.metaDescriptionInput}
-                          multiline
-                          numberOfLines={4}
-                        />
-                      </View>
-
-                      <View style={styles.fieldBlock}>
-                        <Text style={styles.fieldLabel}>Valor</Text>
-                        <CustomTextInput
-                          placeholder="R$ 0,00"
-                          value={m.meta_valor}
-                          onChangeText={(t) => atualizarMeta(idx, 'meta_valor', t)}
-                          mask="metaCurrency"
-                          keyboardType="numeric"
-                          style={styles.inputWrapper}
-                        />
-                      </View>
-                    </>
-                  ) : <Text style={styles.metaCollapsedHint}>Toque na seta para continuar editando.</Text>}
-                </View>
+                  <View style={styles.metaCardMetrics}>
+                    <View>
+                      <Text style={styles.metaMetricLabel}>Objetivo</Text>
+                      <Text style={styles.metaMetricValue}>{formatarValorMeta(m.meta_valor) || 'Valor não informado'}</Text>
+                    </View>
+                    <View style={styles.metaCardProgressCopy}>
+                      <Text style={styles.metaMetricLabel}>Progresso</Text>
+                      <Text style={styles.metaMetricValue}>{formatarPercentualMeta(m.progresso_percentual)}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.metaProgressRow}>
+                    <View accessible accessibilityLabel={`Progresso da meta: ${formatarPercentualMeta(m.progresso_percentual)}`} style={styles.metaProgressTrack}>
+                      <View style={[styles.metaProgressFill, { width: `${Math.min(100, Math.max(0, Number(m.progresso_percentual) || 0))}%` }]} />
+                    </View>
+                    <Text style={styles.metaProgressPercent}>{formatarPercentualMeta(m.progresso_percentual)}</Text>
+                  </View>
+                  <Text style={styles.metaStatus}>{m.meta_completado ? 'Concluída' : 'Em acompanhamento'}</Text>
+                </Pressable>
               ))}
-
-              <View style={styles.actionsRow}>
-                <CustomButton title={saving ? 'Salvando...' : 'Salvar Metas'} onPress={salvarMetas} style={styles.saveButton} />
-              </View>
+              {metas.length === 0 ? <Text style={styles.metaEmptyState}>Você ainda não tem metas cadastradas. Crie a primeira para começar.</Text> : null}
             </View>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      <MetaFormSheet
+        visible={metaForm.visible}
+        mode={metaForm.mode}
+        meta={metaForm.meta}
+        onClose={() => { if (!metaFormSaving && !metaDeleting) setMetaForm({ visible: false, mode: 'create', meta: null }); }}
+        onSubmit={salvarMetaFormulario}
+        onDelete={() => confirmarExclusaoMeta(metaForm.meta)}
+        saving={metaFormSaving}
+        deleting={metaDeleting}
+        error={metaFormError}
+      />
     </SafeAreaView>
   );
 }

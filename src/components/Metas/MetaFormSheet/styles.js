@@ -1,0 +1,27 @@
+import { StyleSheet } from 'react-native';
+
+export default StyleSheet.create({
+  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(35, 24, 48, 0.34)' },
+  sheet: { maxHeight: '92%', borderTopLeftRadius: 26, borderTopRightRadius: 26, backgroundColor: '#FFFFFF' },
+  content: { padding: 20, paddingBottom: 30, gap: 13 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerCopy: { flex: 1, gap: 2 },
+  eyebrow: { color: '#893467', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 },
+  title: { color: '#594367', fontSize: 20, lineHeight: 25, fontWeight: '800' },
+  subtitle: { color: '#655A70', lineHeight: 19 },
+  closeButton: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F7F3FA' },
+  field: { gap: 6 },
+  label: { color: '#594367', fontSize: 13, fontWeight: '800' },
+  input: { minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: '#D9CEE8', paddingHorizontal: 14, color: '#594367', fontSize: 16, backgroundColor: '#FAF7FC' },
+  moneyInput: { fontSize: 18, fontWeight: '700' },
+  descriptionInput: { minHeight: 84, borderRadius: 14, borderWidth: 1, borderColor: '#D9CEE8', paddingHorizontal: 14, paddingVertical: 12, color: '#594367', fontSize: 15, lineHeight: 21, backgroundColor: '#FAF7FC' },
+  inputFocused: { borderColor: '#893467', backgroundColor: '#FFFFFF' },
+  error: { color: '#A31414', lineHeight: 19, padding: 10, borderRadius: 10, backgroundColor: '#FFF7F7' },
+  actions: { flexDirection: 'row', gap: 10, marginTop: 2 },
+  cancelButton: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: '#F3EEF9' },
+  cancelText: { color: '#594367', fontWeight: '800' },
+  submitButton: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: '#893467' },
+  submitText: { color: '#FFFFFF', fontWeight: '800' },
+  deleteButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, borderWidth: 1, borderColor: '#F1CDD2', backgroundColor: '#FFF7F7' },
+  deleteText: { color: '#A31414', fontSize: 13, fontWeight: '800' },
+});

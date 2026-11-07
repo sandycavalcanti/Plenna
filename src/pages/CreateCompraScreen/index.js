@@ -20,6 +20,7 @@ import { apiClient } from '../../api/client';
 import { logApiErrors } from '../../utils/error';
 import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
+import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import { valorMoedaParaNumero } from '../../components/CustomTextInput/currency';
 import { COLORS } from '../../constants/colors';
 import { RECURRENCE_FREQUENCIES } from '../../utils/recurrencePreview';
@@ -358,19 +359,14 @@ export default function CreateCompraScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-              accessibilityRole="button"
-              accessibilityLabel="Voltar">
-              <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.dadoUm} />
-            </TouchableOpacity>
-            <View style={styles.headerCopy}>
-              <Text style={styles.headerTitle}>Nova compra</Text>
-              <Text style={styles.headerSubtitle}>Organize os detalhes em poucos passos.</Text>
-            </View>
-          </View>
+          <AppScreenHeader
+            icon="receipt-text-outline"
+            title="Nova compra"
+            subtitle="Organize os detalhes em poucos passos."
+            showBackButton
+            onBackPress={() => navigation.goBack()}
+            style={styles.screenHeader}
+          />
 
           <View style={styles.modeSelector} accessibilityRole="tablist">
             <TouchableOpacity

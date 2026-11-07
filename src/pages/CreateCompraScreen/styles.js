@@ -14,6 +14,11 @@ export default StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: 32,
   },
+  screenHeader: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 12,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',

@@ -4,6 +4,11 @@ import { COLORS } from '../../constants/colors';
 // Estilos agrupados por responsabilidade para manter a tela consistente com
 // o fundo, os títulos e os botões já utilizados no aplicativo.
 export const styles = StyleSheet.create({
+  screenHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 10,
+  },
   container: {
     flex: 1,
     // O lilás muito suave cria contraste com os cards brancos sem introduzir

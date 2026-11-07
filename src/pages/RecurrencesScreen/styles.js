@@ -4,6 +4,11 @@ import { DASHBOARD_THEME } from '../../constants/dashboardTheme';
 const { colors, spacing, radius, shadows } = DASHBOARD_THEME;
 
 export const styles = StyleSheet.create({
+  screenHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,

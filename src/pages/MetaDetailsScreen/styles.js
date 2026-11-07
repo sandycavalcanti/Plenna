@@ -4,6 +4,7 @@ import { COLORS } from '../../constants/colors';
 export default StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F7F3FA' },
   list: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 36 },
+  screenHeader: { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 2 },
   topBar: { flexDirection: 'row', alignItems: 'center', minHeight: 60, gap: 10 },
   backButton: { width: 42, height: 42, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECE4F2' },
   editButton: { width: 42, height: 42, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F3EEF9', borderWidth: 1, borderColor: '#E3D7ED' },

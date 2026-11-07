@@ -157,13 +157,15 @@ test('Home mantém as metas em formato resumido e não expõe o saldo reservado'
 
 test('detalhes oferece edição e exclusão sem remover a segurança das operações pendentes', async () => {
   const screen = await read('src/pages/MetaDetailsScreen/index.js');
+  const form = await read('src/components/Metas/MetaFormSheet/index.js');
   assert.match(screen, /atualizarMeta/);
   assert.match(screen, /excluirMeta/);
-  assert.match(screen, /Salvar alterações/);
-  assert.match(screen, /Excluir esta meta/);
+  assert.match(screen, /MetaFormSheet/);
+  assert.match(form, /Salvar alterações/);
+  assert.match(form, /Excluir esta meta/);
   assert.match(screen, /Resolva a operação pendente antes de excluir/);
   assert.match(screen, /pendingLoadError/);
-  assert.match(screen, /editForm/);
+  assert.doesNotMatch(screen, /editForm/);
 });
 
 test('gerenciamento de metas usa cards próprios e mantém criação, edição e remoção', async () => {
@@ -172,9 +174,36 @@ test('gerenciamento de metas usa cards próprios e mantém criação, edição e
   assert.match(screen, /metasIntroCard/);
   assert.match(screen, /Adicionar/);
   assert.match(screen, /metaEditorCard/);
-  assert.match(screen, /removerMeta/);
+  assert.match(screen, /MetaFormSheet/);
+  assert.match(screen, /confirmarExclusaoMeta/);
+  assert.match(screen, /navigation\.navigate\('MetaDetails', \{ metaId: m\.meta_id, meta: m \}\)/);
+  assert.match(screen, /stopPropagation/);
+  assert.doesNotMatch(screen, /Salvar Metas/);
+  assert.doesNotMatch(screen, /chavesMetasColapsadas/);
   assert.match(styles, /metaEditorHeader/);
   assert.match(styles, /metaEditorDeleteButton/);
+});
+
+test('cabeçalho global e formulário de metas são reutilizáveis nas telas compatíveis', async () => {
+  const header = await read('src/components/Common/AppScreenHeader/index.js');
+  const form = await read('src/components/Metas/MetaFormSheet/index.js');
+  const management = await read('src/pages/EditProfileScreen/index.js');
+  const details = await read('src/pages/MetaDetailsScreen/index.js');
+  const createPurchase = await read('src/pages/CreateCompraScreen/index.js');
+  const notifications = await read('src/pages/NotificationsScreen/index.js');
+  const purchases = await read('src/pages/PurchasesScreen/index.js');
+  const recurrences = await read('src/pages/RecurrencesScreen/index.js');
+  const memories = await read('src/pages/MemoryListScreen/index.js');
+
+  assert.match(header, /showBackButton/);
+  assert.match(header, /rightAction/);
+  assert.match(header, /accessibilityRole="header"/);
+  assert.match(form, /normalizarValorMeta/);
+  assert.match(form, /formatarValorMetaParaEntrada/);
+  assert.match(form, /KeyboardAvoidingView/);
+  assert.match(management, /MetaFormSheet/);
+  assert.match(details, /MetaFormSheet/);
+  for (const source of [createPurchase, notifications, purchases, recurrences, memories]) assert.match(source, /AppScreenHeader/);
 });
 
 test('404 de rota é distinguido de META_NAO_ENCONTRADA e a operação pendente permanece recuperável', async () => {

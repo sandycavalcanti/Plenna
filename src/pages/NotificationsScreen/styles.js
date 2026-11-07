@@ -2,6 +2,11 @@ import { StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/colors';
 
 export const styles = StyleSheet.create({
+  screenHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.fundoPrincipal,
