@@ -4,37 +4,32 @@ import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal, Platfo
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { checkGoal } from '../../api/goals';
+import { concluirMeta } from '../../api/metas';
 import { tokenStorage } from '../../api/tokenStorage';
-import { formatarValorMoedaParaTela } from '../../components/CustomTextInput/currency';
-import { useGoalSavings } from '../../hooks/useGoalSavings';
-import { goalMoneyToCents, normalizeGoalMoney, formatGoalPercent } from '../../utils/goalMoney';
+import { useCofrinhoMetas } from '../../hooks/useCofrinhoMetas';
+import { formatarValorMeta, valorMetaParaCentavos, normalizarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
+import { normalizarMetaRegistro } from '../../utils/metaContract';
 import styles from './styles';
 
 const PENDING_OPERATION_PREFIX = '@plenna/goal-savings/pending/';
 
-function goalIdFrom(value) {
+function idDaMeta(value) {
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-function normalizeGoal(goal) {
-  if (!goal) return null;
+function normalizarMeta(meta) {
+  const normalized = normalizarMetaRegistro(meta);
+  if (!normalized) return null;
   return {
-    ...goal,
-    meta_id: goalIdFrom(goal.meta_id ?? goal.id),
-    meta_titulo: goal.meta_titulo ?? goal.nome ?? 'Meta',
-    meta_descricao: goal.meta_descricao ?? goal.descricao ?? '',
-    meta_valor: goal.meta_valor ?? goal.valor,
-    meta_valor_reservado: goal.meta_valor_reservado ?? goal.valorReservado,
-    progresso_percentual: goal.progresso_percentual ?? goal.progressoPercentual,
-    valor_restante: goal.valor_restante ?? goal.valorRestante,
-    meta_completado: goal.meta_completado ?? goal.concluida === true,
+    ...normalized,
+    meta_id: idDaMeta(normalized.meta_id),
+    meta_descricao: normalized.meta_descricao ?? '',
   };
 }
 
 function formatValue(value) {
-  return formatarValorMoedaParaTela(value) || 'R$ 0,00';
+  return formatarValorMeta(value) || 'Valor indisponível';
 }
 
 function formatMovementDate(value) {
@@ -47,8 +42,11 @@ function movementType(value) {
 }
 
 function userMessage(error) {
+  if (error?.code === 'ROTA_NAO_ENCONTRADA') return 'A API publicada não possui a rota de movimentações do cofrinho. Atualize a API antes de tentar novamente.';
+  if (error?.status === 404 && !error?.code) return 'A API respondeu 404 sem informar se a rota ou a meta não existe. Colete os detalhes HTTP para continuar o diagnóstico.';
   if (error?.code === 'SALDO_INSUFICIENTE' || error?.status === 422) return 'O valor da retirada é maior que o saldo reservado conhecido.';
-  if (error?.code === 'META_NAO_ENCONTRADA' || error?.status === 404) return 'Esta meta não foi encontrada ou não está mais disponível.';
+  if (error?.code === 'META_NAO_ENCONTRADA') return 'Esta meta não foi encontrada ou não está mais disponível.';
+  if (error?.status === 404) return 'A API respondeu 404 sem confirmar que a meta pertence ao usuário autenticado. Colete os detalhes HTTP para continuar o diagnóstico.';
   if (error?.code === 'OPERACAO_REUTILIZADA' || error?.status === 409) return 'Esta operação já foi usada com outros dados. Revise o valor e tente novamente.';
   if (error?.code === 'DADOS_INVALIDOS' || error?.status === 400) return 'Confira o valor informado e tente novamente.';
   if (error?.status === 401) return 'Sua sessão expirou. Entre novamente para continuar.';
@@ -59,11 +57,11 @@ function pendingKey(metaId, sessionScope) {
   return `${PENDING_OPERATION_PREFIX}${sessionScope}:${metaId}`;
 }
 
-export default function GoalDetailsScreen() {
+export default function MetaDetailsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const routeGoal = route.params?.goal ?? null;
-  const goalId = goalIdFrom(route.params?.goalId ?? route.params?.meta_id ?? routeGoal?.meta_id ?? routeGoal?.id);
+  const routeMeta = route.params?.meta ?? null;
+  const metaId = idDaMeta(route.params?.metaId ?? routeMeta?.meta_id ?? routeMeta?.id);
   const {
     movimentacoes,
     refresh,
@@ -71,10 +69,10 @@ export default function GoalDetailsScreen() {
     prepare,
     deposit,
     withdraw,
-  } = useGoalSavings();
-  const [goal, setGoal] = useState(() => normalizeGoal(routeGoal));
+  } = useCofrinhoMetas();
+  const [meta, setMeta] = useState(() => normalizarMeta(routeMeta));
   const [refreshing, setRefreshing] = useState(false);
-  const [goalError, setGoalError] = useState(null);
+  const [metaError, setMetaError] = useState(null);
   const [historyError, setHistoryError] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [completionLoading, setCompletionLoading] = useState(false);
@@ -87,11 +85,11 @@ export default function GoalDetailsScreen() {
   const [pendingScope, setPendingScope] = useState(null);
   const historyLoadingRef = useRef(false);
 
-  const movementState = movimentacoes[goalId] ?? { itens: [], nextCursor: null };
+  const movementState = movimentacoes[metaId] ?? { itens: [], nextCursor: null };
 
   useEffect(() => {
     let active = true;
-    if (!goalId) return undefined;
+    if (!metaId) return undefined;
     setPendingLoaded(false);
     tokenStorage.captureSession().then((session) => {
       if (active) setPendingScope(String(session?.id ?? 'anonymous'));
@@ -99,13 +97,13 @@ export default function GoalDetailsScreen() {
       if (active) setPendingScope('anonymous');
     });
     return () => { active = false; };
-  }, [goalId]);
+  }, [metaId]);
 
   useEffect(() => {
     let active = true;
-    if (!goalId || pendingScope === null) return undefined;
+    if (!metaId || pendingScope === null) return undefined;
     setPendingOperation(null);
-    AsyncStorage.getItem(pendingKey(goalId, pendingScope)).then((value) => {
+    AsyncStorage.getItem(pendingKey(metaId, pendingScope)).then((value) => {
       if (!active || !value) return;
       try {
         const operation = JSON.parse(value);
@@ -119,22 +117,22 @@ export default function GoalDetailsScreen() {
       if (active) setPendingLoaded(true);
     });
     return () => { active = false; };
-  }, [goalId, pendingScope]);
+  }, [metaId, pendingScope]);
 
   const loadHistoryPage = useCallback(async (cursor) => {
-    if (!goalId || historyLoadingRef.current) return;
+    if (!metaId || historyLoadingRef.current) return;
     historyLoadingRef.current = true;
     setHistoryLoading(true);
     setHistoryError(null);
     try {
-      await loadMovements(goalId, { limit: 20, ...(cursor ? { cursor } : {}) });
+      await loadMovements(metaId, { limit: 20, ...(cursor ? { cursor } : {}) });
     } catch (error) {
       setHistoryError(userMessage(error));
     } finally {
       historyLoadingRef.current = false;
       setHistoryLoading(false);
     }
-  }, [goalId, loadMovements]);
+  }, [metaId, loadMovements]);
 
   const loadHistory = useCallback(async (reset = false) => {
     const cursor = reset ? undefined : movementState.nextCursor;
@@ -143,34 +141,34 @@ export default function GoalDetailsScreen() {
   }, [loadHistoryPage, movementState.nextCursor]);
 
   const refreshDetails = useCallback(async () => {
-    if (!goalId) return;
+    if (!metaId) return;
     setRefreshing(true);
-    setGoalError(null);
+    setMetaError(null);
     try {
-      const goals = await refresh();
-      const nextGoal = goals.find((item) => goalIdFrom(item.meta_id) === goalId);
-      if (!nextGoal) {
-        setGoal(null);
-        setGoalError('Esta meta não foi encontrada ou não está mais disponível.');
+      const metas = await refresh();
+      const nextMeta = metas.find((item) => idDaMeta(item.meta_id) === metaId);
+      if (!nextMeta) {
+        setMeta(null);
+        setMetaError('Esta meta não foi encontrada ou não está mais disponível.');
       } else {
-        setGoal(normalizeGoal(nextGoal));
+        setMeta(normalizarMeta(nextMeta));
         await loadHistoryPage(undefined);
       }
     } catch (error) {
-      setGoalError(userMessage(error));
+      setMetaError(userMessage(error));
     } finally {
       setRefreshing(false);
     }
-  }, [goalId, loadHistoryPage, refresh]);
+  }, [metaId, loadHistoryPage, refresh]);
 
   useFocusEffect(useCallback(() => {
     refreshDetails();
   }, [refreshDetails]));
 
   const progressWidth = useMemo(() => {
-    const value = Number(goal?.progresso_percentual);
+    const value = Number(meta?.progresso_percentual);
     return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
-  }, [goal?.progresso_percentual]);
+  }, [meta?.progresso_percentual]);
 
   const openMovement = useCallback((tipo) => {
     if (!pendingLoaded) {
@@ -186,14 +184,14 @@ export default function GoalDetailsScreen() {
   }, [pendingLoaded, pendingOperation]);
 
   const submitMovement = useCallback(async () => {
-    if (!movementForm || submitting || !goalId) return;
-    const normalized = normalizeGoalMoney(movementForm.valor);
+    if (!movementForm || submitting || !metaId) return;
+    const normalized = normalizarValorMeta(movementForm.valor);
     if (!normalized.value) {
       setFormError(normalized.error);
       return;
     }
     if (movementForm.tipo === 'RETIRADA') {
-      const reservedCents = goalMoneyToCents(goal?.meta_valor_reservado);
+      const reservedCents = valorMetaParaCentavos(meta?.meta_valor_reservado);
       if (reservedCents !== null && normalized.cents > reservedCents) {
         setFormError('O valor da retirada é maior que o saldo reservado conhecido.');
         return;
@@ -206,7 +204,7 @@ export default function GoalDetailsScreen() {
     setFormError(null);
     try {
       if (pendingScope === null) throw new Error('PENDING_SCOPE_UNAVAILABLE');
-      await AsyncStorage.setItem(pendingKey(goalId, pendingScope), JSON.stringify(operation));
+      await AsyncStorage.setItem(pendingKey(metaId, pendingScope), JSON.stringify(operation));
       setPendingOperation(operation);
     } catch {
       setFormError('Não foi possível guardar a operação para um retry seguro. Tente novamente.');
@@ -217,40 +215,40 @@ export default function GoalDetailsScreen() {
     let response;
     try {
       response = movementForm.tipo === 'DEPOSITO'
-        ? await deposit(goalId, operation)
-        : await withdraw(goalId, operation);
+        ? await deposit(metaId, operation)
+        : await withdraw(metaId, operation);
     } catch (error) {
       setFormError(userMessage(error));
       setSubmitting(false);
       return;
     }
 
-    if (response?.meta) setGoal((current) => normalizeGoal({ ...current, ...response.meta }));
+    if (response?.meta) setMeta((current) => normalizarMeta({ ...current, ...response.meta }));
     setMovementForm(null);
     setFormError(null);
     try {
-      await AsyncStorage.removeItem(pendingKey(goalId, pendingScope));
+      await AsyncStorage.removeItem(pendingKey(metaId, pendingScope));
       setPendingOperation(null);
     } catch {
       // Repetir o mesmo UUID continua seguro se a remoção local falhar.
     }
     await loadHistory(true);
     setSubmitting(false);
-  }, [deposit, goal, goalId, loadHistory, movementForm, pendingOperation, pendingScope, prepare, submitting, withdraw]);
+  }, [deposit, meta, metaId, loadHistory, movementForm, pendingOperation, pendingScope, prepare, submitting, withdraw]);
 
   const toggleCompletion = useCallback(async () => {
-    if (!goal || completionLoading) return;
+    if (!meta || completionLoading) return;
     setCompletionLoading(true);
     setCompletionError(null);
     try {
-      await checkGoal(goalId, !goal.meta_completado);
-      setGoal((current) => ({ ...current, meta_completado: !current.meta_completado }));
+      await concluirMeta(metaId, !meta.meta_completado);
+      setMeta((current) => ({ ...current, meta_completado: !current.meta_completado }));
     } catch {
       setCompletionError('Não foi possível atualizar o status da meta.');
     } finally {
       setCompletionLoading(false);
     }
-  }, [completionLoading, goal, goalId]);
+  }, [completionLoading, meta, metaId]);
 
   const renderMovement = useCallback(({ item }) => {
     const deposit = item.meta_movimentacao_tipo === 'DEPOSITO';
@@ -277,7 +275,7 @@ export default function GoalDetailsScreen() {
   ) : null;
 
   const renderHeader = () => {
-    if (!goal) return null;
+    if (!meta) return null;
     return (
       <>
         <View style={styles.topBar}>
@@ -286,28 +284,28 @@ export default function GoalDetailsScreen() {
           </Pressable>
           <View style={styles.topBarCopy}>
             <Text style={styles.eyebrow}>Cofrinho de metas</Text>
-            <Text style={styles.title} numberOfLines={2}>{goal.meta_titulo}</Text>
+            <Text style={styles.title} numberOfLines={2}>{meta.meta_titulo}</Text>
           </View>
         </View>
         <View style={styles.card}>
-          {goal.meta_descricao ? <Text style={styles.description}>{goal.meta_descricao}</Text> : null}
+          {meta.meta_descricao ? <Text style={styles.description}>{meta.meta_descricao}</Text> : null}
           <View style={styles.summaryRow}>
-            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Objetivo</Text><Text style={styles.summaryValue}>{formatValue(goal.meta_valor)}</Text></View>
-            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Reservado agora</Text><Text style={[styles.summaryValue, styles.highlightValue]}>{formatValue(goal.meta_valor_reservado)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Objetivo</Text><Text style={styles.summaryValue}>{formatValue(meta.meta_valor)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Reservado agora</Text><Text style={[styles.summaryValue, styles.highlightValue]}>{formatValue(meta.meta_valor_reservado)}</Text></View>
           </View>
           <View style={styles.summaryRow}>
-            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Valor restante</Text><Text style={styles.summaryValue}>{formatValue(goal.valor_restante)}</Text></View>
-            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Progresso</Text><Text style={[styles.summaryValue, styles.highlightValue]}>{formatGoalPercent(goal.progresso_percentual)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Valor restante</Text><Text style={styles.summaryValue}>{formatValue(meta.valor_restante)}</Text></View>
+            <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Progresso</Text><Text style={[styles.summaryValue, styles.highlightValue]}>{formatarPercentualMeta(meta.progresso_percentual)}</Text></View>
           </View>
-          <View accessible accessibilityLabel={`Barra de progresso: ${formatGoalPercent(goal.progresso_percentual)}`} style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progressWidth}%` }]} /></View>
-          {renderLatest('Última movimentação', goal.ultima_movimentacao)}
-          {renderLatest('Último depósito', goal.ultimo_deposito)}
+          <View accessible accessibilityLabel={`Barra de progresso: ${formatarPercentualMeta(meta.progresso_percentual)}`} style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progressWidth}%` }]} /></View>
+          {renderLatest('Última movimentação', meta.ultima_movimentacao)}
+          {renderLatest('Último depósito', meta.ultimo_deposito)}
           <View style={styles.actionRow}>
             <Pressable accessibilityRole="button" accessibilityLabel="Adicionar valor à meta" onPress={() => openMovement('DEPOSITO')} disabled={submitting} style={[styles.actionButton, styles.depositButton]}><Text style={styles.actionButtonText}>Adicionar valor</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="Retirar valor da meta" onPress={() => openMovement('RETIRADA')} disabled={submitting} style={[styles.actionButton, styles.withdrawButton]}><Text style={[styles.actionButtonText, styles.withdrawButtonText]}>Retirar valor</Text></Pressable>
           </View>
-          <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: goal.meta_completado, disabled: completionLoading }} onPress={toggleCompletion} disabled={completionLoading} style={styles.completionButton}>
-            <Text style={styles.completionText}>{goal.meta_completado ? 'Desmarcar como concluída' : 'Marcar como concluída'}</Text>
+          <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: meta.meta_completado, disabled: completionLoading }} onPress={toggleCompletion} disabled={completionLoading} style={styles.completionButton}>
+            <Text style={styles.completionText}>{meta.meta_completado ? 'Desmarcar como concluída' : 'Marcar como concluída'}</Text>
           </Pressable>
           {completionError ? <Text style={styles.formError}>{completionError}</Text> : null}
         </View>
@@ -316,16 +314,16 @@ export default function GoalDetailsScreen() {
     );
   };
 
-  if (!goalId) {
+  if (!metaId) {
     return <SafeAreaView style={styles.container}><View style={styles.state}><Text style={styles.stateText}>Não foi possível abrir esta meta.</Text><Pressable accessibilityRole="button" onPress={() => navigation.goBack()} style={styles.retry}><Text style={styles.retryText}>Voltar</Text></Pressable></View></SafeAreaView>;
   }
 
-  if (!goal && (refreshing || !goalError)) {
+  if (!meta && (refreshing || !metaError)) {
     return <SafeAreaView style={styles.container}><View style={styles.state}><ActivityIndicator accessibilityLabel="Carregando detalhes da meta" color="#893467" /><Text style={styles.stateText}>Carregando detalhes da meta...</Text></View></SafeAreaView>;
   }
 
-  if (!goal) {
-    return <SafeAreaView style={styles.container}><View style={styles.state}><Text style={styles.stateText}>{goalError}</Text><Pressable accessibilityRole="button" onPress={refreshDetails} style={styles.retry}><Text style={styles.retryText}>Tentar novamente</Text></Pressable></View></SafeAreaView>;
+  if (!meta) {
+    return <SafeAreaView style={styles.container}><View style={styles.state}><Text style={styles.stateText}>{metaError}</Text><Pressable accessibilityRole="button" onPress={refreshDetails} style={styles.retry}><Text style={styles.retryText}>Tentar novamente</Text></Pressable></View></SafeAreaView>;
   }
 
   return (

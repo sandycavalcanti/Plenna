@@ -170,8 +170,8 @@ export default function HomeScreen({ navigation }) {
         <MetasHome
           {...metas}
           onRetry={metas.refresh}
-          onCreate={() => navigation.navigate('EditProfile', { mode: 'goals' })}
-          onOpen={(goal) => navigation.navigate('GoalDetails', { goalId: goal.id, goal })}
+          onCreate={() => navigation.navigate('EditProfile', { mode: 'metas' })}
+          onOpen={(meta) => navigation.navigate('MetaDetails', { metaId: meta.id, meta })}
         />
         <View style={{ marginHorizontal: 18, padding: 16, marginBottom: 14, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 8 }}>
           <Text style={{ fontSize: 18, fontWeight: '700', color: '#594367' }}>Tempo em aplicativos · hoje</Text>
@@ -199,7 +199,7 @@ export default function HomeScreen({ navigation }) {
               <TouchableOpacity
                 key={item.chave}
                 accessibilityRole="button"
-                onPress={() => item.acao === 'notificacoes' ? openNotifications() : item.acao === 'metas' ? navigation.navigate('EditProfile', { mode: 'goals' }) : navigation.navigate('Dashboard', { indicador: 'comportamento', periodo })}
+                onPress={() => item.acao === 'notificacoes' ? openNotifications() : item.acao === 'metas' ? navigation.navigate('EditProfile', { mode: 'metas' }) : navigation.navigate('Dashboard', { indicador: 'comportamento', periodo })}
                 style={{ padding: 16, minHeight: 48, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 6 }}
               >
                 <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>{item.titulo}</Text>

@@ -1,6 +1,6 @@
 /**
- * Arquivo: Goals/styles.js
- * Descrição: Estilos do componente Goals, responsáveis pela organização
+ * Arquivo: Metas/styles.js
+ * Descrição: Estilos do componente Metas, responsáveis pela organização
  * visual dos itens de meta, incluindo layout, alinhamento e destaque de valores.
  * Autor: Marina Souza
  * Última atualização: 20/04/2026
@@ -47,7 +47,7 @@ export default StyleSheet.create({
   },
 
   // Container do item de meta (clicável)
-  goalItem: {
+  metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
@@ -76,12 +76,12 @@ export default StyleSheet.create({
   },
 
   // Conteúdo textual da meta
-  goalContent: {
+  metaContent: {
     flex: 1,
   },
 
   // Nome da meta
-  goalName: {
+  metaName: {
     fontSize: 15,
     color: COLORS.perfilMetaTitulo,
     fontWeight: '500',

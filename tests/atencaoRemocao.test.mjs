@@ -13,7 +13,7 @@ function setup({ value = '200.00', store = { value }, put, profile = false } = {
         if (url === '/users/user') return { data: { usuario_nome: 'Teste', usuario_meta_valor_compra: store.value,
           usuario_meta_valor_mensal: 1000, usuario_meta_tempo: 60, usuario_limite_compra: 8 } };
         if (url === '/categories') return { data: catalog };
-        if (url === '/goals') return { data: [] };
+        if (url === '/metas') return { data: [] };
         if (url === '/preferencia') return { data: [{ categoria_id: 1, preferencia_meta: 200 }] };
         throw new Error('Unexpected read');
       },

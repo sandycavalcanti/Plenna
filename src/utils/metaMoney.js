@@ -9,7 +9,7 @@ function onlySeparatorsAndDigits(value) {
  * Normaliza a entrada monetária do cofrinho sem usar ponto flutuante.
  * A saída é o texto canônico aceito pela API, sempre com duas casas.
  */
-export function normalizeGoalMoney(value) {
+export function normalizarValorMeta(value) {
   const input = onlySeparatorsAndDigits(value);
   if (!input) return { value: null, error: 'Informe um valor.' };
 
@@ -59,14 +59,51 @@ export function normalizeGoalMoney(value) {
   };
 }
 
-export function goalMoneyToCents(value) {
+/** Prepara payloads de criação/edição sem alterar a unidade real do valor. */
+export function prepararPayloadMeta(data) {
+  if (!data || typeof data !== 'object') throw new TypeError('dados da meta obrigatórios');
+  if (!Object.hasOwn(data, 'valor')) return data;
+  const normalized = normalizarValorMeta(data.valor);
+  if (!normalized.value) throw new TypeError(normalized.error || 'valor de meta inválido');
+  return { ...data, valor: normalized.value };
+}
+
+export function valorMetaParaCentavos(value) {
   const canonical = String(value ?? '').trim();
   if (!/^\d{1,8}\.\d{2}$/.test(canonical)) return null;
   return BigInt(canonical.replace('.', ''));
 }
 
-export function formatGoalPercent(value) {
+function canonicalRealMoney(value, allowZero = true) {
+  if (value === null || value === undefined || value === '') return null;
+  const text = String(value).trim().replace(',', '.');
+  if (!/^\d{1,8}(?:\.\d{1,2})?$/.test(text)) return null;
+
+  const [integerPart, fractionPart = ''] = text.split('.');
+  const cents = BigInt(`${integerPart}${fractionPart.padEnd(2, '0')}`);
+  if ((!allowZero && cents <= 0n) || cents > MAX_CENTS) return null;
+
+  return `${integerPart}.${fractionPart.padEnd(2, '0')}`;
+}
+
+/** Formata valores do contrato de metas como reais, sem dividir por 100. */
+export function formatarValorMeta(value) {
+  const canonical = canonicalRealMoney(value);
+  if (canonical === null) return null;
+  return `R$ ${new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(canonical))}`;
+}
+
+/** Valor editável da meta; a vírgula é apenas apresentação, não mudança de unidade. */
+export function formatarValorMetaParaEntrada(value) {
+  const canonical = canonicalRealMoney(value);
+  return canonical ? canonical.replace('.', ',') : String(value ?? '');
+}
+
+export function formatarPercentualMeta(value) {
   if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return 'Percentual indisponível';
-  return `${String(value).replace('.', ',')}%`;
+  return `${Number(value).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`;
 }
 

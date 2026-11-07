@@ -18,7 +18,7 @@ import { styles } from './styles';
 import ProfileHeader from '../../components/ProfileComponents/ProfileHeader';
 import PersonalInfo from '../../components/ProfileComponents/PersonalInfo';
 import BudgetPreferences from '../../components/BudgetPreferences';
-import Goals from '../../components/ProfileComponents/Goals';
+import Metas from '../../components/ProfileComponents/Metas';
 import Permissions from '../../components/ProfileComponents/Permissions';
 import { useDataRefresh } from '../../hooks/useDataRefresh';
 import { COLORS } from '../../constants/colors';
@@ -50,6 +50,7 @@ export default function ProfileScreen() {
   const tempoIdeal = useRef('');
   const limiteCompra = useRef('');
   const [metas, setMetas] = useState([]);
+  const [metasError, setMetasError] = useState(false);
   const [preferencias, setPreferencias] = useState([]);
   const [recarregar, setRecarregar] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -157,6 +158,7 @@ export default function ProfileScreen() {
 
   const refetchAllData = useCallback(async () => {
     setRefreshing(true);
+    setMetasError(false);
     try {
       const [usuarioData, metasData, preferenciasData] = await Promise.all([fetchUsuario(), fetchMetas(), fetchPreferencias()]);
 
@@ -174,6 +176,9 @@ export default function ProfileScreen() {
       setMetas(metasData);
       setPreferencias(preferenciasData);
       setRecarregar((prev) => prev + 1);
+    } catch {
+      setMetas([]);
+      setMetasError(true);
     } finally {
       setRefreshing(false);
     }
@@ -232,7 +237,7 @@ export default function ProfileScreen() {
         <PersonalInfo email={email.current} telefone={telefone.current} dataNascimento={dataNascimento.current} />
 
         {/* Metas financeiras */}
-        <Goals metas={metas} />
+        <Metas metas={metas} error={metasError} onRetry={refetchAllData} />
 
         {/* Preferências de orçamento */}
         <BudgetPreferences gastoIdealMensal={gastoIdealMensal.current} gastoIdealCompra={gastoIdealCompra.current} preferencias={preferencias} />

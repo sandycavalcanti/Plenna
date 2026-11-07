@@ -1,18 +1,31 @@
 import { useCallback, useRef, useState } from 'react';
 import { tokenStorage } from '../api/tokenStorage';
 import {
-  depositGoal,
-  listGoalMovements,
-  listGoals,
-  prepareGoalMovement,
-  withdrawGoal,
-} from '../api/goals';
+  depositarNaMeta,
+  listarMovimentacoesMeta,
+  listarMetas,
+  prepararMovimentacaoMeta,
+  retirarDaMeta,
+} from '../api/metas';
+import { normalizarRespostaMetas } from '../utils/metaContract';
 
-function normalizeGoalError(error) {
+export function normalizarErroMeta(error, metaId = null) {
+  const body = error?.response?.data ?? {};
+  const routeNotFound = error?.response?.status === 404 && body?.error === 'Route not found' && !body?.code;
+  const diagnostico = {
+    baseURL: error?.config?.baseURL ?? null,
+    url: error?.config?.url ?? null,
+    method: error?.config?.method ?? null,
+    metaId: metaId ?? null,
+    status: error?.response?.status ?? null,
+    backendCode: body?.code ?? null,
+  };
   return {
     status: error?.response?.status ?? null,
-    code: error?.response?.data?.code ?? 'COMUNICACAO',
+    code: body?.code ?? (routeNotFound ? 'ROTA_NAO_ENCONTRADA' : 'COMUNICACAO'),
     message: error?.response?.data?.message ?? 'Não foi possível concluir a operação da meta.',
+    routeNotFound,
+    diagnostico,
     cause: error,
   };
 }
@@ -25,14 +38,14 @@ function mergeMovements(existing, incoming) {
   return [...byId.values()];
 }
 
-function mergeGoalSummary(goals, summary) {
-  if (!summary?.meta_id) return goals;
-  return goals.map((goal) => goal.meta_id === summary.meta_id
-    ? { ...goal, ...summary }
-    : goal);
+function mesclarResumoMeta(metas, summary) {
+  if (!summary?.meta_id) return metas;
+  return metas.map((meta) => meta.meta_id === summary.meta_id
+    ? { ...meta, ...summary }
+    : meta);
 }
 
-export function useGoalSavings() {
+export function useCofrinhoMetas() {
   const [state, setState] = useState({
     metas: [],
     movimentacoes: {},
@@ -48,19 +61,19 @@ export function useGoalSavings() {
       const session = await tokenStorage.captureSession();
       if (!session) throw new Error('SESSION_REQUIRED');
       tokenStorage.assertSession(session.id);
-      const response = await listGoals({
+      const response = await listarMetas({
         signal: session.signal,
         rf017SessionId: session.id,
       });
       tokenStorage.assertSession(session.id);
-      if (!Array.isArray(response.data)) throw new Error('INVALID_GOALS');
+      const metas = normalizarRespostaMetas(response.data);
       if (run === request.current) {
-        setState((current) => ({ ...current, metas: response.data, loading: false }));
+        setState((current) => ({ ...current, metas, loading: false }));
       }
-      return response.data;
+      return metas;
     } catch (error) {
       if (run === request.current) {
-        setState((current) => ({ ...current, loading: false, error: normalizeGoalError(error) }));
+        setState((current) => ({ ...current, loading: false, error: normalizarErroMeta(error) }));
       }
       throw error;
     }
@@ -71,13 +84,13 @@ export function useGoalSavings() {
     if (!session) throw new Error('SESSION_REQUIRED');
     tokenStorage.assertSession(session.id);
     try {
-      const response = await listGoalMovements(metaId, {
+      const response = await listarMovimentacoesMeta(metaId, {
         ...options,
         signal: session.signal,
         rf017SessionId: session.id,
       });
       tokenStorage.assertSession(session.id);
-      if (!response.data || !Array.isArray(response.data.itens)) throw new Error('INVALID_GOAL_MOVEMENTS');
+      if (!response.data || !Array.isArray(response.data.itens)) throw new Error('INVALID_META_MOVEMENTS');
       setState((current) => ({
         ...current,
         movimentacoes: {
@@ -92,7 +105,7 @@ export function useGoalSavings() {
       }));
       return response.data;
     } catch (error) {
-      throw normalizeGoalError(error);
+      throw normalizarErroMeta(error, metaId);
     }
   }, []);
 
@@ -102,14 +115,14 @@ export function useGoalSavings() {
     tokenStorage.assertSession(session.id);
     try {
       const response = kind === 'DEPOSITO'
-        ? await depositGoal(metaId, operation, { signal: session.signal, rf017SessionId: session.id })
-        : await withdrawGoal(metaId, operation, { signal: session.signal, rf017SessionId: session.id });
+        ? await depositarNaMeta(metaId, operation, { signal: session.signal, rf017SessionId: session.id })
+        : await retirarDaMeta(metaId, operation, { signal: session.signal, rf017SessionId: session.id });
       tokenStorage.assertSession(session.id);
       const payload = response.data;
-      if (!payload?.movimentacao || !payload?.meta) throw new Error('INVALID_GOAL_MOVEMENT');
+      if (!payload?.movimentacao || !payload?.meta) throw new Error('INVALID_META_MOVEMENT');
       setState((current) => ({
         ...current,
-        metas: mergeGoalSummary(current.metas, payload.meta),
+        metas: mesclarResumoMeta(current.metas, payload.meta),
         movimentacoes: {
           ...current.movimentacoes,
           [metaId]: {
@@ -125,12 +138,12 @@ export function useGoalSavings() {
       }));
       return payload;
     } catch (error) {
-      throw normalizeGoalError(error);
+      throw normalizarErroMeta(error, metaId);
     }
   }, []);
 
   const prepare = useCallback((tipo, valor, operationId) => (
-    prepareGoalMovement(tipo, valor, operationId)
+    prepararMovimentacaoMeta(tipo, valor, operationId)
   ), []);
 
   const deposit = useCallback((metaId, operation) => (

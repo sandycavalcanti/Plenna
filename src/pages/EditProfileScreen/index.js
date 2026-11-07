@@ -9,6 +9,8 @@ import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import { COLORS } from '../../constants';
+import { formatarValorMetaParaEntrada, prepararPayloadMeta } from '../../utils/metaMoney';
+import { normalizarRespostaMetas } from '../../utils/metaContract';
 
 const discomfortOptions = ['Uso excessivo do celular', 'Compras por impulso', 'Falta de controle', 'Quero entender meus habitos', 'So curiosidade'];
 const screenTimeOptions = ['Pouco (ate 2h)', 'Moderado (2-5h)', 'Alto (5-8h)', 'Muito alto (+8h)'];
@@ -137,8 +139,8 @@ export default function EditProfileScreen() {
     incomodoConsumo: '',
   });
   const [metas, setMetas] = useState([]);
-  const [removedGoalIds, setRemovedGoalIds] = useState([]);
-  const [collapsedGoalKeys, setCollapsedGoalKeys] = useState([]);
+  const [metasRemovidasIds, setMetasRemovidasIds] = useState([]);
+  const [chavesMetasColapsadas, setChavesMetasColapsadas] = useState([]);
 
   useEffect(() => {
     carregar();
@@ -161,12 +163,16 @@ export default function EditProfileScreen() {
         incomodoConsumo: dados.usuario_incomodo_consumo || '',
       });
 
-      const respGoals = await apiClient.get('/goals');
-      const goals = Array.isArray(respGoals.data) ? respGoals.data : [];
-      const goalsComChave = goals.map((goal) => ({ ...goal, localKey: gerarChaveLocalMeta(goal.meta_id) }));
-      setMetas(goalsComChave);
-      setRemovedGoalIds([]);
-      setCollapsedGoalKeys(goalsComChave.map((goal) => goal.localKey));
+      const respostaMetas = await apiClient.get('/metas');
+      const metasApi = normalizarRespostaMetas(respostaMetas.data);
+      const metasComChave = metasApi.map((meta) => ({
+        ...meta,
+        meta_valor: formatarValorMetaParaEntrada(meta.meta_valor),
+        localKey: gerarChaveLocalMeta(meta.meta_id),
+      }));
+      setMetas(metasComChave);
+      setMetasRemovidasIds([]);
+      setChavesMetasColapsadas(metasComChave.map((meta) => meta.localKey));
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar dados do perfil');
     } finally {
@@ -222,31 +228,28 @@ export default function EditProfileScreen() {
           return;
         }
 
-        const rawValor = String(m.meta_valor || '').trim();
-        const valor = parseNumber(rawValor);
-        if (isNaN(valor)) {
+        let payload;
+        try {
+          payload = prepararPayloadMeta({
+            titulo,
+            descricao: m.meta_descricao || '',
+            valor: m.meta_valor,
+          });
+        } catch {
           Alert.alert('Valor inválido', 'Preencha um valor numérico válido para todas as metas.');
           setSaving(false);
           return;
         }
 
         if (m.meta_id) {
-          await apiClient.put(`/goals/${m.meta_id}`, {
-            titulo: titulo,
-            descricao: m.meta_descricao || '',
-            valor: valor,
-          });
+          await apiClient.put(`/metas/${m.meta_id}`, payload);
         } else {
-          await apiClient.post('/goals', {
-            titulo: titulo,
-            descricao: m.meta_descricao || '',
-            valor: valor,
-          });
+          await apiClient.post('/metas', payload);
         }
       }
 
-      for (const goalId of removedGoalIds) {
-        await apiClient.delete(`/goals/${goalId}`);
+      for (const metaId of metasRemovidasIds) {
+        await apiClient.delete(`/metas/${metaId}`);
       }
 
       Alert.alert('Sucesso', 'Metas atualizadas.');
@@ -270,7 +273,7 @@ export default function EditProfileScreen() {
     const localKey = gerarChaveLocalMeta();
 
     setMetas((prev) => [...prev, { localKey, meta_titulo: '', meta_descricao: '', meta_valor: '' }]);
-    setCollapsedGoalKeys((current) => [...current, localKey]);
+    setChavesMetasColapsadas((current) => [...current, localKey]);
   }
 
   function removerMeta(index) {
@@ -278,11 +281,11 @@ export default function EditProfileScreen() {
       const meta = prev[index];
 
       if (meta?.meta_id) {
-        setRemovedGoalIds((current) => (current.includes(meta.meta_id) ? current : [...current, meta.meta_id]));
+        setMetasRemovidasIds((current) => (current.includes(meta.meta_id) ? current : [...current, meta.meta_id]));
       }
 
       if (meta?.localKey) {
-        setCollapsedGoalKeys((current) => current.filter((key) => key !== meta.localKey));
+        setChavesMetasColapsadas((current) => current.filter((key) => key !== meta.localKey));
       }
 
       return prev.filter((_, currentIndex) => currentIndex !== index);
@@ -290,7 +293,7 @@ export default function EditProfileScreen() {
   }
 
   function alternarMetaColapsada(localKey) {
-    setCollapsedGoalKeys((current) => (current.includes(localKey) ? current.filter((key) => key !== localKey) : [...current, localKey]));
+    setChavesMetasColapsadas((current) => (current.includes(localKey) ? current.filter((key) => key !== localKey) : [...current, localKey]));
   }
 
   function parseNumber(raw) {
@@ -350,9 +353,9 @@ export default function EditProfileScreen() {
         <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.heroCard}>
             <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
-            <Text style={styles.heroTitle}>{mode === 'goals' ? 'Editar Metas' : 'Editar Informações'}</Text>
+            <Text style={styles.heroTitle}>{mode === 'metas' ? 'Editar Metas' : 'Editar Informações'}</Text>
             <Text style={styles.heroSubtitle}>
-              {mode === 'goals' ? 'Gerencie suas metas financeiras — adicione, edite ou remova.' : 'Gerencie suas informações pessoais — adicione, edite ou remova.'}
+              {mode === 'metas' ? 'Gerencie suas metas financeiras — adicione, edite ou remova.' : 'Gerencie suas informações pessoais — adicione, edite ou remova.'}
             </Text>
           </View>
 
@@ -382,19 +385,19 @@ export default function EditProfileScreen() {
             </View>
           ) : (
             <View style={styles.sectionsWrap}>
-              <TouchableOpacity activeOpacity={0.85} onPress={adicionarMeta} style={styles.addGoalAction}>
-                <Text style={styles.addGoalActionText}>Adicionar meta</Text>
+              <TouchableOpacity activeOpacity={0.85} onPress={adicionarMeta} style={styles.addMetaAction}>
+                <Text style={styles.addMetaActionText}>Adicionar meta</Text>
               </TouchableOpacity>
 
               {metas.map((m, idx) => (
                 <ProfileCard
-                  key={m.localKey || m.meta_id || `goal-${idx}`}
+                  key={m.localKey || m.meta_id || `meta-${idx}`}
                   title={m.meta_titulo || 'Nova meta'}
                   onToggleCollapse={() => alternarMetaColapsada(m.localKey)}
-                  isCollapsed={collapsedGoalKeys.includes(m.localKey)}
+                  isCollapsed={chavesMetasColapsadas.includes(m.localKey)}
                   onRemove={() => removerMeta(idx)}
-                  style={[styles.goalEditorCard, collapsedGoalKeys.includes(m.localKey) && styles.goalEditorCardCollapsed]}>
-                  {!collapsedGoalKeys.includes(m.localKey) ? (
+                  style={[styles.metaEditorCard, chavesMetasColapsadas.includes(m.localKey) && styles.metaEditorCardCollapsed]}>
+                  {!chavesMetasColapsadas.includes(m.localKey) ? (
                     <>
                       <View style={styles.fieldBlock}>
                         <Text style={styles.fieldLabel}>Título</Text>
@@ -408,7 +411,7 @@ export default function EditProfileScreen() {
                           placeholderTextColor={'rgba(0,0,0,0.4)'}
                           value={m.meta_descricao || ''}
                           onChangeText={(t) => atualizarMeta(idx, 'meta_descricao', t)}
-                          style={styles.goalDescriptionInput}
+                          style={styles.metaDescriptionInput}
                           multiline
                           numberOfLines={4}
                         />
@@ -420,7 +423,7 @@ export default function EditProfileScreen() {
                           placeholder="R$ 0,00"
                           value={m.meta_valor}
                           onChangeText={(t) => atualizarMeta(idx, 'meta_valor', t)}
-                          mask="currency"
+                          mask="metaCurrency"
                           keyboardType="numeric"
                           style={styles.inputWrapper}
                         />

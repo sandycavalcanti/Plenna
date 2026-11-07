@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 // Variável para controlar exibir botões temporários para desenvolvimento, como o de pular login
 // Defina como true para usar localhost
-export const devMode = false; 
+export const devMode = true; 
 
 const configuredApiUrl = typeof process !== 'undefined' && typeof process.env?.EXPO_PUBLIC_API_URL === 'string'
   ? process.env.EXPO_PUBLIC_API_URL.trim()

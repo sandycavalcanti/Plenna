@@ -49,20 +49,20 @@ export default StyleSheet.create({
   sectionsWrap: {
     gap: 20,
   },
-  goalsIntroCard: {
+  metasIntroCard: {
     alignItems: 'center',
     backgroundColor: COLORS.fundoPrincipal,
     borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
-  goalsIntroTitle: {
+  metasIntroTitle: {
     fontSize: 18,
     fontWeight: '800',
     color: COLORS.cadTitulo,
     textAlign: 'center',
   },
-  goalsIntroSubtitle: {
+  metasIntroSubtitle: {
     fontSize: 13,
     color: COLORS.dadoUm,
     textAlign: 'center',
@@ -114,7 +114,7 @@ export default StyleSheet.create({
   saveButton: {
     width: '100%',
   },
-  addGoalAction: {
+  addMetaAction: {
     marginTop: 2,
     marginBottom: 2,
     paddingVertical: 10,
@@ -122,20 +122,20 @@ export default StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.6)',
   },
-  addGoalActionText: {
+  addMetaActionText: {
     color: COLORS.cadTextoAdicionarLimites,
     fontSize: 15,
     fontWeight: '700',
     textAlign: 'center',
   },
-  goalEditorCard: {
+  metaEditorCard: {
     width: '100%',
     marginBottom: 0,
   },
-  goalEditorCardCollapsed: {
+  metaEditorCardCollapsed: {
     paddingBottom: 8,
   },
-  goalDescriptionInput: {
+  metaDescriptionInput: {
     backgroundColor: COLORS.customTextInputFundo,
     borderRadius: 12,
     paddingHorizontal: 12,

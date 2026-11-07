@@ -78,8 +78,8 @@ test('clear surfaces and comfortable targets; Dashboard widths bounded without f
 });
 
 test('Home next steps reuse existing navigation without reading private purchases or inventing progress',()=>{
- const calls=[];const tree=Home({...props,onMetas:()=>calls.push('goals'),onDetalhes:x=>calls.push(x)});
+ const calls=[];const tree=Home({...props,onMetas:()=>calls.push('metas'),onDetalhes:x=>calls.push(x)});
  nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver metas')).props.onPress();
  nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Abrir Dashboard')).props.onPress();
- assert.deepEqual(calls,['goals','orientacoes']);assert.doesNotMatch(component,/apiClient|fetchMetas|meta_acumulado|dados\.analise|categoriaId|compra_id/);
+ assert.deepEqual(calls,['metas','orientacoes']);assert.doesNotMatch(component,/apiClient|fetchMetas|meta_acumulado|dados\.analise|categoriaId|compra_id/);
 });

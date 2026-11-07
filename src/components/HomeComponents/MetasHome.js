@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatarValorMoedaParaTela } from '../CustomTextInput/currency';
+import { formatarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
 
 const Icon = typeof MaterialCommunityIcons === 'undefined' ? View : MaterialCommunityIcons;
 
@@ -20,43 +20,38 @@ const COLORS = {
   border: '#ECE8F4',
 };
 
-function formatGoalValue(value) {
+function formatarValorExibicaoMeta(value) {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) {
     return 'Valor não informado';
   }
 
-  return formatarValorMoedaParaTela(value);
+  return formatarValorMeta(value) || 'Valor não informado';
 }
 
-function formatGoalDate(value) {
+function formatarDataMeta(value) {
   if (!value || !Number.isFinite(Date.parse(value))) return null;
   return new Date(value).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 }
 
-function formatGoalPercent(value) {
-  if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return null;
-  return `${String(value).replace('.', ',')}%`;
-}
-
-function renderGoalCard(goal, onOpen) {
-  const completed = goal.concluida === true;
-  const date = formatGoalDate(goal.data);
-  const percent = formatGoalPercent(goal.progressoPercentual);
-  const progressWidth = percent === null ? 0 : Math.min(100, Math.max(0, Number(goal.progressoPercentual)));
+function renderMetaCard(meta, onOpen) {
+  const completed = meta.concluida === true;
+  const date = formatarDataMeta(meta.data);
+  const percent = formatarPercentualMeta(meta.progressoPercentual);
+  const progressWidth = percent === null ? 0 : Math.min(100, Math.max(0, Number(meta.progressoPercentual)));
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Abrir detalhes da meta ${goal.nome}`}
-      onPress={() => onOpen?.(goal)}
-      style={styles.goalCard}
+      accessibilityLabel={`Abrir detalhes da meta ${meta.nome}`}
+      onPress={() => onOpen?.(meta)}
+      style={styles.metaCard}
     >
-      <View style={styles.goalHeader}>
-        <View style={styles.goalIcon}>
+      <View style={styles.metaHeader}>
+        <View style={styles.metaIcon}>
           <Icon name="target" size={20} color={COLORS.accent} />
         </View>
-        <View style={styles.goalCopy}>
-          <Text style={styles.goalName} numberOfLines={2}>{goal.nome}</Text>
+        <View style={styles.metaCopy}>
+          <Text style={styles.metaName} numberOfLines={2}>{meta.nome}</Text>
           <View style={[styles.statusBadge, completed ? styles.completedBadge : styles.activeBadge]}>
             <View style={[styles.statusDot, completed ? styles.completedDot : styles.activeDot]} />
             <Text style={[styles.statusText, completed ? styles.completedText : styles.activeText]}>
@@ -66,17 +61,17 @@ function renderGoalCard(goal, onOpen) {
         </View>
       </View>
 
-      <View style={styles.goalDetails}>
-        <View style={styles.goalDetail}>
-          <Text style={styles.goalDetailLabel}>Objetivo</Text>
-          <Text style={styles.goalValue}>{formatGoalValue(goal.valor)}</Text>
-          {goal.valorReservado !== undefined && goal.valorReservado !== null ? <Text style={styles.goalNote}>Reservado: {formatGoalValue(goal.valorReservado)}</Text> : null}
-          {percent !== null ? <Text style={styles.goalNote}>Progresso: {percent}</Text> : null}
+      <View style={styles.metaDetails}>
+        <View style={styles.metaDetail}>
+          <Text style={styles.metaDetailLabel}>Objetivo</Text>
+          <Text style={styles.metaValue}>{formatarValorExibicaoMeta(meta.valor)}</Text>
+          {meta.valorReservado !== undefined && meta.valorReservado !== null ? <Text style={styles.metaNote}>Reservado: {formatarValorExibicaoMeta(meta.valorReservado)}</Text> : null}
+          {percent !== null ? <Text style={styles.metaNote}>Progresso: {percent}</Text> : null}
         </View>
         {date ? (
-          <View style={styles.goalDate}>
+          <View style={styles.metaDate}>
             <Icon name="calendar-outline" size={16} color={COLORS.muted} />
-            <Text style={styles.goalDateText}>{date}</Text>
+            <Text style={styles.metaDateText}>{date}</Text>
           </View>
         ) : null}
       </View>
@@ -120,10 +115,10 @@ export default function MetasHome({ metas = [], loading, error, onRetry, onCreat
           </Pressable>
         </View>
       ) : (
-        <View style={styles.goalsList}>
-          {(all ? metas : metas.slice(0, 2)).map((goal) => (
-            <View key={goal.id}>
-              {renderGoalCard(goal, onOpen)}
+        <View style={styles.metasList}>
+          {(all ? metas : metas.slice(0, 2)).map((meta) => (
+            <View key={meta.id}>
+              {renderMetaCard(meta, onOpen)}
             </View>
           ))}
           {metas.length > 2 ? (
@@ -170,10 +165,10 @@ const styles = {
     fontWeight: '800',
     color: COLORS.ink,
   },
-  goalsList: {
+  metasList: {
     gap: 10,
   },
-  goalCard: {
+  metaCard: {
     padding: 13,
     borderRadius: 15,
     borderWidth: 1,
@@ -181,12 +176,12 @@ const styles = {
     backgroundColor: COLORS.surfaceMuted,
     gap: 12,
   },
-  goalHeader: {
+  metaHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
   },
-  goalIcon: {
+  metaIcon: {
     width: 34,
     height: 34,
     borderRadius: 17,
@@ -194,11 +189,11 @@ const styles = {
     justifyContent: 'center',
     backgroundColor: COLORS.surface,
   },
-  goalCopy: {
+  metaCopy: {
     flex: 1,
     gap: 7,
   },
-  goalName: {
+  metaName: {
     fontSize: 16,
     lineHeight: 21,
     fontWeight: '800',
@@ -240,7 +235,7 @@ const styles = {
   completedText: {
     color: COLORS.completed,
   },
-  goalDetails: {
+  metaDetails: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
@@ -249,23 +244,23 @@ const styles = {
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
-  goalDetail: {
+  metaDetail: {
     flex: 1,
     gap: 2,
   },
-  goalDetailLabel: {
+  metaDetailLabel: {
     fontSize: 11,
     fontWeight: '700',
     color: COLORS.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
-  goalValue: {
+  metaValue: {
     fontSize: 17,
     fontWeight: '800',
     color: COLORS.accent,
   },
-  goalNote: {
+  metaNote: {
     marginTop: 2,
     fontSize: 11,
     lineHeight: 15,
@@ -282,13 +277,13 @@ const styles = {
     borderRadius: 8,
     backgroundColor: COLORS.accent,
   },
-  goalDate: {
+  metaDate: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     paddingBottom: 2,
   },
-  goalDateText: {
+  metaDateText: {
     fontSize: 12,
     color: COLORS.muted,
   },
