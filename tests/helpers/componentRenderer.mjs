@@ -119,23 +119,31 @@ export function createRenderer(mocks = {}) {
         ...Object.fromEntries(['View', 'Text', 'TextInput', 'ScrollView', 'Modal', 'Pressable', 'FlatList',
           'TouchableOpacity', 'ActivityIndicator', 'Image', 'KeyboardAvoidingView'].map((key) => [key, key])),
         Alert: { alert: (...args) => alerts.push(args) },
+        StyleSheet: {create:value=>value},
         BackHandler: { addEventListener: () => ({ remove() {} }) },
       };
       if (name === '@react-native-community/slider') return 'Slider';
       if (name === '@expo/vector-icons') return { MaterialCommunityIcons: 'Icon', Ionicons: 'Icon' };
       if (name === 'react-native-safe-area-context') return { SafeAreaView: 'SafeAreaView' };
       if (name === '@react-navigation/native') return { useNavigation: () => ({ goBack() {}, navigate() {} }) };
+      if (name === 'expo-crypto') return { randomUUID: () => 'test-uuid' };
       if (name === 'expo-web-browser') return { maybeCompleteAuthSession() {} };
       if (name === 'expo-linking') return { addEventListener: () => ({ remove() {} }) };
       if (name.endsWith('/services/security/protectedSession')) return { invalidateProtectedSession() {} };
       if (name.endsWith('/api/tokenStorage')) return { tokenStorage: { async setToken() {} } };
       if (name.endsWith('/components/CustomTextInput')) return { __esModule: true, default: 'CustomTextInput' };
+      if (name.endsWith('/constants/dashboardTheme') || name.endsWith('/constants/colors') || name === './colors') return load(resolve(dirname(path), name + '.js'));
       if (name.includes('constants')) return { COLORS: {} };
-      if (name.endsWith('/styles')) return { styles: {} };
+      // Os estilos não participam das interações; aceita exports nomeados e padrão.
+      if (name.endsWith('/styles') || name.endsWith('.styles')) return {
+        __esModule: true, default: {}, styles: {}, s: {}, presentationStyles: {},
+      };
       if (name.includes('CustomButton')) return { __esModule: true, default: 'Button' };
       if (name.includes('ProfileCard')) return { __esModule: true, default: 'ProfileCard' };
       if (name.endsWith('utils/error')) return { logApiErrors: (...args) => { throw args[0]; } };
       if (name.endsWith('api/client')) return { apiClient: { get: async () => ({ data: [] }) } };
+      if (name.endsWith('/api/consentimento')) return { observarAlteracaoMonitoramento: () => () => {} };
+      if (name.endsWith('/modules/plenna-usage-stats')) return { hasUsageAccess: async () => false, openUsageAccessSettings: async () => false };
       if (name.endsWith('.png')) return name;
       const target = resolve(dirname(path), name);
       if (name.endsWith('.js')) return load(target);
