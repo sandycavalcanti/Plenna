@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View, Text, Alert, ActivityIndicator, TextInput, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from './styles';
 import { apiClient } from '../../api/client';
@@ -352,8 +353,8 @@ export default function EditProfileScreen() {
       <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
         <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.heroCard}>
-            <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
-            <Text style={styles.heroTitle}>{mode === 'metas' ? 'Editar Metas' : 'Editar Informações'}</Text>
+            {mode === 'metas' ? <View style={styles.heroMark}><Feather name="target" size={28} color="#893467" /></View> : <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />}
+            <Text style={[styles.heroTitle, mode === 'metas' && styles.metaHeroTitle]}>{mode === 'metas' ? 'Editar Metas' : 'Editar Informações'}</Text>
             <Text style={styles.heroSubtitle}>
               {mode === 'metas' ? 'Gerencie suas metas financeiras — adicione, edite ou remova.' : 'Gerencie suas informações pessoais — adicione, edite ou remova.'}
             </Text>
@@ -385,18 +386,37 @@ export default function EditProfileScreen() {
             </View>
           ) : (
             <View style={styles.sectionsWrap}>
-              <TouchableOpacity activeOpacity={0.85} onPress={adicionarMeta} style={styles.addMetaAction}>
-                <Text style={styles.addMetaActionText}>Adicionar meta</Text>
-              </TouchableOpacity>
+              <View style={styles.metasIntroCard}>
+                <View style={styles.metasIntroIcon}><Feather name="target" size={20} color="#893467" /></View>
+                <View style={styles.metasIntroCopy}>
+                  <Text style={styles.metasIntroTitle}>Seus objetivos</Text>
+                  <Text style={styles.metasIntroSubtitle}>Crie metas claras e acompanhe cada avanço no seu cofrinho.</Text>
+                </View>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adicionar meta" activeOpacity={0.85} onPress={adicionarMeta} style={styles.addMetaAction}>
+                  <Feather name="plus" size={17} color="#FFFFFF" />
+                  <Text style={styles.addMetaActionText}>Adicionar</Text>
+                </TouchableOpacity>
+              </View>
 
               {metas.map((m, idx) => (
-                <ProfileCard
+                <View
                   key={m.localKey || m.meta_id || `meta-${idx}`}
-                  title={m.meta_titulo || 'Nova meta'}
-                  onToggleCollapse={() => alternarMetaColapsada(m.localKey)}
-                  isCollapsed={chavesMetasColapsadas.includes(m.localKey)}
-                  onRemove={() => removerMeta(idx)}
-                  style={[styles.metaEditorCard, chavesMetasColapsadas.includes(m.localKey) && styles.metaEditorCardCollapsed]}>
+                  style={[styles.metaEditorCard, chavesMetasColapsadas.includes(m.localKey) && styles.metaEditorCardCollapsed]}
+                >
+                  <View style={styles.metaEditorHeader}>
+                    <View style={styles.metaEditorTitleCopy}>
+                      <Text style={styles.metaEditorEyebrow}>META {idx + 1}</Text>
+                      <Text style={styles.metaEditorTitle} numberOfLines={1}>{m.meta_titulo || 'Nova meta'}</Text>
+                    </View>
+                    <View style={styles.metaEditorActions}>
+                      <TouchableOpacity accessibilityRole="button" accessibilityLabel={chavesMetasColapsadas.includes(m.localKey) ? 'Expandir meta' : 'Recolher meta'} onPress={() => alternarMetaColapsada(m.localKey)} style={styles.metaEditorIconButton}>
+                        <Feather name={chavesMetasColapsadas.includes(m.localKey) ? 'chevron-down' : 'chevron-up'} size={18} color="#76658A" />
+                      </TouchableOpacity>
+                      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remover meta" onPress={() => removerMeta(idx)} style={[styles.metaEditorIconButton, styles.metaEditorDeleteButton]}>
+                        <Feather name="trash-2" size={16} color="#A31414" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                   {!chavesMetasColapsadas.includes(m.localKey) ? (
                     <>
                       <View style={styles.fieldBlock}>
@@ -429,8 +449,8 @@ export default function EditProfileScreen() {
                         />
                       </View>
                     </>
-                  ) : null}
-                </ProfileCard>
+                  ) : <Text style={styles.metaCollapsedHint}>Toque na seta para continuar editando.</Text>}
+                </View>
               ))}
 
               <View style={styles.actionsRow}>

@@ -146,6 +146,37 @@ test('todos os consumidores de metas usam o formatter de reais e mantêm o ID da
   assert.match(details, /withdraw\(metaId, operation\)/);
 });
 
+test('Home mantém as metas em formato resumido e não expõe o saldo reservado', async () => {
+  const home = await read('src/components/HomeComponents/MetasHome.js');
+  assert.match(home, /Objetivo/);
+  assert.match(home, /Progresso/);
+  assert.match(home, /progressTrack/);
+  assert.doesNotMatch(home, /Reservado:/);
+  assert.doesNotMatch(home, /metaDate/);
+});
+
+test('detalhes oferece edição e exclusão sem remover a segurança das operações pendentes', async () => {
+  const screen = await read('src/pages/MetaDetailsScreen/index.js');
+  assert.match(screen, /atualizarMeta/);
+  assert.match(screen, /excluirMeta/);
+  assert.match(screen, /Salvar alterações/);
+  assert.match(screen, /Excluir esta meta/);
+  assert.match(screen, /Resolva a operação pendente antes de excluir/);
+  assert.match(screen, /pendingLoadError/);
+  assert.match(screen, /editForm/);
+});
+
+test('gerenciamento de metas usa cards próprios e mantém criação, edição e remoção', async () => {
+  const screen = await read('src/pages/EditProfileScreen/index.js');
+  const styles = await read('src/pages/EditProfileScreen/styles.js');
+  assert.match(screen, /metasIntroCard/);
+  assert.match(screen, /Adicionar/);
+  assert.match(screen, /metaEditorCard/);
+  assert.match(screen, /removerMeta/);
+  assert.match(styles, /metaEditorHeader/);
+  assert.match(styles, /metaEditorDeleteButton/);
+});
+
 test('404 de rota é distinguido de META_NAO_ENCONTRADA e a operação pendente permanece recuperável', async () => {
   const hook = await read('src/hooks/useCofrinhoMetas.js');
   const screen = await read('src/pages/MetaDetailsScreen/index.js');

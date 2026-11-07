@@ -28,14 +28,8 @@ function formatarValorExibicaoMeta(value) {
   return formatarValorMeta(value) || 'Valor não informado';
 }
 
-function formatarDataMeta(value) {
-  if (!value || !Number.isFinite(Date.parse(value))) return null;
-  return new Date(value).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-}
-
 function renderMetaCard(meta, onOpen) {
   const completed = meta.concluida === true;
-  const date = formatarDataMeta(meta.data);
   const percent = formatarPercentualMeta(meta.progressoPercentual);
   const progressWidth = percent === null ? 0 : Math.min(100, Math.max(0, Number(meta.progressoPercentual)));
 
@@ -65,21 +59,15 @@ function renderMetaCard(meta, onOpen) {
         <View style={styles.metaDetail}>
           <Text style={styles.metaDetailLabel}>Objetivo</Text>
           <Text style={styles.metaValue}>{formatarValorExibicaoMeta(meta.valor)}</Text>
-          {meta.valorReservado !== undefined && meta.valorReservado !== null ? <Text style={styles.metaNote}>Reservado: {formatarValorExibicaoMeta(meta.valorReservado)}</Text> : null}
-          {percent !== null ? <Text style={styles.metaNote}>Progresso: {percent}</Text> : null}
         </View>
-        {date ? (
-          <View style={styles.metaDate}>
-            <Icon name="calendar-outline" size={16} color={COLORS.muted} />
-            <Text style={styles.metaDateText}>{date}</Text>
-          </View>
-        ) : null}
+        <View style={styles.metaDetailProgress}>
+          <Text style={styles.metaDetailLabel}>Progresso</Text>
+          <Text style={styles.metaProgressValue}>{percent}</Text>
+        </View>
       </View>
-      {percent !== null ? (
-        <View accessible accessibilityLabel={`Progresso da meta: ${percent}`} style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${progressWidth}%` }]} />
-        </View>
-      ) : null}
+      <View accessible accessibilityLabel={`Progresso da meta: ${percent}`} style={styles.progressTrack}>
+        <View style={[styles.progressFill, { width: `${progressWidth}%` }]} />
+      </View>
     </Pressable>
   );
 }
@@ -169,12 +157,12 @@ const styles = {
     gap: 10,
   },
   metaCard: {
-    padding: 13,
+    padding: 12,
     borderRadius: 15,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surfaceMuted,
-    gap: 12,
+    gap: 9,
   },
   metaHeader: {
     flexDirection: 'row',
@@ -182,20 +170,20 @@ const styles = {
     gap: 10,
   },
   metaIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.surface,
   },
   metaCopy: {
     flex: 1,
-    gap: 7,
+    gap: 5,
   },
   metaName: {
-    fontSize: 16,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 19,
     fontWeight: '800',
     color: COLORS.ink,
   },
@@ -240,7 +228,7 @@ const styles = {
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     gap: 12,
-    paddingTop: 11,
+    paddingTop: 9,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
@@ -256,18 +244,21 @@ const styles = {
     letterSpacing: 0.4,
   },
   metaValue: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: COLORS.accent,
   },
-  metaNote: {
-    marginTop: 2,
-    fontSize: 11,
-    lineHeight: 15,
-    color: COLORS.muted,
+  metaDetailProgress: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  metaProgressValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.ink,
   },
   progressTrack: {
-    height: 7,
+    height: 6,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: COLORS.border,
@@ -276,16 +267,6 @@ const styles = {
     height: '100%',
     borderRadius: 8,
     backgroundColor: COLORS.accent,
-  },
-  metaDate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingBottom: 2,
-  },
-  metaDateText: {
-    fontSize: 12,
-    color: COLORS.muted,
   },
   loadingState: {
     minHeight: 48,

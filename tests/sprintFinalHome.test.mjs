@@ -51,15 +51,15 @@ test('metas actual contents, progress summary, multiple complete unknown and loa
  const one={id:1,nome:'Viagem',valor:'300.00',valorReservado:'120.00',progressoPercentual:40,valorRestante:'180.00',data:'2026-12-01',concluida:false};
  assert.match(text(component({metas:[]})),/Criar uma meta/);
  assert.match(text(component({metas:[one]})),/Viagem/);
- assert.match(text(component({metas:[one]})),/Reservado:\s+R\$ 120,00/);
- assert.match(text(component({metas:[one]})),/Progresso:\s+40%/);
+  assert.doesNotMatch(text(component({metas:[one]})),/Reservado:\s+R\$ 120,00/);
+  assert.match(text(component({metas:[one]})),/Progresso\s+40%/);
  assert.doesNotMatch(text(component({metas:[one]})),/não registra aportes/);
- assert.match(text(component({metas:[{...one,progressoPercentual:125}]})),/Progresso:\s+125%/);
+  assert.match(text(component({metas:[{...one,progressoPercentual:125}]})),/Progresso\s+125%/);
  assert.match(text(component({metas:[{...one,concluida:true}]})),/Marcada como concluída/);
  assert.match(text(component({metas:[{...one,valor:null,data:'invalid'}]})),/Valor não informado/);
  assert.doesNotMatch(text(component({metas:[{...one,valor:'bad',data:'invalid'}]})),/NaN|Invalid Date/);
  const many=[one,{...one,id:2,nome:'Curso'},{...one,id:3,nome:'Reserva'}];
- assert.match(text(component({metas:many})),/Ver as 3 metas/);assert.match(text(component({metas:many})),/Reservado/);
+  assert.match(text(component({metas:many})),/Ver as 3 metas/);assert.match(text(component({metas:many})),/Objetivo/);
  assert.ok(nodes(component({loading:true})).some(x=>x.type==='Spinner'));
  assert.match(text(component({error:true})),/Tentar novamente/);
 });
@@ -111,7 +111,7 @@ test('Home usage preserves seconds without inventing limits',async()=>{
 
 test('meta calendar date preserves its day and today is not overdue',()=>{
  assert.deepEqual(destaquesHome(null,[{data:'2026-10-14T00:00:00Z',concluida:false}],0,clock),[]);
- assert.match(text(component({metas:[{id:1,nome:'Objetivo',valor:100,data:'2026-12-01T00:00:00Z',concluida:false}]})),/01\/12\/2026/);
+  assert.doesNotMatch(text(component({metas:[{id:1,nome:'Objetivo',valor:100,data:'2026-12-01T00:00:00Z',concluida:false}]})),/01\/12\/2026/);
 });
 
 test('Home prioriza recomendações e não mistura destaques locais',()=>{

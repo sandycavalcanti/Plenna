@@ -4,10 +4,10 @@ import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Modal, Platfo
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { concluirMeta } from '../../api/metas';
+import { atualizarMeta, concluirMeta, excluirMeta } from '../../api/metas';
 import { tokenStorage } from '../../api/tokenStorage';
 import { useCofrinhoMetas } from '../../hooks/useCofrinhoMetas';
-import { formatarValorMeta, valorMetaParaCentavos, normalizarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
+import { formatarValorMeta, formatarValorMetaParaEntrada, valorMetaParaCentavos, normalizarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
 import { normalizarMetaRegistro } from '../../utils/metaContract';
 import styles from './styles';
 
@@ -77,11 +77,16 @@ export default function MetaDetailsScreen() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [completionLoading, setCompletionLoading] = useState(false);
   const [completionError, setCompletionError] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [editError, setEditError] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [deleteSaving, setDeleteSaving] = useState(false);
   const [movementForm, setMovementForm] = useState(null);
   const [formError, setFormError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [pendingOperation, setPendingOperation] = useState(null);
   const [pendingLoaded, setPendingLoaded] = useState(false);
+  const [pendingLoadError, setPendingLoadError] = useState(false);
   const [pendingScope, setPendingScope] = useState(null);
   const historyLoadingRef = useRef(false);
 
@@ -103,6 +108,7 @@ export default function MetaDetailsScreen() {
     let active = true;
     if (!metaId || pendingScope === null) return undefined;
     setPendingOperation(null);
+    setPendingLoadError(false);
     AsyncStorage.getItem(pendingKey(metaId, pendingScope)).then((value) => {
       if (!active || !value) return;
       try {
@@ -112,7 +118,7 @@ export default function MetaDetailsScreen() {
         // Uma chave local inválida não deve impedir a consulta da meta.
       }
     }).catch(() => {
-      // A operação em memória ainda pode ser reutilizada nesta montagem.
+      if (active) setPendingLoadError(true);
     }).finally(() => {
       if (active) setPendingLoaded(true);
     });
@@ -173,6 +179,10 @@ export default function MetaDetailsScreen() {
   const openMovement = useCallback((tipo) => {
     if (!pendingLoaded) {
       Alert.alert('Aguarde um instante', 'Estamos verificando se existe uma operação pendente para esta meta.');
+      return;
+    }
+    if (pendingLoadError) {
+      Alert.alert('Não foi possível verificar a operação', 'Tente novamente antes de excluir a meta, para preservar qualquer operação pendente.');
       return;
     }
     if (pendingOperation && pendingOperation.tipo !== tipo) {
@@ -250,6 +260,85 @@ export default function MetaDetailsScreen() {
     }
   }, [completionLoading, meta, metaId]);
 
+  const openEdit = useCallback(() => {
+    if (!meta || editSaving || deleteSaving) return;
+    setEditError(null);
+    setEditForm({
+      titulo: meta.meta_titulo ?? '',
+      descricao: meta.meta_descricao ?? '',
+      valor: formatarValorMetaParaEntrada(meta.meta_valor),
+    });
+  }, [deleteSaving, editSaving, meta]);
+
+  const saveEdit = useCallback(async () => {
+    if (!editForm || editSaving || deleteSaving || !metaId) return;
+    const titulo = String(editForm.titulo ?? '').trim();
+    if (!titulo) {
+      setEditError('Informe um título para a meta.');
+      return;
+    }
+    const normalized = normalizarValorMeta(editForm.valor);
+    if (!normalized.value) {
+      setEditError(normalized.error || 'Informe um valor objetivo válido.');
+      return;
+    }
+
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      const response = await atualizarMeta(metaId, {
+        titulo,
+        descricao: String(editForm.descricao ?? '').trim(),
+        valor: normalized.value,
+      });
+      const updated = response?.data ?? response;
+      setMeta((current) => normalizarMeta({ ...current, ...updated }));
+      setEditForm(null);
+      await refreshDetails();
+    } catch (error) {
+      setEditError(error?.response?.data?.message || 'Não foi possível salvar as alterações da meta.');
+    } finally {
+      setEditSaving(false);
+    }
+  }, [deleteSaving, editForm, editSaving, metaId, refreshDetails]);
+
+  const deleteMeta = useCallback(() => {
+    if (!metaId || deleteSaving || editSaving) return;
+    if (!pendingLoaded) {
+      Alert.alert('Aguarde um instante', 'Estamos verificando se existe uma operação pendente para esta meta.');
+      return;
+    }
+    if (pendingOperation) {
+      Alert.alert('Operação pendente', 'Resolva a operação pendente antes de excluir esta meta.');
+      return;
+    }
+
+    Alert.alert(
+      'Excluir meta?',
+      'Essa ação remove a meta e o histórico associado. Não será possível desfazer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleteSaving(true);
+            setEditError(null);
+            try {
+              await excluirMeta(metaId);
+              setEditForm(null);
+              navigation.goBack();
+            } catch (error) {
+              setEditError(error?.response?.data?.message || 'Não foi possível excluir a meta.');
+            } finally {
+              setDeleteSaving(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [deleteSaving, editSaving, metaId, navigation, pendingLoadError, pendingLoaded, pendingOperation]);
+
   const renderMovement = useCallback(({ item }) => {
     const deposit = item.meta_movimentacao_tipo === 'DEPOSITO';
     return (
@@ -286,8 +375,26 @@ export default function MetaDetailsScreen() {
             <Text style={styles.eyebrow}>Cofrinho de metas</Text>
             <Text style={styles.title} numberOfLines={2}>{meta.meta_titulo}</Text>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Editar meta"
+            onPress={openEdit}
+            disabled={editSaving || deleteSaving}
+            style={styles.editButton}
+          >
+            <Feather name="edit-2" size={18} color="#893467" />
+          </Pressable>
         </View>
         <View style={styles.card}>
+          <View style={styles.summaryIntro}>
+            <View style={styles.summaryIcon}>
+              <MaterialCommunityIcons name="target" size={22} color="#893467" />
+            </View>
+            <View style={styles.summaryIntroCopy}>
+              <Text style={styles.summaryKicker}>{meta.meta_completado ? 'Meta concluída' : 'Em acompanhamento'}</Text>
+              <Text style={styles.summaryHint}>Uma reserva simbólica para acompanhar seu objetivo.</Text>
+            </View>
+          </View>
           {meta.meta_descricao ? <Text style={styles.description}>{meta.meta_descricao}</Text> : null}
           <View style={styles.summaryRow}>
             <View style={styles.summaryCell}><Text style={styles.summaryLabel}>Objetivo</Text><Text style={styles.summaryValue}>{formatValue(meta.meta_valor)}</Text></View>
@@ -309,7 +416,7 @@ export default function MetaDetailsScreen() {
           </Pressable>
           {completionError ? <Text style={styles.formError}>{completionError}</Text> : null}
         </View>
-        <View style={[styles.card, { marginBottom: 0 }]}><Text style={styles.sectionTitle}>Histórico de movimentações</Text></View>
+        <View style={[styles.card, styles.historyHeading]}><Text style={styles.sectionTitle}>Histórico de movimentações</Text><Text style={styles.sectionHint}>Acompanhe cada depósito e retirada da meta.</Text></View>
       </>
     );
   };
@@ -341,6 +448,38 @@ export default function MetaDetailsScreen() {
         refreshing={refreshing}
         onRefresh={refreshDetails}
       />
+      <Modal transparent visible={Boolean(editForm)} animationType="slide" onRequestClose={() => { if (!editSaving && !deleteSaving) setEditForm(null); }}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <Pressable style={styles.modalOverlay} onPress={() => { if (!editSaving && !deleteSaving) setEditForm(null); }}>
+            <Pressable style={styles.editModalCard} onPress={(event) => event.stopPropagation()}>
+              <View style={styles.modalHeader}>
+                <View style={styles.modalHeaderCopy}>
+                  <Text style={styles.modalEyebrow}>Editar meta</Text>
+                  <Text style={styles.modalTitle}>Ajuste seu objetivo</Text>
+                </View>
+                <Pressable accessibilityRole="button" accessibilityLabel="Fechar edição" onPress={() => setEditForm(null)} disabled={editSaving || deleteSaving} style={styles.modalCloseButton}>
+                  <Feather name="x" size={20} color="#76658A" />
+                </Pressable>
+              </View>
+              <Text style={styles.modalHint}>Atualize os dados sem perder o histórico ou as operações pendentes.</Text>
+              <Text style={styles.inputLabel}>Título</Text>
+              <TextInput accessibilityLabel="Título da meta" value={editForm?.titulo ?? ''} onChangeText={(titulo) => setEditForm((current) => ({ ...current, titulo }))} placeholder="Ex.: Viagem dos sonhos" style={styles.input} editable={!editSaving && !deleteSaving} />
+              <Text style={styles.inputLabel}>Descrição</Text>
+              <TextInput accessibilityLabel="Descrição da meta" value={editForm?.descricao ?? ''} onChangeText={(descricao) => setEditForm((current) => ({ ...current, descricao }))} placeholder="O que você quer realizar?" style={styles.descriptionInput} multiline numberOfLines={3} textAlignVertical="top" editable={!editSaving && !deleteSaving} />
+              <Text style={styles.inputLabel}>Valor objetivo</Text>
+              <TextInput accessibilityLabel="Valor objetivo da meta" value={editForm?.valor ?? ''} onChangeText={(valor) => setEditForm((current) => ({ ...current, valor }))} placeholder="Ex.: 500,00" keyboardType="decimal-pad" style={styles.input} editable={!editSaving && !deleteSaving} />
+              {editError ? <Text style={styles.formError}>{editError}</Text> : null}
+              <View style={styles.modalActions}>
+                <Pressable accessibilityRole="button" onPress={() => setEditForm(null)} disabled={editSaving || deleteSaving} style={styles.cancelButton}><Text style={styles.cancelText}>Cancelar</Text></Pressable>
+                <Pressable accessibilityRole="button" onPress={saveEdit} disabled={editSaving || deleteSaving} style={styles.submitButton}>{editSaving ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitText}>Salvar alterações</Text>}</Pressable>
+              </View>
+              <Pressable accessibilityRole="button" onPress={deleteMeta} disabled={editSaving || deleteSaving} style={styles.dangerButton}>
+                {deleteSaving ? <ActivityIndicator color="#A31414" /> : <><Feather name="trash-2" size={16} color="#A31414" /><Text style={styles.dangerText}>Excluir esta meta</Text></>}
+              </Pressable>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
       <Modal transparent visible={Boolean(movementForm)} animationType="slide" onRequestClose={() => { if (!submitting) setMovementForm(null); }}>
         <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.modalOverlay} onPress={() => { if (!submitting) setMovementForm(null); }}>
