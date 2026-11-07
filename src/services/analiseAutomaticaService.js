@@ -59,12 +59,15 @@ export async function consultarAnaliseAutomatica({
   storage,
   session,
   compraId,
+  signal = session.signal,
 }) {
   storage.assertSession(session.id);
+  if (signal.aborted) throw Error('REQUEST_CANCELLED');
   const { data } = await client.get(
     `/analises/compras/${compraId}/automatica`,
-    { signal: session.signal, rf017SessionId: session.id, timeout: 15000 },
+    { signal, usageMonitoringSessionId: session.id, timeout: 15000 },
   );
   storage.assertSession(session.id);
+  if (signal.aborted) throw Error('REQUEST_CANCELLED');
   return validarAnaliseAutomatica(data, compraId);
 }

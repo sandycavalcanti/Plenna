@@ -28,21 +28,21 @@ export function validarHistoricoCompra(d, compraId) {
       m.associacaoComCompra !== 'INDISPONIVEL' ||
       !(
         m.minutosRegistrados === null ||
-        (Number.isFinite(m.minutosRegistrados) && m.minutosRegistrados > 0)
+        (Number.isFinite(m.minutosRegistrados) && m.minutosRegistrados >= 0)
       ) ||
       (m.minutosRegistrados !== null &&
         (!Array.isArray(m.porDia) ||
           !Array.isArray(m.porAplicativo) ||
           m.porDia.some(
             (p) =>
-              !date(p.data) || !Number.isFinite(p.minutos) || p.minutos <= 0,
+              !date(p.data) || !Number.isFinite(p.minutos) || p.minutos < 0,
           ) ||
           m.porAplicativo.some(
             (p) =>
               typeof p.nome !== 'string' ||
               typeof p.packageId !== 'string' ||
               !Number.isFinite(p.minutos) ||
-              p.minutos <= 0,
+              p.minutos < 0,
           )))
     )
       throw Error('INVALID_HISTORY');
@@ -273,7 +273,7 @@ export function criarConsultaHistorico({
       storage.assertSession(session.id);
       const response = await client.get(
         `/v2/compras/${compraId}/indicadores-historicos`,
-        { signal, rf017SessionId: session.id },
+        { signal, usageMonitoringSessionId: session.id },
       );
       if (disposed || id !== generation || signal.aborted) return;
       storage.assertSession(session.id);

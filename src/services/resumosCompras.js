@@ -11,7 +11,7 @@ export async function consultarResumosCompras(compras) {
       const { data } = await apiClient.get('/v2/compras/resumos', {
         params: { ids: ids.join(',') },
         signal: session.signal,
-        rf017SessionId: session.id,
+        usageMonitoringSessionId: session.id,
       });
       tokenStorage.assertSession(session.id);
       if (
@@ -21,7 +21,7 @@ export async function consultarResumosCompras(compras) {
         data.resumos.length !== ids.length ||
         new Set(data.resumos.map((r) => r.compraId)).size !==
           data.resumos.length ||
-        data.resumos.some((r) => !ids.includes(r.compraId))
+        data.resumos.some((r) => !ids.includes(r.compraId) || typeof r.oculto !== 'boolean')
       )
         throw Error('INVALID_PURCHASE_SUMMARIES');
       return data.resumos;
