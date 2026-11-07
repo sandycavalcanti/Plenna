@@ -26,6 +26,7 @@ import PurchasesScreen from './pages/PurchasesScreen';
 import RecurrencesScreen from './pages/RecurrencesScreen';
 import NotificationsScreen from './pages/NotificationsScreen';
 import MemoryListScreen from './pages/MemoryListScreen';
+import GoalDetailsScreen from './pages/GoalDetailsScreen';
 
 import { COLORS } from './constants';
 
@@ -381,6 +382,11 @@ export default function Routes() {
         <Stack.Screen
           name="MemoryList"
           component={MemoryListScreen}
+        />
+
+        <Stack.Screen
+          name="GoalDetails"
+          component={GoalDetailsScreen}
         />
 
         <Stack.Screen

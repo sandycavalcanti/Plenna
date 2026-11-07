@@ -47,17 +47,19 @@ const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...no
 const source=await read('src/components/HomeComponents/MetasHome.js');
 const js=transformSync(source.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
 const component=new Function('React','View','Text','Pressable','ActivityIndicator','useState','formatarValorMoedaParaTela',js+';return MetasHome;')(React,'View','Text','Pressable','Spinner',()=>[false,()=>{}],formatarValorMoedaParaTela);
-test('goals actual contents, zero one multiple complete unknown and loading failure',()=>{
- const one={id:1,nome:'Viagem',valor:'300',data:'2026-12-01',concluida:false};
+test('goals actual contents, progress summary, multiple complete unknown and loading failure',()=>{
+ const one={id:1,nome:'Viagem',valor:'300.00',valorReservado:'120.00',progressoPercentual:40,valorRestante:'180.00',data:'2026-12-01',concluida:false};
  assert.match(text(component({metas:[]})),/Criar uma meta/);
  assert.match(text(component({metas:[one]})),/Viagem/);
- assert.match(text(component({metas:[one]})),/não registra aportes/);
- assert.doesNotMatch(text(component({metas:[one]})),/100%|300,00.*restante/);
+ assert.match(text(component({metas:[one]})),/Reservado:\s+R\$ 120,00/);
+ assert.match(text(component({metas:[one]})),/Progresso:\s+40%/);
+ assert.doesNotMatch(text(component({metas:[one]})),/não registra aportes/);
+ assert.match(text(component({metas:[{...one,progressoPercentual:125}]})),/Progresso:\s+125%/);
  assert.match(text(component({metas:[{...one,concluida:true}]})),/Marcada como concluída/);
  assert.match(text(component({metas:[{...one,valor:null,data:'invalid'}]})),/Valor não informado/);
  assert.doesNotMatch(text(component({metas:[{...one,valor:'bad',data:'invalid'}]})),/NaN|Invalid Date/);
  const many=[one,{...one,id:2,nome:'Curso'},{...one,id:3,nome:'Reserva'}];
- assert.match(text(component({metas:many})),/Ver as 3 metas/);assert.doesNotMatch(text(component({metas:many})),/Reserva/);
+ assert.match(text(component({metas:many})),/Ver as 3 metas/);assert.match(text(component({metas:many})),/Reservado/);
  assert.ok(nodes(component({loading:true})).some(x=>x.type==='Spinner'));
  assert.match(text(component({error:true})),/Tentar novamente/);
 });

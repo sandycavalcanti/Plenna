@@ -33,12 +33,24 @@ function formatGoalDate(value) {
   return new Date(value).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 }
 
-function renderGoalCard(goal) {
+function formatGoalPercent(value) {
+  if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return null;
+  return `${String(value).replace('.', ',')}%`;
+}
+
+function renderGoalCard(goal, onOpen) {
   const completed = goal.concluida === true;
   const date = formatGoalDate(goal.data);
+  const percent = formatGoalPercent(goal.progressoPercentual);
+  const progressWidth = percent === null ? 0 : Math.min(100, Math.max(0, Number(goal.progressoPercentual)));
 
   return (
-    <View style={styles.goalCard}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Abrir detalhes da meta ${goal.nome}`}
+      onPress={() => onOpen?.(goal)}
+      style={styles.goalCard}
+    >
       <View style={styles.goalHeader}>
         <View style={styles.goalIcon}>
           <Icon name="target" size={20} color={COLORS.accent} />
@@ -58,7 +70,8 @@ function renderGoalCard(goal) {
         <View style={styles.goalDetail}>
           <Text style={styles.goalDetailLabel}>Objetivo</Text>
           <Text style={styles.goalValue}>{formatGoalValue(goal.valor)}</Text>
-          <Text style={styles.goalNote}>A meta não registra aportes.</Text>
+          {goal.valorReservado !== undefined && goal.valorReservado !== null ? <Text style={styles.goalNote}>Reservado: {formatGoalValue(goal.valorReservado)}</Text> : null}
+          {percent !== null ? <Text style={styles.goalNote}>Progresso: {percent}</Text> : null}
         </View>
         {date ? (
           <View style={styles.goalDate}>
@@ -67,11 +80,16 @@ function renderGoalCard(goal) {
           </View>
         ) : null}
       </View>
-    </View>
+      {percent !== null ? (
+        <View accessible accessibilityLabel={`Progresso da meta: ${percent}`} style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progressWidth}%` }]} />
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
-export default function MetasHome({ metas = [], loading, error, onRetry, onCreate }) {
+export default function MetasHome({ metas = [], loading, error, onRetry, onCreate, onOpen }) {
   const [all, setAll] = useState(false);
 
   return (
@@ -105,7 +123,7 @@ export default function MetasHome({ metas = [], loading, error, onRetry, onCreat
         <View style={styles.goalsList}>
           {(all ? metas : metas.slice(0, 2)).map((goal) => (
             <View key={goal.id}>
-              {renderGoalCard(goal)}
+              {renderGoalCard(goal, onOpen)}
             </View>
           ))}
           {metas.length > 2 ? (
@@ -252,6 +270,17 @@ const styles = {
     fontSize: 11,
     lineHeight: 15,
     color: COLORS.muted,
+  },
+  progressTrack: {
+    height: 7,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: COLORS.border,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 8,
+    backgroundColor: COLORS.accent,
   },
   goalDate: {
     flexDirection: 'row',

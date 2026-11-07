@@ -17,6 +17,14 @@ function normalizeGoalError(error) {
   };
 }
 
+function mergeMovements(existing, incoming) {
+  const byId = new Map();
+  [...existing, ...incoming].forEach((item) => {
+    if (item?.meta_movimentacao_id !== undefined) byId.set(item.meta_movimentacao_id, item);
+  });
+  return [...byId.values()];
+}
+
 function mergeGoalSummary(goals, summary) {
   if (!summary?.meta_id) return goals;
   return goals.map((goal) => goal.meta_id === summary.meta_id
@@ -76,8 +84,8 @@ export function useGoalSavings() {
           ...current.movimentacoes,
           [metaId]: {
             itens: options.cursor
-              ? [...(current.movimentacoes[metaId]?.itens ?? []), ...response.data.itens]
-              : response.data.itens,
+              ? mergeMovements(current.movimentacoes[metaId]?.itens ?? [], response.data.itens)
+              : mergeMovements([], response.data.itens),
             nextCursor: response.data.nextCursor ?? null,
           },
         },

@@ -167,7 +167,12 @@ export default function HomeScreen({ navigation }) {
         <SeletorMensalHome periodo={periodo} limites={financeiro.dados?.seletor} loading={financeiro.loading} error={financeiro.error} onChange={setPeriodo} />
         <PurchaseHero />
         <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} /></View>
-        <MetasHome {...metas} onRetry={metas.refresh} onCreate={() => navigation.navigate('EditProfile', { mode: 'goals' })} />
+        <MetasHome
+          {...metas}
+          onRetry={metas.refresh}
+          onCreate={() => navigation.navigate('EditProfile', { mode: 'goals' })}
+          onOpen={(goal) => navigation.navigate('GoalDetails', { goalId: goal.id, goal })}
+        />
         <View style={{ marginHorizontal: 18, padding: 16, marginBottom: 14, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 8 }}>
           <Text style={{ fontSize: 18, fontWeight: '700', color: '#594367' }}>Tempo em aplicativos · hoje</Text>
           <Text style={{ fontSize: 24, fontWeight: '700', color: '#893467' }}>{tempo.estado === 'CARREGANDO' ? 'Carregando' : tempo.estado === 'ERRO' ? 'Indisponível' : tempo.estado === 'SEM_CONSENTIMENTO' ? 'Não autorizado' : resumirTempoHoje(tempo.registros) > 0 ? formatarTempoUso(resumirTempoHoje(tempo.registros)) : 'Sem registros hoje'}</Text>
