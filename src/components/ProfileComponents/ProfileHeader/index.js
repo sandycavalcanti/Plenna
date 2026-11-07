@@ -7,7 +7,7 @@ import styles from './styles';
 function getInitials(nome) {
   const words = String(nome ?? '').trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return null;
-  return words.slice(0, 2).map((word) => word[0]).join('').toUpperCase();
+  return words[0][0].toUpperCase();
 }
 
 export default function ProfileHeader({ nome, email, rightAction }) {

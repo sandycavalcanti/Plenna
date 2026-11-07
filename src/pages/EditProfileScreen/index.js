@@ -409,10 +409,12 @@ export default function EditProfileScreen() {
           ) : (
             <View style={styles.sectionsWrap}>
               <View style={styles.metasIntroCard}>
-                <View style={styles.metasIntroIcon}><Feather name="target" size={20} color="#893467" /></View>
-                <View style={styles.metasIntroCopy}>
-                  <Text style={styles.metasIntroTitle}>Seus objetivos</Text>
-                  <Text style={styles.metasIntroSubtitle}>Crie metas claras e acompanhe cada avanço no seu cofrinho.</Text>
+                <View style={styles.metasIntroTopRow}>
+                  <View style={styles.metasIntroIcon}><Feather name="target" size={20} color="#893467" /></View>
+                  <View style={styles.metasIntroCopy}>
+                    <Text style={styles.metasIntroTitle}>Seus objetivos</Text>
+                    <Text style={styles.metasIntroSubtitle}>Crie metas claras e acompanhe cada avanço no seu cofrinho.</Text>
+                  </View>
                 </View>
                 <CustomButton title="Adicionar" accessibilityLabel="Adicionar meta" variant="primary" icon="plus" onPress={abrirNovaMeta} style={styles.addMetaAction} />
               </View>

@@ -51,10 +51,25 @@ test('seções mantêm navegação, metas e segurança com detalhes visuais disc
   const screen = await read('src/pages/ProfileScreen/index.js');
 
   assert.doesNotMatch(metas, /<ProfileCard[^>]*\bicon=/);
-  assert.match(metas, /actionLabel="Gerenciar"/);
+  assert.match(metas, /actionIcon="view-list-outline"/);
+  assert.match(metas, /actionAccessibilityLabel="Gerenciar metas"/);
+  assert.doesNotMatch(metas, /actionLabel="Gerenciar"/);
   assert.match(metas, /MetaDetails/);
   assert.match(permissions, /navigate\('MemoryList'\)/);
   assert.match(screen, /Feather name="shield"/);
   assert.match(screen, /handleChangePin/);
   assert.match(screen, /accessibilityLabel="Alterar PIN de compras"/);
+});
+
+test('identidade do Perfil usa inicial Ãºnica centralizada e preserva aÃ§Ãµes da conta', async () => {
+  const header = await read('src/components/ProfileComponents/ProfileHeader/index.js');
+  const styles = await read('src/components/ProfileComponents/ProfileHeader/styles.js');
+  const screen = await read('src/pages/ProfileScreen/index.js');
+
+  assert.match(header, /return words\[0\]\[0\]\.toUpperCase\(\)/);
+  assert.match(styles, /identityRow:[\s\S]*?alignItems: 'center'/);
+  assert.match(styles, /identityCopy:[\s\S]*?alignItems: 'center'/);
+  assert.match(styles, /action:[\s\S]*?position: 'absolute'/);
+  assert.match(screen, /icon="dots-vertical"/);
+  assert.doesNotMatch(header, /userIcon|<Image|editAvatarButton/);
 });

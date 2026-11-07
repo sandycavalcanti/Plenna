@@ -7,11 +7,13 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('card introdutório de metas preserva texto legível e botão com largura intrínseca', async () => {
   const styles = await read('src/pages/EditProfileScreen/styles.js');
 
-  assert.match(styles, /metasIntroCard:[\s\S]*?flexWrap: 'wrap'/);
+  assert.match(styles, /metasIntroCard:[\s\S]*?alignItems: 'stretch'/);
+  assert.match(styles, /metasIntroTopRow:[\s\S]*?flexDirection: 'row'/);
   assert.match(styles, /metasIntroCopy:[\s\S]*?minWidth: 0/);
   assert.match(styles, /addMetaAction:[\s\S]*?width: 'auto'/);
   assert.match(styles, /addMetaAction:[\s\S]*?flexGrow: 0/);
   assert.match(styles, /addMetaAction:[\s\S]*?flexShrink: 0/);
+  assert.match(styles, /addMetaAction:[\s\S]*?alignSelf: 'flex-end'/);
 });
 
 test('botão de memórias usa a largura útil da seção sem alterar sua navegação', async () => {
