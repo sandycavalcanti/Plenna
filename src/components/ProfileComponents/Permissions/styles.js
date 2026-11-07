@@ -87,9 +87,9 @@ export default StyleSheet.create({
   },
 
   memoryButton: {
-    alignSelf: 'flex-end',
+    alignSelf: 'stretch',
     marginTop: 8,
-    width: 'auto',
+    width: '100%',
     minHeight: 42,
   },
 

@@ -65,7 +65,8 @@ export default StyleSheet.create({
   },
   metasIntroCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
     gap: 11,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
@@ -84,6 +85,7 @@ export default StyleSheet.create({
   },
   metasIntroCopy: {
     flex: 1,
+    minWidth: 0,
     gap: 3,
   },
   metasIntroTitle: {
@@ -148,6 +150,9 @@ export default StyleSheet.create({
   },
   addMetaAction: {
     width: 'auto',
+    flexGrow: 0,
+    flexShrink: 0,
+    alignSelf: 'flex-start',
     minHeight: 40,
     paddingVertical: 8,
     paddingHorizontal: 11,

@@ -135,7 +135,7 @@ export default function MetaFormSheet({
 
               <View style={styles.actions}>
                 <CustomButton title="Cancelar" variant="secondary" onPress={onClose} disabled={disabled} style={styles.actionButton} />
-                <CustomButton title={mode === 'edit' ? 'Salvar alterações' : 'Criar meta'} variant="primary" onPress={submit} loading={saving} disabled={disabled} style={styles.actionButton} />
+                <CustomButton title={mode === 'edit' ? 'Salvar alterações' : 'Criar meta'} variant="accent" onPress={submit} loading={saving} disabled={disabled} style={styles.actionButton} />
               </View>
 
               {mode === 'edit' && onDelete ? (

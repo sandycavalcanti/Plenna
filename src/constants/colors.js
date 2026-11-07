@@ -1,12 +1,20 @@
 export const COLORS = {
   // GERAL
   fundoPrincipal: '#F7F7FB',
+  // SUPERFÍCIES E BORDAS — papéis semânticos reutilizáveis
+  surface: '#FFFFFF',
+  surfaceMuted: '#F4F1FA',
+  ink: '#4652A4',
+  border: '#ECE8F4',
   customButtonFundo: '#595D7C',
   customButtonTexto: '#FFFFFF',
   // BOTÕES — papéis semânticos preparados para temas futuros
   buttonPrimaryBackground: '#595D7C',
   buttonPrimaryText: '#FFFFFF',
   buttonPrimaryPressed: '#4B4F6B',
+  buttonAccentBackground: '#C79AB0',
+  buttonAccentText: '#595D7C',
+  buttonAccentPressed: '#D4AFCA',
   buttonSecondaryBackground: '#F2F1F8',
   buttonSecondaryText: '#595D7C',
   buttonSecondaryPressed: '#E3E0F4',

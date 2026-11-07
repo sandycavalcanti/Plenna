@@ -9,8 +9,8 @@ test('CustomButton centraliza variantes, estados, ícones e acessibilidade', asy
   const styles = await read('src/components/CustomButton/styles.js');
   const colors = await read('src/constants/colors.js');
 
-  for (const variant of ['PRIMARY', 'SECONDARY', 'OUTLINE', 'DANGER', 'GHOST']) assert.match(component, new RegExp(`${variant}:`));
-  for (const token of ['buttonPrimaryBackground', 'buttonSecondaryBackground', 'buttonOutlineBorder', 'buttonDangerBackground', 'buttonGhostText', 'buttonDisabledBackground']) assert.match(colors, new RegExp(token));
+  for (const variant of ['PRIMARY', 'ACCENT', 'SECONDARY', 'OUTLINE', 'DANGER', 'GHOST']) assert.match(component, new RegExp(`${variant}:`));
+  for (const token of ['buttonPrimaryBackground', 'buttonAccentBackground', 'buttonSecondaryBackground', 'buttonOutlineBorder', 'buttonDangerBackground', 'buttonGhostText', 'buttonDisabledBackground']) assert.match(colors, new RegExp(token));
   assert.match(component, /variant/);
   assert.match(component, /loading/);
   assert.match(component, /disabled/);
@@ -18,6 +18,7 @@ test('CustomButton centraliza variantes, estados, ícones e acessibilidade', asy
   assert.match(component, /accessibilityState/);
   assert.match(component, /pressed/);
   assert.match(styles, /primaryButton/);
+  assert.match(styles, /accentButton/);
   assert.match(styles, /secondaryButton/);
   assert.match(styles, /outlineButton/);
   assert.match(styles, /dangerButton/);
@@ -45,7 +46,7 @@ test('MetaFormSheet utiliza as mesmas variantes globais sem alterar os inputs', 
   const form = await read('src/components/Metas/MetaFormSheet/index.js');
   const styles = await read('src/components/Metas/MetaFormSheet/styles.js');
   assert.match(form, /variant="secondary"/);
-  assert.match(form, /variant="primary"/);
+  assert.match(form, /variant="accent"/);
   assert.match(form, /variant="danger"/);
   assert.match(form, /variant="ghost"/);
   assert.match(form, /normalizarValorMeta/);

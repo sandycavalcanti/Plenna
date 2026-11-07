@@ -1,5 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants';
+import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
+
+const { colors: DASHBOARD_COLORS, borders: DASHBOARD_BORDERS } = DASHBOARD_THEME;
 
 export const styles = StyleSheet.create({
   section: {
@@ -15,7 +18,7 @@ export const styles = StyleSheet.create({
   statCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: DASHBOARD_COLORS.surface,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 16,
@@ -23,11 +26,7 @@ export const styles = StyleSheet.create({
     marginRight: 5,
     marginBottom: 10,
     borderTopWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 6,
+    ...DASHBOARD_BORDERS.card,
     overflow: 'visible',
     minWidth: 220,
   },
