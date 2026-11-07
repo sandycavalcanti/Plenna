@@ -40,7 +40,7 @@ const linking = {
     'https://plenna-api.vercel.app',
   ],
   config: {
-    screens: {},
+    screens: { ForgotPassword: 'reset-password' },
   },
 };
 
