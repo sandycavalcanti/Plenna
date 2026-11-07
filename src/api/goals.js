@@ -78,7 +78,11 @@ export function listGoalMovements(metaId, { limit = GOAL_MOVEMENT_DEFAULT_LIMIT,
 
 function requirePreparedMovement(operation, tipo) {
   if (!operation || typeof operation !== 'object') throw new TypeError('operação de movimentação obrigatória');
-  return prepareGoalMovement(tipo, operation.valor, operation.operacao_id);
+  const prepared = prepareGoalMovement(operation.tipo, operation.valor, operation.operacao_id);
+  if (prepared.tipo !== tipo) {
+    throw new TypeError('tipo da operação de movimentação incompatível');
+  }
+  return prepared;
 }
 
 /** O mesmo objeto de operação deve ser reutilizado quando a requisição falhar e for repetida. */

@@ -30,7 +30,16 @@ export function useMetasHome() {
       const metas = response.data.map(g => {
         if (!Number.isInteger(g.meta_id) || g.meta_id <= 0 || ids.has(g.meta_id) || typeof g.meta_titulo !== 'string' || !g.meta_titulo.trim() || typeof g.meta_completado !== 'boolean') throw new Error('INVALID_GOALS');
         ids.add(g.meta_id);
-        return { id: g.meta_id, nome: g.meta_titulo, valor: g.meta_valor, data: g.meta_data, concluida: g.meta_completado };
+        return {
+          id: g.meta_id,
+          nome: g.meta_titulo,
+          valor: g.meta_valor,
+          valorReservado: g.meta_valor_reservado,
+          progressoPercentual: g.progresso_percentual,
+          valorRestante: g.valor_restante,
+          data: g.meta_data,
+          concluida: g.meta_completado,
+        };
       });
       if (id === request.current) setState({ metas, loading: false, error: false });
     } catch {
