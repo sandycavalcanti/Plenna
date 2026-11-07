@@ -48,7 +48,9 @@ const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...no
 const source=await read('src/components/HomeComponents/MetasHome.js');
 const js=transformSync(source.replace(/^import .*;\r?\n/gm,'').replace('export default function','function'),{configFile:false,babelrc:false,plugins:['@babel/plugin-transform-react-jsx']}).code;
 const MetaProgressBar=({value,accessibilityLabel})=>React.createElement('MetaProgressBar',{value,accessibilityLabel});
-const component=new Function('React','View','Text','Pressable','ActivityIndicator','useState','formatarValorMeta','formatarPercentualMeta','CustomButton','MetaProgressBar',js+';return MetasHome;')(React,'View','Text','Pressable','Spinner',()=>[false,()=>{}],formatarValorMeta,formatarPercentualMeta,CustomButton,MetaProgressBar);
+const MetaSummaryCard=({meta})=>React.createElement('MetaSummaryCard',{meta},meta.nome ?? meta.meta_titulo ?? 'Meta sem título','Objetivo',formatarValorMeta(meta.valor ?? meta.meta_valor) || 'Valor não informado','Progresso',formatarPercentualMeta(meta.progressoPercentual ?? meta.progresso_percentual),meta.concluida ? 'Marcada como concluída' : 'Em acompanhamento');
+const COLORS={surface:'#FFFFFF',metaProgressFill:'#893467'};
+const component=new Function('React','View','Text','ActivityIndicator','useState','CustomButton','MetaSummaryCard','COLORS',js+';return MetasHome;')(React,'View','Text','Spinner',()=>[false,()=>{}],CustomButton,MetaSummaryCard,COLORS);
 test('metas actual contents, progress summary, multiple complete unknown and loading failure',()=>{
  const one={id:1,nome:'Viagem',valor:'300.00',valorReservado:'120.00',progressoPercentual:40,valorRestante:'180.00',data:'2026-12-01',concluida:false};
  assert.match(text(component({metas:[]})),/Criar uma meta/);

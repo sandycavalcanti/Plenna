@@ -31,11 +31,13 @@ test('estados vazios usam o componente compartilhado e mantêm mensagens compact
 
 test('progresso de metas compartilha o mesmo componente entre Home e detalhes', async () => {
   const home = await read('src/components/HomeComponents/MetasHome.js');
+  const shared = await read('src/components/Metas/MetaSummaryCard/index.js');
   const details = await read('src/pages/MetaDetailsScreen/index.js');
   const progress = await read('src/components/Metas/MetaProgressBar/index.js');
   const colors = await read('src/constants/colors.js');
 
-  assert.match(home, /MetaProgressBar/);
+  assert.match(home, /MetaSummaryCard/);
+  assert.match(shared, /MetaProgressBar/);
   assert.match(details, /MetaProgressBar/);
   assert.match(progress, /Math\.min\(100, Math\.max\(0, numericValue\)\)/);
   assert.match(colors, /metaProgressTrack/);

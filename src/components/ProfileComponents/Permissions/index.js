@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import ProfileCard from '../ProfileCard';
 import CustomButton from '../../CustomButton';
 import styles from './styles';
+import { COLORS } from '../../../constants/colors';
 
 import {
   getModuleStatus,
@@ -479,7 +480,7 @@ export default function Permissions({ data }) {
       : 'Monitoramento desativado';
 
   return (
-    <ProfileCard title="Permissões">
+    <ProfileCard title="Permissões e integrações" variant="profile">
       <View style={styles.row}>
         <View style={styles.textContainer}>
           <Text style={styles.text}>
@@ -495,15 +496,15 @@ export default function Permissions({ data }) {
           value={emailEnabled}
           onValueChange={handleToggleEmail}
           trackColor={{
-            false: 'rgba(131, 111, 226, 0.25)',
-            true: '#A9A2F1',
+            false: COLORS.border,
+            true: COLORS.dadoTres,
           }}
           thumbColor={
             emailEnabled
-              ? '#4652A4'
-              : '#F4F3F4'
+              ? COLORS.ink
+              : COLORS.surface
           }
-          ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+          ios_backgroundColor={COLORS.border}
         />
       </View>
 
@@ -532,15 +533,15 @@ export default function Permissions({ data }) {
           onValueChange={handleToggleTracking}
           disabled={loadingTracking}
           trackColor={{
-            false: 'rgba(131, 111, 226, 0.25)',
-            true: '#A9A2F1',
+            false: COLORS.border,
+            true: COLORS.dadoTres,
           }}
           thumbColor={
             trackingEnabled
-              ? '#4652A4'
-              : '#F4F3F4'
+              ? COLORS.ink
+              : COLORS.surface
           }
-          ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+          ios_backgroundColor={COLORS.border}
         />
       </View>
 
@@ -554,9 +555,9 @@ export default function Permissions({ data }) {
           value={personalizationEnabled}
           onValueChange={handleTogglePersonalizacao}
           disabled={loadingMemory || !consentimentosDisponiveis || personalizationActionLoading}
-          trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
-          thumbColor={personalizationEnabled ? '#4652A4' : '#F4F3F4'}
-          ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+          trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+          thumbColor={personalizationEnabled ? COLORS.ink : COLORS.surface}
+          ios_backgroundColor={COLORS.border}
         />
       </View>
       <View style={styles.row}>
@@ -569,9 +570,9 @@ export default function Permissions({ data }) {
           value={proactivityEnabled}
           onValueChange={handleToggleProatividade}
           disabled={loadingMemory || !consentimentosDisponiveis || proactivityActionLoading}
-          trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
-          thumbColor={proactivityEnabled ? '#4652A4' : '#F4F3F4'}
-          ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+          trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+          thumbColor={proactivityEnabled ? COLORS.ink : COLORS.surface}
+          ios_backgroundColor={COLORS.border}
         />
       </View>
       <View style={styles.memorySection}>
@@ -587,9 +588,9 @@ export default function Permissions({ data }) {
             value={memoryEnabled}
             onValueChange={handleToggleMemory}
             disabled={loadingMemory || !consentimentosDisponiveis || memoryActionLoading}
-            trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
-            thumbColor={memoryEnabled ? '#4652A4' : '#F4F3F4'}
-            ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+            trackColor={{ false: COLORS.border, true: COLORS.dadoTres }}
+            thumbColor={memoryEnabled ? COLORS.ink : COLORS.surface}
+            ios_backgroundColor={COLORS.border}
           />
         </View>
 

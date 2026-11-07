@@ -1,68 +1,56 @@
-/**
- * Arquivo: ProfileHeader/styles.js
- * Descrição: Estilos do componente ProfileHeader, responsáveis pela
- * organização visual do cabeçalho do perfil, incluindo avatar e nome do usuário.
- * Autor: Marina Souza
- * Última atualização: 20/04/2026
- */
-
-//Importação do módulo de estilos do React Native
 import { StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants';
 
-/**
- * Objeto de estilos do componente
- * Define alinhamento, dimensões e tipografia do cabeçalho
- */
 export default StyleSheet.create({
-  // Container principal do cabeçalho
   container: {
+    marginBottom: 14,
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
+  identityRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    gap: 12,
   },
-
-  // Wrapper para permitir posicionamento do botão de edição sobre o avatar
-  avatarWrapper: {
-    position: 'relative',
-  },
-
-  // Estilo do avatar (imagem de perfil ou placeholder)
   avatar: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: COLORS.perfilFotoPlaceholder,
+    width: 52,
+    height: 52,
+    flexShrink: 0,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
-  
+    backgroundColor: COLORS.buttonSecondaryBackground,
   },
-
-  userIcon: {
-    width:120,
-    height:120,
+  initials: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.metaProgressFill,
   },
-
-  // Botão com ícone para editar imagem de perfil
-  editAvatarButton: {
-    position: 'absolute',
-    right: 10,
-    bottom: 10,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: COLORS.perfilIconeEditar,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.fundoPrincipal,
+  identityCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
   },
-
-  // Estilo do nome do usuário
   name: {
-    fontFamily: 'SugoDisplay',
-    marginTop: 10,
-    fontSize: 35,
-    fontWeight: '600',
-    color: COLORS.perfilNome,
+    fontSize: 20,
+    lineHeight: 25,
+    fontWeight: '800',
+    color: COLORS.cadTitulo,
+  },
+  email: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.dadoUm,
+  },
+  muted: {
+    fontSize: 13,
+    color: COLORS.dadoUm,
+  },
+  action: {
+    flexShrink: 0,
+    alignSelf: 'flex-start',
   },
 });

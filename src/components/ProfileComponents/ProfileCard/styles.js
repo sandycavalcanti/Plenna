@@ -106,4 +106,45 @@ export default StyleSheet.create({
   dashboardContent: {
     gap: 12,
   },
+
+  profileContainer: {
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 14,
+    backgroundColor: COLORS.surface,
+  },
+
+  profileHeader: {
+    position: 'relative',
+    top: 0,
+    left: 0,
+    right: 0,
+    marginBottom: 12,
+  },
+
+  profileTitleWrapper: {
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+  },
+
+  profileTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.cadTitulo,
+  },
+
+  profileAction: {
+    width: 'auto',
+    minHeight: 36,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+
+  profileContent: {
+    gap: 12,
+  },
 });

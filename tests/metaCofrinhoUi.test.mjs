@@ -99,15 +99,16 @@ test('finaliza valores de metas no blur sem criar uma segunda máscara', () => {
 test('Home e Perfil abrem detalhes sem usar o toque de navegação para alternar conclusão', async () => {
   const home = await read('src/pages/HomeScreen/index.js');
   const homeComponent = await read('src/components/HomeComponents/MetasHome.js');
+  const sharedCard = await read('src/components/Metas/MetaSummaryCard/index.js');
   const profileMetas = await read('src/components/ProfileComponents/Metas/index.js');
   const routes = await read('src/routes.js');
 
   assert.match(home, /navigation\.navigate\('MetaDetails', \{ metaId: meta\.id, meta \}\)/);
-  assert.match(homeComponent, /Abrir detalhes da meta/);
+  assert.match(sharedCard, /Abrir detalhes da meta/);
   assert.doesNotMatch(homeComponent, /não registra aportes/);
   assert.match(profileMetas, /navigation\.navigate\('MetaDetails', \{ metaId: meta\.meta_id, meta \}\)/);
-  assert.match(profileMetas, /accessibilityRole="checkbox"/);
-  assert.match(profileMetas, /accessibilityRole="button"/);
+  assert.match(sharedCard, /accessibilityRole="checkbox"/);
+  assert.match(sharedCard, /accessibilityRole="button"/);
   assert.match(routes, /name="MetaDetails"/);
 });
 
@@ -139,11 +140,11 @@ test('detalhes não introduz compras, dashboards ou ações financeiras fora do 
 
 test('todos os consumidores de metas usam o formatter de reais e mantêm o ID da meta', async () => {
   const home = await read('src/components/HomeComponents/MetasHome.js');
+  const shared = await read('src/components/Metas/MetaSummaryCard/index.js');
   const profile = await read('src/components/ProfileComponents/Metas/index.js');
   const details = await read('src/pages/MetaDetailsScreen/index.js');
   const api = await read('src/api/metas.js');
-  assert.match(home, /formatarValorMeta/);
-  assert.match(profile, /formatarValorMeta/);
+  assert.match(shared, /formatarValorMeta/);
   assert.match(details, /formatarValorMeta/);
   assert.doesNotMatch(home, /formatarValorMoedaParaTela/);
   assert.doesNotMatch(profile, /formatarValorMoedaParaTela/);
@@ -155,9 +156,10 @@ test('todos os consumidores de metas usam o formatter de reais e mantêm o ID da
 
 test('Home mantém as metas em formato resumido e não expõe o saldo reservado', async () => {
   const home = await read('src/components/HomeComponents/MetasHome.js');
-  assert.match(home, /Objetivo/);
-  assert.match(home, /Progresso/);
-  assert.match(home, /MetaProgressBar/);
+  const shared = await read('src/components/Metas/MetaSummaryCard/index.js');
+  assert.match(shared, /Objetivo/);
+  assert.match(shared, /Progresso/);
+  assert.match(shared, /MetaProgressBar/);
   assert.doesNotMatch(home, /Reservado:/);
   assert.doesNotMatch(home, /metaDate/);
 });

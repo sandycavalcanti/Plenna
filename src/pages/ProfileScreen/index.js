@@ -203,39 +203,41 @@ export default function ProfileScreen() {
         scrollIndicatorInsets={{ bottom: bottomSpacing }}
         onScrollBeginDrag={() => setAccountMenuVisible(false)}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetchAllData} tintColor={COLORS.dadoUm} />}>
-        <View style={styles.accountActionRow}>
-          <View style={styles.accountActionWrapper}>
-            <CustomButton
-              accessibilityLabel="Abrir ações da conta"
-              variant="ghost"
-              icon="dots-vertical"
-              iconOnly
-              onPress={handleAccountMenu}
-              loading={accountActionLoading}
-              disabled={accountActionLoading}
-              style={styles.accountActionButton}
-            />
+        {/* Cabeçalho compacto do perfil e ações reais da conta */}
+        <ProfileHeader
+          nome={nome.current}
+          email={email.current}
+          rightAction={(
+            <View style={styles.accountActionWrapper}>
+              <CustomButton
+                accessibilityLabel="Abrir ações da conta"
+                variant="ghost"
+                icon="dots-vertical"
+                iconOnly
+                onPress={handleAccountMenu}
+                loading={accountActionLoading}
+                disabled={accountActionLoading}
+                style={styles.accountActionButton}
+              />
 
-            {accountMenuVisible ? (
-              <View style={styles.accountDropdown}>
-                <TouchableOpacity style={styles.accountDropdownItem} onPress={handleLogout} activeOpacity={0.8} disabled={accountActionLoading}>
-                  <Feather name="log-out" size={16} color={COLORS.cadTitulo} />
-                  <Text style={styles.accountDropdownText}>Sair da conta</Text>
-                </TouchableOpacity>
+              {accountMenuVisible ? (
+                <View style={styles.accountDropdown}>
+                  <TouchableOpacity style={styles.accountDropdownItem} onPress={handleLogout} activeOpacity={0.8} disabled={accountActionLoading}>
+                    <Feather name="log-out" size={16} color={COLORS.cadTitulo} />
+                    <Text style={styles.accountDropdownText}>Sair da conta</Text>
+                  </TouchableOpacity>
 
-                <View style={styles.accountDropdownDivider} />
+                  <View style={styles.accountDropdownDivider} />
 
-                <TouchableOpacity style={styles.accountDropdownItem} onPress={handleDeleteAccount} activeOpacity={0.8} disabled={accountActionLoading}>
-                  <Feather name="trash-2" size={16} color="#A31414" />
-                  <Text style={[styles.accountDropdownText, styles.accountDropdownTextDanger]}>Apagar conta</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-          </View>
-        </View>
-
-        {/* Cabeçalho do perfil */}
-        <ProfileHeader nome={nome.current} />
+                  <TouchableOpacity style={styles.accountDropdownItem} onPress={handleDeleteAccount} activeOpacity={0.8} disabled={accountActionLoading}>
+                    <Feather name="trash-2" size={16} color={COLORS.buttonDangerText} />
+                    <Text style={[styles.accountDropdownText, styles.accountDropdownTextDanger]}>Apagar conta</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+            </View>
+          )}
+        />
 
         {/* Informações pessoais do usuário */}
         <PersonalInfo email={email.current} telefone={telefone.current} dataNascimento={dataNascimento.current} />
@@ -254,20 +256,23 @@ export default function ProfileScreen() {
           gate local: biometria é tentada primeiro e o PIN atual é o fallback.
           Nenhuma recuperação por exclusão simples é oferecida.
         */}
-        <TouchableOpacity
-          style={{ marginTop: 18, marginHorizontal: 16, padding: 16, borderRadius: 16, backgroundColor: COLORS.perfilPermissaoAvisoFundo, borderWidth: 1, borderColor: COLORS.perfilPermissaoAvisoBorda }}
-          onPress={handleChangePin}
-          activeOpacity={0.8}>
-          <Text style={{ color: COLORS.perfilProfileCardTitulo, fontSize: 16, fontWeight: '700' }}>Segurança das compras</Text>
-          <Text style={{ color: COLORS.perfilPermissaoAvisoTexto, marginTop: 5 }}>Alterar PIN</Text>
-        </TouchableOpacity>
-        {protectedAccess.status === 'biometric' ? (
-          <TouchableOpacity
-            style={{ alignSelf: 'center', marginTop: 10, padding: 10 }}
-            onPress={protectedAccess.usePinFallback}
-            activeOpacity={0.8}>
-            <Text style={{ color: COLORS.perfilProfileCardTitulo, fontWeight: '700' }}>Usar PIN</Text>
+        <View style={styles.securitySection}>
+          <Text style={styles.securityTitle}>Segurança</Text>
+          <TouchableOpacity style={styles.securityAction} onPress={handleChangePin} activeOpacity={0.8}>
+            <View style={styles.securityCopy}>
+              <Text style={styles.securityActionTitle}>Segurança das compras</Text>
+              <Text style={styles.securityActionDescription}>Alterar PIN</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color={COLORS.dadoUm} />
           </TouchableOpacity>
+        </View>
+        {protectedAccess.status === 'biometric' ? (
+          <CustomButton
+            title="Usar PIN"
+            variant="ghost"
+            onPress={protectedAccess.usePinFallback}
+            style={styles.pinFallback}
+          />
         ) : null}
       </ScrollView>
 

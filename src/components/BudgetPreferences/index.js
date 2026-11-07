@@ -1,12 +1,3 @@
-/**
- * Arquivo: BudgetPreferences/index.js
- * Descrição: Componente responsável por exibir as preferências de orçamento do usuário,
- * incluindo expectativa de gasto ideal e divisão por categorias.
- * Autor: Marina Souza
- * Última atualização: 20/04/2026
- */
-
-//Importações necessárias para o componente
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -14,53 +5,49 @@ import ProfileCard from '../ProfileComponents/ProfileCard';
 import styles from './styles';
 import { formatarValorMonetarioParaTela } from '../CustomTextInput/currency';
 
-/**
- * Componente: BudgetPreferences
- * Responsabilidade: Renderizar informações de preferências financeiras do usuário
- */
-export default function BudgetPreferences({ gastoIdealMensal, gastoIdealCompra, preferencias }) {
-  const navigation = useNavigation();
-  const rows = [];
+function formatarValorOuIndisponivel(value) {
+  if (value === null || value === undefined || value === '') return 'Valor não informado';
+  return formatarValorMonetarioParaTela(value) || 'Valor não informado';
+}
 
-  for (let i = 0; i < preferencias.length; i += 2) {
-    rows.push(preferencias.slice(i, i + 2));
+function formatarAtencaoPorCompra(value) {
+  if (value === null || value === undefined || value === '' || Number(value) <= 0) {
+    return 'Valor de atenção não definido';
   }
+  return formatarValorOuIndisponivel(value);
+}
 
-  const formatarTempo = (horas) => {
-    const num = parseFloat(horas) || 0;
-    return `${Math.floor(num)}h`;
-  };
+export default function BudgetPreferences({ gastoIdealMensal, gastoIdealCompra, preferencias = [] }) {
+  const navigation = useNavigation();
 
   return (
-    // Card principal que encapsula o conteúdo
-    <ProfileCard title="Preferências" onEdit={() => navigation.navigate('EditPreferences')}>
-      {/* Seção principal com o valor total esperado */}
-      <View style={styles.mainBox}>
-        <Text style={styles.label}>Meta de gasto mensal</Text>
-        <Text style={styles.value}>{formatarValorMonetarioParaTela(gastoIdealMensal) || 'R$ 0,00'}</Text>
+    <ProfileCard
+      title="Preferências financeiras"
+      variant="profile"
+      actionLabel="Editar"
+      onEdit={() => navigation.navigate('EditPreferences')}
+    >
+      <View style={styles.summaryGrid}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.label}>Meta de gasto mensal</Text>
+          <Text style={styles.value}>{formatarValorOuIndisponivel(gastoIdealMensal)}</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.label}>Valor de atenção por compra</Text>
+          <Text style={styles.value}>{formatarAtencaoPorCompra(gastoIdealCompra)}</Text>
+        </View>
       </View>
 
-      {/* Caixa de gasto máximo por compra */}
-      <View style={styles.mainBox}>
-        <Text style={styles.label}>Valor de atenção por compra</Text>
-        <Text style={styles.value}>{gastoIdealCompra != null && Number(gastoIdealCompra) > 0
-          ? formatarValorMonetarioParaTela(gastoIdealCompra)
-          : 'Valor de atenção não definido'}</Text>
-      </View>
-
-      {/* Linhas dinâmicas com categorias de gastos */}
       <View style={styles.categoriesSection}>
-        <Text style={styles.categoriesTitle}>Limite por categoria</Text>
-        {rows.map((row, rowIndex) => (
-          <View key={`row-${rowIndex}`} style={styles.row}>
-            {row.map((item, itemIndex) => (
-              <View key={`${item.categoria_nome}-${rowIndex}-${itemIndex}`} style={styles.smallBox}>
-                <Text style={styles.label}>{item.categoria_nome}</Text>
-                <Text style={styles.value}>{formatarValorMonetarioParaTela(item.preferencia_meta) || 'R$ 0,00'}</Text>
-              </View>
-            ))}
+        <Text style={styles.categoriesTitle}>Limites por categoria</Text>
+        {preferencias.length > 0 ? preferencias.map((item) => (
+          <View key={item.categoria_id ?? item.categoria_nome} style={styles.categoryRow}>
+            <Text style={styles.categoryName} numberOfLines={2}>{item.categoria_nome || 'Categoria não informada'}</Text>
+            <Text style={styles.categoryValue}>{formatarValorOuIndisponivel(item.preferencia_meta)}</Text>
           </View>
-        ))}
+        )) : (
+          <Text style={styles.emptyText}>Nenhum limite por categoria informado.</Text>
+        )}
       </View>
     </ProfileCard>
   );

@@ -1,75 +1,11 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
+import { COLORS } from '../../constants';
 import CustomButton from '../CustomButton';
-import MetaProgressBar from '../Metas/MetaProgressBar';
+import MetaSummaryCard from '../Metas/MetaSummaryCard';
 
 const Icon = typeof MaterialCommunityIcons === 'undefined' ? View : MaterialCommunityIcons;
-
-const COLORS = {
-  surface: '#FFFFFF',
-  surfaceMuted: '#FAF7FC',
-  ink: '#594367',
-  body: '#655A70',
-  muted: '#8F8398',
-  accent: '#893467',
-  accentSoft: '#F3EEF9',
-  positive: '#4F8D7A',
-  positiveSoft: '#EAF5F0',
-  completed: '#76658A',
-  completedSoft: '#F0EDF7',
-  border: '#ECE8F4',
-};
-
-function formatarValorExibicaoMeta(value) {
-  if (value === null || value === undefined || !Number.isFinite(Number(value))) {
-    return 'Valor não informado';
-  }
-
-  return formatarValorMeta(value) || 'Valor não informado';
-}
-
-function renderMetaCard(meta, onOpen) {
-  const completed = meta.concluida === true;
-  const percent = formatarPercentualMeta(meta.progressoPercentual);
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`Abrir detalhes da meta ${meta.nome}`}
-      onPress={() => onOpen?.(meta)}
-      style={styles.metaCard}
-    >
-      <View style={styles.metaHeader}>
-        <View style={styles.metaIcon}>
-          <Icon name="target" size={20} color={COLORS.accent} />
-        </View>
-        <View style={styles.metaCopy}>
-          <Text style={styles.metaName} numberOfLines={2}>{meta.nome}</Text>
-          <View style={[styles.statusBadge, completed ? styles.completedBadge : styles.activeBadge]}>
-            <View style={[styles.statusDot, completed ? styles.completedDot : styles.activeDot]} />
-            <Text style={[styles.statusText, completed ? styles.completedText : styles.activeText]}>
-              {completed ? 'Marcada como concluída' : 'Em acompanhamento'}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.metaDetails}>
-        <View style={styles.metaDetail}>
-          <Text style={styles.metaDetailLabel}>Objetivo</Text>
-          <Text style={styles.metaValue}>{formatarValorExibicaoMeta(meta.valor)}</Text>
-        </View>
-        <View style={styles.metaDetailProgress}>
-          <Text style={styles.metaDetailLabel}>Progresso</Text>
-          <Text style={styles.metaProgressValue}>{percent}</Text>
-        </View>
-      </View>
-      <MetaProgressBar value={meta.progressoPercentual} accessibilityLabel={`Progresso da meta: ${percent}`} />
-    </Pressable>
-  );
-}
 
 export default function MetasHome({ metas = [], loading, error, onRetry, onCreate, onOpen }) {
   const [all, setAll] = useState(false);
@@ -78,14 +14,14 @@ export default function MetasHome({ metas = [], loading, error, onRetry, onCreat
     <View style={styles.card}>
       <View style={styles.sectionHeader}>
         <View style={styles.sectionIcon}>
-          <Icon name="flag-checkered" size={20} color={COLORS.accent} />
+          <Icon name="flag-checkered" size={20} color={COLORS.metaProgressFill} />
         </View>
         <Text style={styles.sectionTitle}>Minhas metas</Text>
       </View>
 
       {loading ? (
         <View style={styles.loadingState}>
-          <ActivityIndicator accessibilityLabel="Carregando metas" color={COLORS.accent} />
+          <ActivityIndicator accessibilityLabel="Carregando metas" color={COLORS.metaProgressFill} />
         </View>
       ) : error ? (
         <View style={styles.messageState}>
@@ -100,9 +36,7 @@ export default function MetasHome({ metas = [], loading, error, onRetry, onCreat
       ) : (
         <View style={styles.metasList}>
           {(all ? metas : metas.slice(0, 2)).map((meta) => (
-            <View key={meta.id}>
-              {renderMetaCard(meta, onOpen)}
-            </View>
+            <MetaSummaryCard key={meta.id ?? meta.meta_id} meta={meta} onOpen={onOpen} />
           ))}
           {metas.length > 2 ? (
             <CustomButton
@@ -139,130 +73,25 @@ const styles = {
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.accentSoft,
+    backgroundColor: COLORS.buttonSecondaryBackground,
   },
   sectionTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '800',
-    color: COLORS.ink,
+    color: COLORS.cadTitulo,
   },
-  metasList: {
-    gap: 10,
-  },
-  metaCard: {
-    padding: 12,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surfaceMuted,
-    gap: 9,
-  },
-  metaHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  metaIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.surface,
-  },
-  metaCopy: {
-    flex: 1,
-    gap: 5,
-  },
-  metaName: {
-    fontSize: 15,
-    lineHeight: 19,
-    fontWeight: '800',
-    color: COLORS.ink,
-  },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  activeBadge: {
-    backgroundColor: COLORS.positiveSoft,
-  },
-  completedBadge: {
-    backgroundColor: COLORS.completedSoft,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  activeDot: {
-    backgroundColor: COLORS.positive,
-  },
-  completedDot: {
-    backgroundColor: COLORS.completed,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  activeText: {
-    color: COLORS.positive,
-  },
-  completedText: {
-    color: COLORS.completed,
-  },
-  metaDetails: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingTop: 9,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  metaDetail: {
-    flex: 1,
-    gap: 2,
-  },
-  metaDetailLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.muted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  metaValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.accent,
-  },
-  metaDetailProgress: {
-    alignItems: 'flex-end',
-    gap: 2,
-  },
-  metaProgressValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.ink,
-  },
+  metasList: { gap: 10 },
   loadingState: {
     minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  messageState: {
-    gap: 4,
-  },
+  messageState: { gap: 4 },
   message: {
     fontSize: 13,
     lineHeight: 19,
-    color: COLORS.body,
+    color: COLORS.dadoUm,
   },
   action: {
     minHeight: 44,

@@ -1,73 +1,66 @@
-/**
- * Arquivo:BudgetPreferences/styles.js
- * Descrição: Estilos do componente BudgetPreferences, responsáveis pela
- * organização visual dos elementos como caixas, textos e layout em linha.
- * Autor: Marina Souza
- * Última atualização: 20/04/2026
- */
-
-//Importação do módulo de estilos do React Native
 import { StyleSheet } from 'react-native';
 import { COLORS } from '../../constants';
 
-/**
- * Objeto de estilos do componente
- * Define layout, espaçamento, tipografia e estrutura visual
- */
 export default StyleSheet.create({
-  // Caixa principal que exibe o valor total de gasto
-  mainBox: {
-    borderWidth: 1.5,
-    borderRadius: 14,
-    padding: 12,
-    borderColor: COLORS.perfilMetaBorda,
-    backgroundColor: COLORS.perfilLimiteCategoriaFundo,
-  },
-
-  // Texto descritivo (rótulo)
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.perfilLimiteCategoriaTexto,
-    lineHeight: 20,
-  },
-
-  // Texto do valor principal (destaque)
-  value: {
-    fontSize: 14,
-    fontWeight: '800',
-    marginTop: 6,
-    color: COLORS.perfilMetaValor,
-  },
-
-  // Container em linha para categorias
-  row: {
+  summaryGrid: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 10,
   },
-
-  // Caixa menor para cada categoria de gasto
-  smallBox: {
+  summaryItem: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: COLORS.perfilMetaBorda,
-    borderRadius: 14,
-    backgroundColor: COLORS.perfilLimiteCategoriaFundo,
+    minWidth: 0,
     padding: 12,
+    borderRadius: 14,
+    backgroundColor: COLORS.surfaceMuted,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-
-  // Seção de categorias com título
-  categoriesSection: {
-    marginTop: 4,
+  label: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '700',
+    color: COLORS.dadoUm,
   },
-
-  // Título da seção de categorias
-  categoriesTitle: {
-    fontSize: 14,
+  value: {
+    marginTop: 6,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: '800',
-    color: COLORS.perfilLimiteCategoriaTexto,
-    marginBottom: 10,
-    paddingHorizontal: 2,
+    color: COLORS.cadTitulo,
+  },
+  categoriesSection: {
+    marginTop: 2,
+  },
+  categoriesTitle: {
+    marginBottom: 4,
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.cadTitulo,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  categoryName: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.dadoUm,
+  },
+  categoryValue: {
+    flexShrink: 0,
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.cadTitulo,
+  },
+  emptyText: {
+    paddingVertical: 8,
+    fontSize: 13,
+    color: COLORS.dadoUm,
   },
 });

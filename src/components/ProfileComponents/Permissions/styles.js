@@ -18,7 +18,7 @@ export default StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(131, 111, 226, 0.18)',
+    borderBottomColor: COLORS.border,
   },
 
   lastRow: {
@@ -34,13 +34,13 @@ export default StyleSheet.create({
   text: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.perfilInfoLabel,
+    color: COLORS.cadTitulo,
   },
 
   sub: {
     fontSize: 12,
     marginTop: 3,
-    color: COLORS.perfilInfoValor,
+    color: COLORS.dadoUm,
     lineHeight: 16,
   },
 
@@ -48,19 +48,19 @@ export default StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
     lineHeight: 15,
-    color: COLORS.perfilInfoValor,
+    color: COLORS.dadoUm,
   },
 
   warning: {
     marginTop: 14,
     fontSize: 12,
-    color: COLORS.perfilPermissaoAvisoTexto,
+    color: COLORS.dadoUm,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: COLORS.perfilPermissaoAvisoBorda,
-    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.buttonSecondaryBackground,
     lineHeight: 16,
   },
 
@@ -68,7 +68,7 @@ export default StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(131, 111, 226, 0.18)',
+    borderTopColor: COLORS.border,
   },
 
   memoryComposer: {
@@ -78,12 +78,12 @@ export default StyleSheet.create({
   memoryInput: {
     minHeight: 42,
     borderWidth: 1,
-    borderColor: 'rgba(131, 111, 226, 0.3)',
+    borderColor: COLORS.border,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: COLORS.perfilInfoLabel,
-    backgroundColor: '#FFFFFF',
+    color: COLORS.cadTitulo,
+    backgroundColor: COLORS.surface,
   },
 
   memoryButton: {
@@ -98,30 +98,30 @@ export default StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(131, 111, 226, 0.12)',
+    borderBottomColor: COLORS.border,
   },
 
   memoryContent: {
     fontSize: 13,
     lineHeight: 18,
-    color: COLORS.perfilInfoLabel,
+    color: COLORS.cadTitulo,
   },
 
   memoryDelete: {
-    color: '#A31414',
+    color: COLORS.buttonDangerText,
     fontSize: 12,
     fontWeight: '700',
   },
 
   memoryError: {
     marginTop: 8,
-    color: '#A31414',
+    color: COLORS.buttonDangerText,
     fontSize: 12,
   },
 
   memorySuccess: {
     marginTop: 8,
-    color: '#34704C',
+    color: COLORS.buttonPositiveText,
     fontSize: 12,
   },
 });
