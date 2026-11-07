@@ -50,8 +50,20 @@ export default StyleSheet.create({
 
   // Fundo para recortar visualmente a borda atrás do título
   titleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     paddingHorizontal: 8,
     backgroundColor: COLORS.fundoPrincipal,
+  },
+
+  sectionIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.buttonSecondaryBackground,
   },
 
   // Fundo para recortar visualmente a borda atrás do ícone de edição
@@ -142,6 +154,15 @@ export default StyleSheet.create({
     minHeight: 36,
     paddingHorizontal: 8,
     paddingVertical: 6,
+  },
+
+  profileIconAction: {
+    width: 40,
+    minHeight: 40,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderRadius: 13,
+    backgroundColor: COLORS.buttonGhostPressed,
   },
 
   profileContent: {

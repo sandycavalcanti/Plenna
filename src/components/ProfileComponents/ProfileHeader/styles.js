@@ -8,6 +8,8 @@ export default StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.dadoDois,
     backgroundColor: COLORS.surface,
   },
   identityRow: {
@@ -23,6 +25,8 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.buttonSecondaryBackground,
+    borderWidth: 1,
+    borderColor: COLORS.buttonOutlineBorder,
   },
   initials: {
     fontSize: 17,

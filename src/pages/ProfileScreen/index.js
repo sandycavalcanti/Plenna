@@ -257,8 +257,19 @@ export default function ProfileScreen() {
           Nenhuma recuperação por exclusão simples é oferecida.
         */}
         <View style={styles.securitySection}>
-          <Text style={styles.securityTitle}>Segurança</Text>
-          <TouchableOpacity style={styles.securityAction} onPress={handleChangePin} activeOpacity={0.8}>
+          <View style={styles.securityHeading}>
+            <View style={styles.securityIcon} accessibilityElementsHidden>
+              <Feather name="shield" size={17} color={COLORS.ink} />
+            </View>
+            <Text style={styles.securityTitle}>Segurança</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.securityAction}
+            onPress={handleChangePin}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Alterar PIN de compras"
+          >
             <View style={styles.securityCopy}>
               <Text style={styles.securityActionTitle}>Segurança das compras</Text>
               <Text style={styles.securityActionDescription}>Alterar PIN</Text>

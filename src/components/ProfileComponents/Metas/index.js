@@ -33,6 +33,7 @@ export default function Metas({ metas, error = false, onRetry }) {
   return (
     <ProfileCard
       title="Minhas metas"
+      icon="target"
       variant="profile"
       actionLabel="Gerenciar"
       onEdit={() => navigation.navigate('EditProfile', { mode: 'metas' })}

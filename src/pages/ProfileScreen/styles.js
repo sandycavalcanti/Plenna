@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
-    shadowColor: '#1E245A',
+    shadowColor: COLORS.chatContainerEnviarSombra,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.12,
     shadowRadius: 18,
@@ -67,10 +67,23 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   securityTitle: {
-    marginBottom: 10,
     fontSize: 17,
     fontWeight: '800',
     color: COLORS.cadTitulo,
+  },
+  securityHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    marginBottom: 10,
+  },
+  securityIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.buttonSecondaryBackground,
   },
   securityAction: {
     flexDirection: 'row',

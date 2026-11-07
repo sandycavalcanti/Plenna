@@ -7,7 +7,17 @@ export default StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 14,
-    paddingVertical: 5,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  rowIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.buttonSecondaryBackground,
   },
   label: {
     flex: 1,
