@@ -19,7 +19,7 @@ import { COLORS } from '../../../constants';
  * Responsabilidade: Estruturar visualmente seções com título, ação de edição
  * e renderização de conteúdo filho (children)
  */
-export default function ProfileCard({ title, icon = null, children, onEdit, actionLabel, actionIcon = null, actionAccessibilityLabel, onRemove, onToggleCollapse, isCollapsed = false, style, variant = 'default' }) {
+export default function ProfileCard({ title, children, onEdit, actionLabel, actionIcon = null, actionAccessibilityLabel, onRemove, onToggleCollapse, isCollapsed = false, style, variant = 'default' }) {
   const isDashboard = variant === 'dashboard';
   const isProfile = variant === 'profile';
 
@@ -30,11 +30,6 @@ export default function ProfileCard({ title, icon = null, children, onEdit, acti
       <View style={[styles.header, isDashboard && styles.dashboardHeader, isProfile && styles.profileHeader]}>
         {/* Título da seção */}
         <View style={[styles.titleWrapper, isDashboard && styles.dashboardTitleWrapper, isProfile && styles.profileTitleWrapper]}>
-          {icon ? (
-            <View style={styles.sectionIcon} accessibilityElementsHidden>
-              <Feather name={icon} size={16} color={COLORS.ink} />
-            </View>
-          ) : null}
           <Text style={[styles.title, isDashboard && styles.dashboardTitle, isProfile && styles.profileTitle]}>{title}</Text>
         </View>
 

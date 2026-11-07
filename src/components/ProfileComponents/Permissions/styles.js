@@ -66,11 +66,9 @@ export default StyleSheet.create({
 
   memorySection: {
     marginTop: 14,
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surfaceMuted,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
 
   memoryComposer: {

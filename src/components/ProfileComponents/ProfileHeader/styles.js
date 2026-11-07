@@ -8,8 +8,6 @@ export default StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.dadoDois,
     backgroundColor: COLORS.surface,
   },
   identityRow: {

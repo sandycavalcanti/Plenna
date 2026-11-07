@@ -480,7 +480,7 @@ export default function Permissions({ data }) {
       : 'Monitoramento desativado';
 
   return (
-    <ProfileCard title="Permissões e integrações" icon="sliders" variant="profile">
+    <ProfileCard title="Permissões e integrações" variant="profile">
       <View style={styles.row}>
         <View style={styles.textContainer}>
           <Text style={styles.text}>

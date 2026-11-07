@@ -11,21 +11,9 @@ export default StyleSheet.create({
     minWidth: 0,
     padding: 12,
     borderRadius: 14,
-    backgroundColor: COLORS.buttonSecondaryBackground,
+    backgroundColor: COLORS.surfaceMuted,
     borderWidth: 1,
     borderColor: COLORS.border,
-  },
-  summaryItemAttention: {
-    backgroundColor: COLORS.buttonPositiveBackground,
-  },
-  summaryIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    backgroundColor: COLORS.surface,
   },
   label: {
     fontSize: 12,

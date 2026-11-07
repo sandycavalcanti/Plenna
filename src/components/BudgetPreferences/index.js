@@ -1,11 +1,9 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProfileCard from '../ProfileComponents/ProfileCard';
 import styles from './styles';
 import { formatarValorMonetarioParaTela } from '../CustomTextInput/currency';
-import { COLORS } from '../../constants';
 
 function formatarValorOuIndisponivel(value) {
   if (value === null || value === undefined || value === '') return 'Valor não informado';
@@ -25,24 +23,17 @@ export default function BudgetPreferences({ gastoIdealMensal, gastoIdealCompra, 
   return (
     <ProfileCard
       title="Preferências financeiras"
-      icon="credit-card"
       variant="profile"
-      actionIcon="edit-2"
+      actionIcon="pencil-outline"
       actionAccessibilityLabel="Editar preferências financeiras"
       onEdit={() => navigation.navigate('EditPreferences')}
     >
       <View style={styles.summaryGrid}>
         <View style={styles.summaryItem}>
-          <View style={styles.summaryIcon} accessibilityElementsHidden>
-            <MaterialCommunityIcons name="wallet-outline" size={17} color={COLORS.ink} />
-          </View>
           <Text style={styles.label}>Meta de gasto mensal</Text>
           <Text style={styles.value}>{formatarValorOuIndisponivel(gastoIdealMensal)}</Text>
         </View>
-        <View style={[styles.summaryItem, styles.summaryItemAttention]}>
-          <View style={styles.summaryIcon} accessibilityElementsHidden>
-            <MaterialCommunityIcons name="alert-circle-outline" size={17} color={COLORS.buttonPositiveText} />
-          </View>
+        <View style={styles.summaryItem}>
           <Text style={styles.label}>Valor de atenção por compra</Text>
           <Text style={styles.value}>{formatarAtencaoPorCompra(gastoIdealCompra)}</Text>
         </View>

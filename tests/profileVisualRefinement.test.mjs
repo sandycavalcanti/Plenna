@@ -4,30 +4,28 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('ProfileCard centraliza icones de seção e ações de edição acessíveis', async () => {
+test('ProfileCard centraliza ações de edição acessíveis sem forçar decoração nos títulos', async () => {
   const card = await read('src/components/ProfileComponents/ProfileCard/index.js');
   const styles = await read('src/components/ProfileComponents/ProfileCard/styles.js');
 
-  assert.match(card, /icon = null/);
   assert.match(card, /actionIcon = null/);
   assert.match(card, /actionAccessibilityLabel/);
   assert.match(card, /variant="ghost"/);
   assert.match(card, /profileIconAction/);
-  assert.match(styles, /sectionIcon/);
   assert.match(styles, /profileIconAction/);
 });
 
-test('dados pessoais e preferências usam lápis compartilhado, sem ação textual redundante', async () => {
+test('dados pessoais e preferências usam lápis MaterialCommunityIcons compartilhado', async () => {
   const personal = await read('src/components/ProfileComponents/PersonalInfo/index.js');
   const preferences = await read('src/components/BudgetPreferences/index.js');
 
   for (const source of [personal, preferences]) {
-    assert.match(source, /actionIcon="edit-2"/);
+    assert.match(source, /actionIcon="pencil-outline"/);
     assert.match(source, /actionAccessibilityLabel=/);
     assert.doesNotMatch(source, /actionLabel="Editar"/);
   }
-  assert.match(personal, /rowIcon/);
-  assert.match(preferences, /summaryIcon/);
+  assert.doesNotMatch(personal, /rowIcon|Feather/);
+  assert.doesNotMatch(preferences, /summaryIcon|MaterialCommunityIcons/);
 });
 
 test('perfil usa acentos suaves da paleta existente sem criar cores locais', async () => {
@@ -36,11 +34,11 @@ test('perfil usa acentos suaves da paleta existente sem criar cores locais', asy
   const permissions = await read('src/components/ProfileComponents/Permissions/styles.js');
   const security = await read('src/pages/ProfileScreen/styles.js');
 
-  assert.match(header, /borderLeftColor: COLORS\.dadoDois/);
+  assert.doesNotMatch(header, /borderLeftWidth|borderLeftColor/);
   assert.match(header, /COLORS\.buttonOutlineBorder/);
-  assert.match(finance, /COLORS\.buttonSecondaryBackground/);
-  assert.match(finance, /COLORS\.buttonPositiveBackground/);
-  assert.match(permissions, /backgroundColor: COLORS\.surfaceMuted/);
+  assert.match(finance, /COLORS\.surfaceMuted/);
+  assert.match(permissions, /borderTopColor: COLORS\.border/);
+  assert.doesNotMatch(permissions, /backgroundColor: COLORS\.surfaceMuted/);
   assert.match(security, /securityIcon/);
   for (const source of [header, finance, permissions, security]) {
     assert.doesNotMatch(source, /#[0-9A-Fa-f]{3,8}/);
@@ -52,10 +50,9 @@ test('seções mantêm navegação, metas e segurança com detalhes visuais disc
   const permissions = await read('src/components/ProfileComponents/Permissions/index.js');
   const screen = await read('src/pages/ProfileScreen/index.js');
 
-  assert.match(metas, /icon="target"/);
+  assert.doesNotMatch(metas, /<ProfileCard[^>]*\bicon=/);
   assert.match(metas, /actionLabel="Gerenciar"/);
   assert.match(metas, /MetaDetails/);
-  assert.match(permissions, /icon="sliders"/);
   assert.match(permissions, /navigate\('MemoryList'\)/);
   assert.match(screen, /Feather name="shield"/);
   assert.match(screen, /handleChangePin/);
