@@ -1,3 +1,5 @@
+import PanoramaCompras from '../../components/PurchaseComponents/PanoramaCompras';
+import { periodoMensalSaoPaulo } from '../../utils/resumoFinanceiro';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, AppState, FlatList, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -31,6 +33,7 @@ export default function PurchasesScreen({route}={}) {
     if (!isFocused || protectedAccess.status !== PROTECTED_ACCESS_STATES.UNLOCKED){setContextoCompraId(null);setGerenciamento(null);setResumos({});}
   }, [isFocused, protectedAccess.status]);
   // Estes estados distinguem carregamento inicial, erro, lista e exclusão.
+  const [panoramaRevision, setPanoramaRevision] = useState(0);
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -66,6 +69,7 @@ export default function PurchasesScreen({route}={}) {
       const summaries=await consultarResumosCompras(eligiblePurchases);setResumos(summaries);
       const scoped=filtroConsumo?comprasPeriodo(eligiblePurchases,filtroConsumo):eligiblePurchases;
       setPurchases(sortPurchases(scoped));
+      setPanoramaRevision(value => value + 1);
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar compras');
       setErrorMessage('Não foi possível carregar suas compras. Tente novamente.');
@@ -518,6 +522,7 @@ export default function PurchasesScreen({route}={}) {
           return (
             <View style={[styles.pagerPage, { width: screenWidth }]}>
               <FlatList
+                ListHeaderComponent={tab.status === 'CONFIRMADA' ? <PanoramaCompras filtros={{ modo: 'MES', mes: filtroConsumo?.periodo ?? periodoMensalSaoPaulo() }} active={isFocused && protectedAccess.status === PROTECTED_ACCESS_STATES.UNLOCKED} refreshKey={panoramaRevision} /> : null}
                 data={pagePurchases}
                 keyExtractor={(item) => String(item.compra_id)}
                 renderItem={renderPurchaseCard}
@@ -531,7 +536,7 @@ export default function PurchasesScreen({route}={}) {
         }}
       />
       {gerenciamento&&<GerenciarCompra {...gerenciamento} onClose={()=>setGerenciamento(null)} onSaved={()=>loadPurchases(true)}/>}
-      {contextoCompraId !== null && <ContextoCompra compraId={contextoCompraId} compra={purchases.find((purchase) => purchase.compra_id === contextoCompraId)} onClose={() => {setContextoCompraId(null);loadPurchases(true);}} />}
+      {contextoCompraId !== null && <ContextoCompra etapaInicial="compra" compraId={contextoCompraId} compra={purchases.find((purchase) => purchase.compra_id === contextoCompraId)} onClose={() => {setContextoCompraId(null);loadPurchases(true);}} />}
     </SafeAreaView>
   );
 }

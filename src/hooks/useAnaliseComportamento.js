@@ -11,7 +11,7 @@ export function useAnaliseComportamento(periodo) {
     try {
       const session = await tokenStorage.captureSession();
       if (!session) throw new Error('SESSION_REQUIRED');
-      const { data } = await apiClient.get('/analises/comportamento', { params: { periodo }, signal: session.signal, rf017SessionId: session.id });
+      const { data } = await apiClient.get('/analises/comportamento', { params: { periodo }, signal: session.signal, usageMonitoringSessionId: session.id });
       tokenStorage.assertSession(session.id);
       if (data?.versaoContrato !== 1 || data?.analise?.periodo !== periodo || !data.analise.indicadores || !Array.isArray(data?.recomendacoes?.recomendacoes)) throw new Error('ANALISE_CONTRACT_INVALID');
       if (id === request.current) setState({ periodo, dados: data, loading: false, error: false });

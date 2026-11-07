@@ -26,7 +26,7 @@ export function useDescobertasResumo(periodo) {
       const { data } = await apiClient.get('/analises/descobertas', {
         params: { periodo },
         signal: session.signal,
-        rf017SessionId: session.id,
+        usageMonitoringSessionId: session.id,
         timeout: 10000,
       });
       tokenStorage.assertSession(session.id);

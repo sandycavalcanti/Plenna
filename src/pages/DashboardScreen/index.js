@@ -1,3 +1,4 @@
+import { mensagemErroAnalytics, diagnosticoAnalytics } from '../../utils/erroAnalytics';
 import { useResumoHome } from '../../hooks/useResumoHome';
 import UsageTimePanel from '../../components/UsageTimePanel';
 import { usageMonitoringReadsEnabled } from '../../api/usageMonitoringPolicy';
@@ -993,20 +994,26 @@ export default function DashboardScreen({ route, navigation }) {
     setOverviewLoading(true);
     setOverviewError(null);
     setOverviewData(null);
-
     try {
-      const data = await getDashboardAnalytics({ mode: 'month', month: selectedMonth }, { signal: controller.signal });
+      const data = await getDashboardAnalytics({
+        mode: 'month',
+        month: selectedMonth
+      }, {
+        signal: controller.signal
+      });
       if (requestId !== overviewRequestRef.current || controller.signal.aborted) return;
       setOverviewData(data);
     } catch (error) {
       if (requestId !== overviewRequestRef.current || isCanceled(error)) return;
-      logApiErrors(error, 'Erro ao buscar analytics do período');
-      setOverviewError('Confira sua conexão e tente carregar o período novamente.');
+      logApiErrors(error, 'Erro ao buscar analytics do período', true, diagnosticoAnalytics(error, {
+        mode: 'month',
+        month: selectedMonth
+      }));
+      setOverviewError(mensagemErroAnalytics(error));
     } finally {
       if (requestId === overviewRequestRef.current) setOverviewLoading(false);
     }
   }, [selectedMonth]);
-
   const loadComparison = useCallback(async () => {
     if (comparisonMode === 'compare' && compareMonthA === compareMonthB) {
       setComparisonData(null);
