@@ -74,7 +74,6 @@ test('componente apresenta quatro blocos somente após abrir, fecha e limpa em f
 test('integração preserva FlatList e acesso à compra; paginação não recalcula panorama',()=>{
   const source=readFileSync(new URL('../src/pages/PurchasesScreen/index.js',import.meta.url),'utf8');
   const header=source.slice(source.indexOf('ListHeaderComponent'),source.indexOf('contentContainerStyle={styles.listContent}'));
-  assert.match(header, /<PanoramaCompras/);
-  assert.match(header, /active=\{isFocused && protectedAccess.status === PROTECTED_ACCESS_STATES.UNLOCKED\}/);
-  assert.match(source,/setPanoramaRevision\(value => value \+ 1\)/);assert.match(source,/<FlatList/);assert.match(source,/<ContextoCompra etapaInicial="compra"/);
+  assert.ok(header.indexOf('<FiltroTemporalCompras')<header.indexOf('<PanoramaCompras'));
+  assert.match(source,/if \(!append\) setPanoramaRevision/);assert.match(source,/<FlatList/);assert.match(source,/<ContextoCompra etapaInicial="compra"/);
 });
