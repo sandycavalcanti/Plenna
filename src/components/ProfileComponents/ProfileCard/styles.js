@@ -54,6 +54,23 @@ export default StyleSheet.create({
     backgroundColor: COLORS.fundoPrincipal,
   },
 
+  titleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+  },
+
+  titleIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.buttonSecondaryBackground,
+  },
+
   // Fundo para recortar visualmente a borda atrás do ícone de edição
   editButton: {
     paddingHorizontal: 6,

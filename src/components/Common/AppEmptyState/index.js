@@ -12,11 +12,12 @@ export default function AppEmptyState({
   actionLabel,
   onAction,
   compact = false,
+  circleIcon = false,
   style,
 }) {
   return (
     <View style={[styles.container, compact && styles.compact, style]}>
-      <View style={[styles.iconWrap, compact && styles.compactIconWrap]}>
+      <View style={[styles.iconWrap, compact && styles.compactIconWrap, circleIcon && styles.circleIconWrap]}>
         <MaterialCommunityIcons name={icon} size={compact ? 20 : 24} color={COLORS.dadoUm} accessible={false} />
       </View>
       <Text style={styles.title}>{title}</Text>

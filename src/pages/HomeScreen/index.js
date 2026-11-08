@@ -140,8 +140,6 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate('Chat', { mode: 'new', recommendationContext: contexto.slice(0, 800) });
   }, [navigation, recomendacoes]);
 
-  const mostrarParaVoce = recomendacoes.loading || descobertasEmCarregamento || recomendacoes.error || descobertas.error || recomendacoes.consentimentoAtivo === false || itensParaVoce.length > 0;
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
@@ -189,29 +187,39 @@ export default function HomeScreen({ navigation }) {
           <UsageTimePanel compact month={periodo} onSettings={() => navigation.navigate('Profile')} onDetails={openUsageDetails} />
         ) : (
           <View style={styles.timeCard}>
-            <Text style={styles.timeCardTitle}>Tempo em aplicativos · hoje</Text>
+            <View style={styles.homeSectionHeader}>
+              <View style={styles.homeSectionIcon}>
+                <MaterialCommunityIcons name="clock-outline" size={20} color={COLORS.metaProgressFill} />
+              </View>
+              <Text style={styles.homeSectionTitle}>Tempo em aplicativos · hoje</Text>
+            </View>
             {tempo.estado === 'SEM_CONSENTIMENTO' ? <AppEmptyState icon="shield-off-outline" title="Monitoramento desativado." compact /> : null}
             {tempo.estado === 'ERRO' ? <AppEmptyState icon="clock-alert-outline" title="Tempo indisponível." compact /> : null}
             {tempo.estado === 'CARREGANDO' || tempo.estado === 'NAO_SOLICITADO' ? <AppEmptyState icon="clock-outline" title="Carregando registros..." compact /> : null}
             {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) > 0 ? <Text style={styles.timeValue}>{formatarTempoUso(resumirTempoHoje(tempo.registros))}</Text> : null}
-            {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) === 0 ? <AppEmptyState icon="clock-outline" title="Nenhum tempo registrado hoje." compact /> : null}
+            {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) === 0 ? <AppEmptyState icon="clock-outline" title="Nenhum tempo registrado hoje" description="Seus dados de uso aparecerão aqui quando estiverem disponíveis." compact circleIcon /> : null}
             {tempoTemDados ? <TouchableOpacity accessibilityRole="button" onPress={openUsageDetails} style={styles.timeLink}><Text style={styles.timeLinkText}>Entender meu tempo</Text></TouchableOpacity> : null}
           </View>
         )}
 
-        {mostrarParaVoce && (
-          <View style={{ marginHorizontal: 18, marginBottom: 14, gap: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: '#594367' }}>Para você</Text>
-            {recomendacoes.loading || descobertasEmCarregamento ? <Text style={{ color: '#655A70' }}>Carregando recomendações...</Text> : null}
-            {recomendacoes.error || descobertas.error ? <TouchableOpacity onPress={atualizarParaVoce} accessibilityRole="button"><Text style={styles.inlineActionText}>Não foi possível carregar todas as informações. Tentar novamente</Text></TouchableOpacity> : null}
-            {recomendacoes.consentimentoAtivo === false ? <Text style={{ color: '#655A70' }}>Ative as recomendações personalizadas no Perfil para receber sugestões baseadas em evidências.</Text> : null}
+        <View style={styles.recommendationCard}>
+          <View style={styles.homeSectionHeader}>
+            <View style={styles.homeSectionIcon}>
+              <MaterialCommunityIcons name="lightbulb-outline" size={20} color={COLORS.metaProgressFill} />
+            </View>
+            <Text style={styles.homeSectionTitle}>Para você</Text>
+          </View>
+          {recomendacoes.loading || descobertasEmCarregamento ? <Text style={styles.recommendationStateText}>Carregando recomendações...</Text> : null}
+          {recomendacoes.error || descobertas.error ? <TouchableOpacity onPress={atualizarParaVoce} accessibilityRole="button" style={styles.recommendationRetry}><Text style={styles.inlineActionText}>Não foi possível carregar todas as informações. Tentar novamente</Text></TouchableOpacity> : null}
+          {recomendacoes.consentimentoAtivo === false ? <Text style={styles.recommendationStateText}>Ative as recomendações personalizadas no Perfil para receber sugestões baseadas em evidências.</Text> : null}
+          {itensParaVoce.length > 0 ? <View style={styles.recommendationList}>
             {itensParaVoce.map((item) => item.tipoItem === 'RECOMENDACAO' ? (
-              <View key={item.chave} style={{ padding: 16, minHeight: 48, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 8 }}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>{item.titulo}</Text>
-                <Text style={{ color: '#655A70', lineHeight: 19 }}>{item.texto}</Text>
-                <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+              <View key={item.chave} style={styles.recommendationItem}>
+                <Text style={styles.recommendationItemTitle}>{item.titulo}</Text>
+                <Text style={styles.recommendationItemText}>{item.texto}</Text>
+                <View style={styles.recommendationActions}>
                   <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={styles.inlineActionText}>Conversar sobre isso</Text></TouchableOpacity>
-                  <TouchableOpacity accessibilityRole="button" onPress={() => recomendacoes.updateStatus(item.id, 'DESCARTADA')}><Text style={{ color: '#655A70' }}>Dispensar</Text></TouchableOpacity>
+                  <TouchableOpacity accessibilityRole="button" onPress={() => recomendacoes.updateStatus(item.id, 'DESCARTADA')}><Text style={styles.recommendationSecondaryAction}>Dispensar</Text></TouchableOpacity>
                 </View>
               </View>
             ) : (
@@ -219,19 +227,17 @@ export default function HomeScreen({ navigation }) {
                 key={item.chave}
                 accessibilityRole="button"
                 onPress={() => item.acao === 'notificacoes' ? openNotifications() : item.acao === 'metas' ? navigation.navigate('EditProfile', { mode: 'metas' }) : navigation.navigate('Dashboard', { indicador: 'comportamento', periodo })}
-                style={{ padding: 16, minHeight: 48, borderRadius: 18, backgroundColor: '#FFFFFF', gap: 6 }}
+                style={styles.recommendationItem}
               >
-                <Text style={{ fontSize: 16, fontWeight: '600', color: '#594367' }}>{item.titulo}</Text>
-                <Text style={{ color: '#655A70', lineHeight: 19 }}>{item.mensagem}</Text>
+                <Text style={styles.recommendationItemTitle}>{item.titulo}</Text>
+                <Text style={styles.recommendationItemText}>{item.mensagem}</Text>
               </TouchableOpacity>
             ))}
-          </View>
-        )}
-        {!recomendacoes.loading && !descobertas.loading && !recomendacoes.error && !descobertas.error && recomendacoes.consentimentoAtivo === true && itensParaVoce.length === 0 && (
-          <View style={styles.recommendationEmpty}>
-            <AppEmptyState icon="lightbulb-outline" title="Nenhuma recomendação disponível." compact />
-          </View>
-        )}
+          </View> : null}
+          {!recomendacoes.loading && !descobertas.loading && !recomendacoes.error && !descobertas.error && recomendacoes.consentimentoAtivo === true && itensParaVoce.length === 0 ? (
+            <AppEmptyState icon="lightbulb-outline" title="Nenhuma recomendação por enquanto" description="Novas sugestões aparecerão aqui conforme você utiliza o Plenna." compact circleIcon style={styles.recommendationEmptyState} />
+          ) : null}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

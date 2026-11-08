@@ -9,7 +9,7 @@
 //Importações necessárias para o componente
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomButton from '../../CustomButton';
 import styles from './styles';
 import { COLORS } from '../../../constants';
@@ -19,7 +19,7 @@ import { COLORS } from '../../../constants';
  * Responsabilidade: Estruturar visualmente seções com título, ação de edição
  * e renderização de conteúdo filho (children)
  */
-export default function ProfileCard({ title, children, onEdit, actionLabel, actionIcon = null, actionAccessibilityLabel, onRemove, onToggleCollapse, isCollapsed = false, style, variant = 'default' }) {
+export default function ProfileCard({ title, titleIcon = null, children, onEdit, actionLabel, actionIcon = null, actionAccessibilityLabel, onRemove, onToggleCollapse, isCollapsed = false, style, variant = 'default' }) {
   const isDashboard = variant === 'dashboard';
   const isProfile = variant === 'profile';
 
@@ -29,7 +29,12 @@ export default function ProfileCard({ title, children, onEdit, actionLabel, acti
       {/* Cabeçalho com título e ação de edição */}
       <View style={[styles.header, isDashboard && styles.dashboardHeader, isProfile && styles.profileHeader]}>
         {/* Título da seção */}
-        <View style={[styles.titleWrapper, isDashboard && styles.dashboardTitleWrapper, isProfile && styles.profileTitleWrapper]}>
+        <View style={[styles.titleWrapper, isDashboard && styles.dashboardTitleWrapper, isProfile && styles.profileTitleWrapper, titleIcon && styles.titleWithIcon]}>
+          {titleIcon ? (
+            <View style={styles.titleIcon}>
+              <MaterialCommunityIcons name={titleIcon} size={20} color={COLORS.metaProgressFill} />
+            </View>
+          ) : null}
           <Text style={[styles.title, isDashboard && styles.dashboardTitle, isProfile && styles.profileTitle]}>{title}</Text>
         </View>
 

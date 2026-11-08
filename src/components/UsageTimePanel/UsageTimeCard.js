@@ -6,6 +6,7 @@ import { styles as categoryStyles } from '../DashboardComponents/Categoria/style
 import { usageTimeLabel } from '../../utils/usageMonitoringView';
 import { DASHBOARD_THEME } from '../../constants/dashboardTheme';
 import { styles } from './styles';
+import AppEmptyState from '../Common/AppEmptyState';
 
 // Apresentação comum às leituras v2 e anteriores; não coleta nem sincroniza dados.
 export default function UsageTimeCard({
@@ -38,12 +39,19 @@ export default function UsageTimeCard({
     message = total == null ? 'Carregando tempo registrado…' : null;
   }
   return <View style={[categoryStyles.section, compact && styles.compactSection]} testID="usage-time-card">
-    <ProfileCard title="Tempo em aplicativos" variant="dashboard">
+    <ProfileCard title={compact ? 'Tempo em aplicativos · hoje' : 'Tempo em aplicativos'} titleIcon={compact ? 'clock-outline' : null} variant="dashboard">
       {total != null && <View style={[styles.summary, compact && styles.todaySummary]} testID={compact ? 'usage-today-highlight' : 'usage-month-summary'}>
         <Text style={[styles.caption, compact && styles.todayCaption]}>{compact ? 'TEMPO REGISTRADO HOJE' : 'Tempo registrado no mês'}</Text>
         <Text style={[styles.total, compact && styles.compactTotal]} testID="usage-total">{usageTimeLabel(total)}</Text>
       </View>}
-      {message && <View style={styles.statusRow}>
+      {compact && state?.kind === 'EMPTY' ? <AppEmptyState
+        icon="clock-outline"
+        title="Nenhum tempo registrado hoje"
+        description="Seus dados de uso aparecerão aqui quando estiverem disponíveis."
+        compact
+        circleIcon
+      /> : null}
+      {message && !(compact && state?.kind === 'EMPTY') && <View style={styles.statusRow}>
         {['LOADING', 'SYNCING'].includes(state.kind) && <ActivityIndicator size="small" accessibilityLabel={message} />}
         <Text style={styles.status} testID="usage-main-message" accessibilityLiveRegion="polite">{message}</Text>
       </View>}

@@ -29,6 +29,11 @@ export default StyleSheet.create({
     height: 34,
     borderRadius: 11,
   },
+  circleIconWrap: {
+    borderRadius: 999,
+    backgroundColor: COLORS.buttonSecondaryBackground,
+    borderWidth: 0,
+  },
   title: {
     color: COLORS.cadTitulo,
     fontSize: 14,

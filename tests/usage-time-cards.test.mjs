@@ -46,7 +46,7 @@ test('technical information and individual history are absent in both card varia
 });
 test('empty history does not invent zero or a leading app; observed zero stays zero registered',()=>{
  const r=render({data:{summary:{availability:'NO_DATA'},observations:[],legacy:[]}}, {compact:true});
- assert.match(r.text(),/Nenhum registro hoje/);assert.doesNotMatch(r.text(),/0 s|SHEIN|Mais utilizado|Atualizado/);
+ assert.match(r.text(),/Nenhum tempo registrado hoje/);assert.match(r.text(),/Seus dados de uso aparecerão aqui quando estiverem disponíveis/);assert.doesNotMatch(r.text(),/0 s|SHEIN|Mais utilizado|Atualizado/);
  const zero=fixture();zero.observations=[observation('2026-11-07',[['com.zzkko',0]])];zero.summary.totalRegisteredMs=0;zero.summary.sourceTotals.v2RegisteredMs=0;
  r.change({data:zero});assert.match(r.text(),/TEMPO REGISTRADO HOJE.*0 s/);assert.doesNotMatch(r.text(),/mais utilizado/i);r.unmount();
 });
