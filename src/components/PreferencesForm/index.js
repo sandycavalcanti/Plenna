@@ -5,7 +5,7 @@
  */
 
 import React, { useLayoutEffect, useState, useRef } from 'react';
-import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { ScrollView, View, Text, Modal, Pressable, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import LimitSlider from '../LimitSlider';
 import ProfileCard from '../ProfileComponents/ProfileCard';
 import CustomButton from '../CustomButton';
@@ -17,6 +17,7 @@ import MoneyInput from '../MoneyInput';
 import useMoneyEditors from './useMoneyEditors';
 import { categoriaEhOutros } from '../../utils/categorias';
 import { validarValorMonetario } from '../../utils/orcamento';
+import AppScreenHeader from '../Common/AppScreenHeader';
 
 function InfoButton({ title, message }) {
   return (
@@ -254,16 +255,12 @@ export default function PreferencesForm({
 
   return (
     <>
-      <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
-      <Text style={styles.titulo}>Preferências</Text>
-
-      {/* Cabeçalho (só aparece em modo edição) */}
-      {isEditing && (
-        <View style={styles.header}>
-          <Text style={styles.title}>Editar Preferências</Text>
-          <Text style={styles.subtitle}>Defina seus limites de gasto e preferências de compra.</Text>
-        </View>
-      )}
+      <AppScreenHeader
+        icon="tune-variant"
+        title={isEditing ? 'Preferências' : 'Configure seu orçamento'}
+        subtitle={isEditing ? 'Ajuste seus limites e preferências de compra.' : 'Defina limites para começar com mais clareza.'}
+        style={styles.screenHeader}
+      />
 
       {/* Campos de entrada rápida */}
       <View style={styles.borderOverlay}>
@@ -442,7 +439,7 @@ export default function PreferencesForm({
         const saldoCategoria = Math.round((restantePermitido + Number(category.limite || 0)) * 100) / 100;
         const maximoCategoria = Math.max(0, Number(category.limite || 0), saldoCategoria);
         return (
-        <ProfileCard key={category.categoria_id} title={category.categoria_nome} onRemove={() => afterConfirmation(({ onRemoverCategoria, metaBloqueada }) => onRemoverCategoria(category.categoria_id, metaBloqueada))} style={{ width: '95%' }}>
+        <ProfileCard key={category.categoria_id} title={category.categoria_nome} titleIcon="tag-outline" variant="profile" onRemove={() => afterConfirmation(({ onRemoverCategoria, metaBloqueada }) => onRemoverCategoria(category.categoria_id, metaBloqueada))} style={styles.categoryCard}>
           <LimitSlider
             title="Limite mensal"
             min={0}

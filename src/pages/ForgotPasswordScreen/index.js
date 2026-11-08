@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Alert, Image, KeyboardAvoidingView } from 'react-native';
+import { View, Text, Alert, Image, KeyboardAvoidingView, Pressable } from 'react-native';
 import { styles } from './styles';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
@@ -136,13 +136,28 @@ export default function ForgotPasswordScreen({ navigation }) {
                 <Text style={styles.texto}>Digite o código enviado</Text>
                 <CustomTextInput placeholder="Código" textValue={codigo} keyboardType="number-pad" maxLength={6} />
                 <CustomButton title="Verificar" onPress={verificarCodigo} disabled={loading} loading={loading} />
-                <CustomButton
-                  title={segundosParaReenvio > 0 ? `Reenviar código em ${segundosParaReenvio}s` : 'Reenviar código'}
-                  variant="secondary"
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={segundosParaReenvio > 0 ? `Reenviar em ${segundosParaReenvio} segundos` : 'Reenviar código'}
+                  accessibilityState={{ disabled: loading || segundosParaReenvio > 0 }}
                   onPress={enviarCodigo}
                   disabled={loading || segundosParaReenvio > 0}
-                />
-                <CustomButton title="Alterar e-mail" variant="secondary" onPress={() => setStep(1)} disabled={loading} />
+                  style={({ pressed }) => [styles.textAction, pressed && styles.textActionPressed]}
+                >
+                  <Text style={[styles.resendText, (loading || segundosParaReenvio > 0) && styles.resendTextDisabled]}>
+                    {segundosParaReenvio > 0 ? `Reenviar em ${segundosParaReenvio}s` : 'Reenviar código'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Alterar e-mail"
+                  accessibilityState={{ disabled: loading }}
+                  onPress={() => setStep(1)}
+                  disabled={loading}
+                  style={({ pressed }) => [styles.textAction, pressed && styles.textActionPressed]}
+                >
+                  <Text style={styles.changeEmailText}>Alterar e-mail</Text>
+                </Pressable>
               </>
             )}
 

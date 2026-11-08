@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderRadius: 20,
-    paddingTop: 15,
+    paddingTop: 18,
   },
   logo: {
     width: 180,
@@ -29,5 +29,8 @@ export const styles = StyleSheet.create({
   },
   texto: {
     marginTop: 6,
+  },
+  signupLink: {
+    marginTop: 14,
   },
 });

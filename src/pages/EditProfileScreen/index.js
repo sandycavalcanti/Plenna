@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { KeyboardAvoidingView, Platform, ScrollView, View, Text, Alert, ActivityIndicator, Image, TouchableOpacity, Pressable } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View, Text, Alert, ActivityIndicator, TouchableOpacity, Pressable } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -380,16 +380,17 @@ export default function EditProfileScreen() {
               style={styles.metaScreenHeader}
             />
           ) : (
-            <View style={styles.heroCard}>
-              <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.heroLogo} />
-              <Text style={styles.heroTitle}>Editar Informações</Text>
-              <Text style={styles.heroSubtitle}>Gerencie suas informações pessoais — adicione, edite ou remova.</Text>
-            </View>
+            <AppScreenHeader
+              icon="account-edit-outline"
+              title="Editar Informações"
+              subtitle="Atualize seus dados e hábitos digitais."
+              style={styles.infoScreenHeader}
+            />
           )}
 
           {mode === 'info' ? (
             <View style={styles.sectionsWrap}>
-              <ProfileCard title="Dados básicos" style={styles.sectionCard}>
+              <ProfileCard title="Dados básicos" titleIcon="account-outline" variant="profile" style={styles.sectionCard}>
                 {renderTextField('Nome', user.nome, (t) => setUser((u) => ({ ...u, nome: t })), 'Nome')}
                 {renderTextField('E-mail', user.email, (t) => setUser((u) => ({ ...u, email: t })), 'E-mail', { keyboardType: 'email-address', autoCapitalize: 'none' })}
                 {renderTextField('Telefone', formatarTelefoneParaTela(user.telefone), (t) => setUser((u) => ({ ...u, telefone: manterSomenteDigitos(t).slice(0, 11) })), '(00) 00000-0000', {
@@ -402,7 +403,7 @@ export default function EditProfileScreen() {
                 })}
               </ProfileCard>
 
-              <ProfileCard title="Hábitos digitais" style={styles.sectionCard}>
+              <ProfileCard title="Hábitos digitais" titleIcon="cellphone-cog" variant="profile" style={styles.sectionCard}>
                 {renderOptionGroup('O que mais te incomoda no seu consumo digital?', discomfortOptions, user.incomodoConsumo, (option) => setUser((u) => ({ ...u, incomodoConsumo: option })))}
                 {renderOptionGroup('Quanto tempo voce acha que passa no celular?', screenTimeOptions, user.tempoTela, (option) => setUser((u) => ({ ...u, tempoTela: option })))}
                 {renderOptionGroup('O que mais te faz comprar ou consumir algo?', triggerOptions, user.gatilhoConsumo, (option) => setUser((u) => ({ ...u, gatilhoConsumo: option })))}
@@ -421,25 +422,24 @@ export default function EditProfileScreen() {
                     <Text style={styles.metasIntroSubtitle}>Crie metas claras e acompanhe cada avanço no seu cofrinho.</Text>
                   </View>
                 </View>
-                <View style={styles.metaManagementBar}>
-                  <View style={styles.metaSegments} accessibilityRole="tablist">
-                    {[
-                      ['ATIVAS', 'Ativas'],
-                      ['FINALIZADAS', 'Finalizadas'],
-                    ].map(([value, label]) => (
-                      <Pressable
-                        key={value}
-                        accessibilityRole="tab"
-                        accessibilityState={{ selected: metaSegment === value }}
-                        onPress={() => setMetaSegment(value)}
-                        style={[styles.metaSegment, metaSegment === value && styles.metaSegmentSelected]}
-                      >
-                        <Text style={[styles.metaSegmentText, metaSegment === value && styles.metaSegmentTextSelected]}>{label}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                  <CustomButton title="Adicionar" accessibilityLabel="Adicionar meta" variant="primary" icon="plus" onPress={abrirNovaMeta} style={styles.addMetaAction} />
-                </View>
+                <CustomButton title="Adicionar" accessibilityLabel="Adicionar meta" variant="primary" icon="plus" onPress={abrirNovaMeta} style={styles.addMetaAction} />
+              </View>
+
+              <View style={styles.metaSegments} accessibilityRole="tablist">
+                {[
+                  ['ATIVAS', 'Ativas'],
+                  ['FINALIZADAS', 'Finalizadas'],
+                ].map(([value, label]) => (
+                  <Pressable
+                    key={value}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: metaSegment === value }}
+                    onPress={() => setMetaSegment(value)}
+                    style={[styles.metaSegment, metaSegment === value && styles.metaSegmentSelected]}
+                  >
+                    <Text style={[styles.metaSegmentText, metaSegment === value && styles.metaSegmentTextSelected]}>{label}</Text>
+                  </Pressable>
+                ))}
               </View>
 
               {metasExibidas.map((m, idx) => (

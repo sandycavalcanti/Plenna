@@ -63,4 +63,33 @@ export const styles = StyleSheet.create({
     fontStyle: 'bold',
     paddingBottom: 10,
   },
+  textAction: {
+    width: '100%',
+    minHeight: 48,
+    marginTop: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: 'transparent',
+  },
+  textActionPressed: {
+    opacity: 0.62,
+  },
+  resendText: {
+    color: COLORS.cadTextoAdicionarLimites,
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  resendTextDisabled: {
+    color: COLORS.dadoUm,
+  },
+  changeEmailText: {
+    color: COLORS.buttonSecondaryText,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });

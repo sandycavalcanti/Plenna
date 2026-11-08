@@ -7,7 +7,6 @@ import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
 import { logApiErrors } from '../../utils/error';
 import { COLORS } from '../../constants/colors';
-import { devMode } from '../../constants/config';
 import { Ionicons } from '@expo/vector-icons';
 import { invalidateProtectedSession } from '../../services/security/protectedSession';
 
@@ -58,27 +57,6 @@ export default function LoginScreen({ navigation }) {
       .catch((error) => logApiErrors(error, 'Erro ao realizar login'));
   }
 
-  async function irDireto() {
-    apiClient
-      .post('/auth/login', {
-        email: 'sandy@email.com',
-        senha: 'senha123',
-      })
-      .then(async (response) => {
-        const dados = response.data;
-        const token = dados.token;
-        await tokenStorage.setToken(token);
-        // O login de desenvolvimento também pode trocar a conta ativa. Por
-        // isso invalidamos a sessão local de compras sem registrar o JWT ou
-        // qualquer outro segredo no console.
-        invalidateProtectedSession();
-        handleLogin();
-      })
-      // O login de desenvolvimento segue o mesmo tratamento de erro do
-      // fluxo normal, mantendo o diagnóstico centralizado no utilitário atual.
-      .catch((error) => logApiErrors(error, 'Erro ao realizar login'));
-  }
-
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
@@ -96,31 +74,9 @@ export default function LoginScreen({ navigation }) {
         </Text>
         <CustomButton title="Entrar" onPress={Login} />
 
-        <Text style={[styles.texto, { color: COLORS.loginLinks }]} onPress={handleSignUp}>
+        <Text style={[styles.texto, styles.signupLink, { color: COLORS.loginLinks }]} onPress={handleSignUp}>
           Criar conta
         </Text>
-        {devMode && (
-          <>
-            <Text
-              style={[styles.texto, { color: COLORS.loginLinks }]}
-              onPress={() => {
-                email.current = 'sandy@email.com';
-                senha.current = 'senha123';
-                Login();
-              }}>
-              Ir direto
-            </Text>
-            <Text
-              style={[styles.texto, { color: COLORS.loginLinks }]}
-              onPress={() => {
-                email.current = 'semnada@email.com';
-                senha.current = 'senha123';
-                Login();
-              }}>
-              Conta sem nada
-            </Text>
-          </>
-        )}
       </View>
     </KeyboardAvoidingView>
   );

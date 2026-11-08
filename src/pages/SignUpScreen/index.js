@@ -74,6 +74,7 @@ export default function SignUpScreen({ navigation, route }) {
   const [checkboxMonitoramento, setCheckboxMonitoramento] = useState(false);
   const [checkboxAutorizacao, setCheckboxAutorizacao] = useState(false);
   const [checkboxTermos, setCheckboxTermos] = useState(false);
+  const [monitoringDetailsVisible, setMonitoringDetailsVisible] = useState(false);
 
   useEffect(() => {
     const sub = Linking.addEventListener('url', (event) => {
@@ -586,12 +587,30 @@ async function CadastrarUsuario() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.checkboxRow} onPress={() => setCheckboxMonitoramento(!checkboxMonitoramento)} accessibilityRole="checkbox" accessibilityState={{ checked: checkboxMonitoramento }}>
-            <View style={[styles.checkbox, checkboxMonitoramento && styles.checkboxChecked]}>{checkboxMonitoramento && <Text style={styles.checkboxMark}>✓</Text>}</View>
-            <Text style={styles.checkboxText}>{monitoringTitle}</Text>
-          </TouchableOpacity>
-          <Text style={styles.checkboxText}>Opcional. {monitoringExplanation} {monitoringManagement}</Text>
-         <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
+          <View style={styles.monitoringConsentCard}>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setCheckboxMonitoramento(!checkboxMonitoramento)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: checkboxMonitoramento }}
+            >
+              <View style={[styles.checkbox, checkboxMonitoramento && styles.checkboxChecked]}>{checkboxMonitoramento && <Text style={styles.checkboxMark}>✓</Text>}</View>
+              <View style={styles.checkboxCopy}>
+                <Text style={styles.checkboxText}>{monitoringTitle}</Text>
+                <Text style={styles.checkboxOptional}>Opcional</Text>
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.monitoringSummary}>Permita que o Plenna acompanhe seu tempo de uso em aplicativos de compras para oferecer análises mais personalizadas.</Text>
+            <TouchableOpacity
+              style={styles.learnMoreButton}
+              onPress={() => setMonitoringDetailsVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Saiba como funciona o monitoramento de tempo em aplicativos"
+            >
+              <Text style={styles.learnMoreText}>Saiba como funciona</Text>
+            </TouchableOpacity>
+          </View>
+          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
     </View>
   </ScrollView>
 )}
@@ -629,6 +648,23 @@ async function CadastrarUsuario() {
           />
         </ScrollView>
       )}
+      <Modal
+        transparent
+        visible={monitoringDetailsVisible}
+        animationType="slide"
+        onRequestClose={() => setMonitoringDetailsVisible(false)}
+      >
+        <Pressable style={styles.monitoringModalBackdrop} onPress={() => setMonitoringDetailsVisible(false)}>
+          <Pressable style={styles.monitoringModalCard} onPress={(event) => event.stopPropagation()}>
+            <Text style={styles.monitoringModalTitle}>Como funciona o monitoramento</Text>
+            <ScrollView contentContainerStyle={styles.monitoringModalContent} showsVerticalScrollIndicator={false}>
+              <Text style={styles.monitoringModalBody}>{monitoringExplanation}</Text>
+              <Text style={styles.monitoringModalBody}>{monitoringManagement}</Text>
+            </ScrollView>
+            <CustomButton title="Entendi" variant="secondary" onPress={() => setMonitoringDetailsVisible(false)} style={styles.monitoringModalAction} />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   </SafeAreaView>
 );

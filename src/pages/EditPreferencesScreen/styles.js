@@ -9,8 +9,8 @@ export default StyleSheet.create({
   contentContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
+    justifyContent: 'flex-start',
+    paddingTop: 10,
     paddingBottom: 40,
   },
   containerScroll: {

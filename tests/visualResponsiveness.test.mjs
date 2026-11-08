@@ -4,16 +4,15 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('card introdutório de metas preserva texto legível e botão com largura intrínseca', async () => {
+test('gerenciamento de metas separa o botão de criação do controle segmentado', async () => {
   const styles = await read('src/pages/EditProfileScreen/styles.js');
 
   assert.match(styles, /metasIntroCard:[\s\S]*?alignItems: 'stretch'/);
   assert.match(styles, /metasIntroTopRow:[\s\S]*?flexDirection: 'row'/);
   assert.match(styles, /metasIntroCopy:[\s\S]*?minWidth: 0/);
-  assert.match(styles, /addMetaAction:[\s\S]*?width: 'auto'/);
-  assert.match(styles, /addMetaAction:[\s\S]*?flexGrow: 0/);
-  assert.match(styles, /addMetaAction:[\s\S]*?flexShrink: 0/);
-  assert.match(styles, /addMetaAction:[\s\S]*?alignSelf: 'flex-end'/);
+  assert.match(styles, /addMetaAction:[\s\S]*?width: '100%'/);
+  assert.match(styles, /addMetaAction:[\s\S]*?alignSelf: 'center'/);
+  assert.match(styles, /metaSegments:[\s\S]*?width: '100%'/);
 });
 
 test('botão de memórias usa a largura útil da seção sem alterar sua navegação', async () => {
