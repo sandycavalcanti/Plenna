@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     // O lilás muito suave cria contraste com os cards brancos sem introduzir
     // uma cor nova fora da paleta já existente do Plenna.
-    backgroundColor: COLORS.cadCaixaPreferenciasFundo,
+    backgroundColor: COLORS.fundoPrincipal
   },
   header: {
     // O header permanece sobre o fundo geral; o respiro substitui uma faixa
@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 10
   },
   headerIconBox: {
     // Pequeno ponto de identidade visual, sem ser um badge ou uma decoração
@@ -28,85 +28,85 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo
   },
   headerTextGroup: {
     flex: 1,
-    gap: 2,
+    gap: 2
   },
   headerAction: {
-    width: 38,
-    height: 38,
+    width: 48,
+    height: 48,
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo
   },
   title: {
-    fontFamily: 'SugoDisplay',
-    fontSize: 29,
+    fontSize: 22,
     color: COLORS.cadTitulo,
-    fontWeight: '500',
+    fontWeight: '700'
   },
   subtitle: {
     color: COLORS.dadoUm,
     fontSize: 14,
-    marginTop: 4,
+    marginTop: 4
   },
   listContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 32
   },
   emptyListContent: {
     flexGrow: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 16
   },
   tabsScroll: {
-    flexGrow: 0,
+    flexGrow: 0
   },
   tabsContent: {
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 4,
     justifyContent: 'space-around',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   tab: {
-    minHeight: 38,
+    minHeight: 48,
     minWidth: 0,
     flex: 1,
     paddingHorizontal: 8,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
     // backgroundColor: '#EEEAF8',
     // borderBottomWidth: 1,
     // borderBottomColor: 'rgba(130, 111, 226, 0.79)',
   },
   activeTab: {
-    Color: COLORS.cadTitulo,
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
+    borderRadius: 12
   },
   tabLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 0,
-    maxWidth: '100%',
+    maxWidth: '100%'
   },
   tabText: {
     color: COLORS.dadoUm,
     fontSize: 13,
     fontWeight: '600',
-    flexShrink: 1,
+    flexShrink: 1
   },
   tabCount: {
     color: COLORS.dadoUm,
     fontSize: 13,
     fontWeight: '600',
-    flexShrink: 0,
+    flexShrink: 0
   },
   activeTabText: {
-    color: COLORS.cadTitulo,
+    color: COLORS.cadTitulo
   },
   tabIndicator: {
     // O indicador acompanha o progresso horizontal do pager por opacidade,
@@ -117,38 +117,60 @@ export const styles = StyleSheet.create({
     bottom: 0,
     height: 2,
     borderRadius: 2,
-    backgroundColor: COLORS.cadTitulo,
+    backgroundColor: COLORS.cadTitulo
   },
   pagerPage: {
-    flex: 1,
+    flex: 1
   },
   loadingState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 12
   },
   stateContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    gap: 16,
+    gap: 16
   },
   stateText: {
     color: COLORS.dadoUm,
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: 'center'
   },
   retryButton: {
     backgroundColor: COLORS.customButtonFundo,
     borderRadius: 30,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 10
   },
   retryButtonText: {
     color: COLORS.customButtonTexto,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '600'
+  }
+});
+export const presentationStyles = StyleSheet.create({
+  inline1: {
+    marginHorizontal: 18,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: '#EEE4F2'
   },
+  inline2: {
+    minHeight: 48,
+    justifyContent: 'center'
+  },
+  inline3: {
+    color: '#594367',
+    fontWeight: '600'
+  },
+  inline4: {
+    minHeight: 48,
+    padding: 12,
+    alignItems: 'center'
+  }
 });
