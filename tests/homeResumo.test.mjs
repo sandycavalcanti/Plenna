@@ -11,9 +11,23 @@ test('strict safe contract rejects detailed extras and mismatched period',()=>{
  assert.throws(()=>validarResumoHome(f,'2026-09'));
  f.perspectivas.categorias.grupos=[{nome:'private'}];assert.throws(()=>validarResumoHome(f,'2026-10'));
 });
+
+test('Home v2 aceita referência histórica comprovada sem converter referência atual em histórico',()=>{
+  const data=fixture('2026-09');data.versaoContrato=2;
+  data.orcamento={disponibilidade:'REFERENCIA_HISTORICA',valorCentavos:40000,percentualConhecido:57.5,
+    excessoConhecidoCentavos:0,vigencia:'MES_COMPROVADO',estadoUtilizacao:'AMARELO',motivo:null};
+  assert.equal(validarResumoHome(data,'2026-09'),data);
+  data.orcamento.vigencia='ATUAL_SEM_HISTORICO';assert.throws(()=>validarResumoHome(data,'2026-09'));
+});
 test('null totals and unavailable historic budget never become zero',()=>{
  const f=fixture();f.financeiro.totalCentavos=null;f.financeiro.qualidade='INSUFICIENTE';
  const summary=financeiroHome(validarResumoHome(f,'2026-10'));assert.equal(summary.total,null);assert.equal(summary.orcamentoMensal,null);
+});
+test('observação histórica parcial exige contrato opt-in v3',()=>{
+ const data=fixture('2026-09');data.versaoContrato=3;
+ data.orcamento={disponibilidade:'REFERENCIA_HISTORICA',valorCentavos:40000,percentualConhecido:57.5,excessoConhecidoCentavos:0,vigencia:'REFERENCIA_OBSERVADA',estadoUtilizacao:'AMARELO',motivo:'COBERTURA_HISTORICA_PARCIAL'};
+ assert.equal(validarResumoHome(data,'2026-09'),data);
+ data.versaoContrato=2;assert.throws(()=>validarResumoHome(data,'2026-09'));
 });
 const source=await readFile(new URL('src/hooks/useResumoHome.js',base),'utf8');
 const code=source.replace(/^import .*;\r?\n/gm,'').replace('export function','function');
@@ -26,7 +40,7 @@ function harness(period='2026-10') {
  return {hook:hook(period),calls,pending,get state(){return state;},effects,async tick(){await new Promise(r=>setImmediate(r));},changeUser(){sessionId++;controller.abort();controller=new AbortController();},unmount(){mounted=false;}};
 }
 test('only safe endpoint, loading success and operational error',async()=>{
- const h=harness();const p=h.hook.refresh();await h.tick();assert.equal(h.state.loading,true);assert.equal(h.calls[0].path,'/home/resumo');assert.equal(h.calls[0].options.rf017SessionId,1);
+ const h=harness();const p=h.hook.refresh();await h.tick();assert.equal(h.state.loading,true);assert.equal(h.calls[0].path,'/home/resumo');assert.equal(h.calls[0].options.usageMonitoringSessionId,1);
  h.pending[0].resolve({data:fixture()});await p;assert.equal(h.state.error,false);
  const q=h.hook.refresh();await h.tick();h.pending[1].reject(Error('offline'));await q;assert.equal(h.state.dados,null);assert.equal(h.state.error,true);
 });
