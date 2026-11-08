@@ -1,3 +1,6 @@
+import { obterJanelaDiaLocal } from '../../utils/tempoUsoSync';
+import { usageMonitoringReadsEnabled } from '../../api/usageMonitoringPolicy';
+import UsageTimePanel from '../../components/UsageTimePanel';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Animated, View, Text, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
@@ -31,7 +34,7 @@ export default function HomeScreen({ navigation }) {
   const [periodo, setPeriodo] = useState(() => periodoMensalSaoPaulo());
   const financeiro = useResumoHome(periodo);
   const descobertas = useDescobertasResumo(periodo);
-  const tempo = useTempoUsoHome(true);
+  const tempo = useTempoUsoHome(!usageMonitoringReadsEnabled);
   const metas = useMetasHome();
   const recomendacoes = useRecomendacoesHome(periodo);
   const [usuario, setUsuario] = useState(null);
@@ -41,6 +44,11 @@ export default function HomeScreen({ navigation }) {
   const bellRotation = useRef(new Animated.Value(0)).current;
   const bellAnimationRef = useRef(null);
 
+  const openUsageDetails = () => navigation.navigate('Dashboard', {
+    indicador: 'tempo',
+    periodo: obterJanelaDiaLocal().dataLocal.slice(0, 7),
+    focoTempo: Date.now()
+  });
   const refetchAllData = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -175,15 +183,19 @@ export default function HomeScreen({ navigation }) {
           onCreate={() => navigation.navigate('EditProfile', { mode: 'metas' })}
           onOpen={(meta) => navigation.navigate('MetaDetails', { metaId: meta.id, meta })}
         />
-        <View style={styles.timeCard}>
-          <Text style={styles.timeCardTitle}>Tempo em aplicativos · hoje</Text>
-          {tempo.estado === 'SEM_CONSENTIMENTO' ? <AppEmptyState icon="shield-off-outline" title="Monitoramento desativado." compact /> : null}
-          {tempo.estado === 'ERRO' ? <AppEmptyState icon="clock-alert-outline" title="Tempo indisponível." compact /> : null}
-          {tempo.estado === 'CARREGANDO' || tempo.estado === 'NAO_SOLICITADO' ? <AppEmptyState icon="clock-outline" title="Carregando registros..." compact /> : null}
-          {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) > 0 ? <Text style={styles.timeValue}>{formatarTempoUso(resumirTempoHoje(tempo.registros))}</Text> : null}
-          {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) === 0 ? <AppEmptyState icon="clock-outline" title="Nenhum tempo registrado hoje." compact /> : null}
-          {tempoTemDados ? <TouchableOpacity accessibilityRole="button" onPress={() => navigation.navigate('Dashboard', { indicador:'tempo' })} style={styles.timeLink}><Text style={styles.timeLinkText}>Entender meu tempo</Text></TouchableOpacity> : null}
-        </View>
+        {usageMonitoringReadsEnabled ? (
+          <UsageTimePanel compact month={periodo} onSettings={() => navigation.navigate('Profile')} onDetails={openUsageDetails} />
+        ) : (
+          <View style={styles.timeCard}>
+            <Text style={styles.timeCardTitle}>Tempo em aplicativos · hoje</Text>
+            {tempo.estado === 'SEM_CONSENTIMENTO' ? <AppEmptyState icon="shield-off-outline" title="Monitoramento desativado." compact /> : null}
+            {tempo.estado === 'ERRO' ? <AppEmptyState icon="clock-alert-outline" title="Tempo indisponível." compact /> : null}
+            {tempo.estado === 'CARREGANDO' || tempo.estado === 'NAO_SOLICITADO' ? <AppEmptyState icon="clock-outline" title="Carregando registros..." compact /> : null}
+            {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) > 0 ? <Text style={styles.timeValue}>{formatarTempoUso(resumirTempoHoje(tempo.registros))}</Text> : null}
+            {tempo.estado !== 'SEM_CONSENTIMENTO' && tempo.estado !== 'ERRO' && tempo.estado !== 'CARREGANDO' && tempo.estado !== 'NAO_SOLICITADO' && resumirTempoHoje(tempo.registros) === 0 ? <AppEmptyState icon="clock-outline" title="Nenhum tempo registrado hoje." compact /> : null}
+            {tempoTemDados ? <TouchableOpacity accessibilityRole="button" onPress={openUsageDetails} style={styles.timeLink}><Text style={styles.timeLinkText}>Entender meu tempo</Text></TouchableOpacity> : null}
+          </View>
+        )}
 
         {mostrarParaVoce && (
           <View style={{ marginHorizontal: 18, marginBottom: 14, gap: 10 }}>

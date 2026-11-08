@@ -1,13 +1,14 @@
 import { Platform } from 'react-native';
 
-// Variável para controlar exibir botões temporários para desenvolvimento, como o de pular login
-// Defina como true para usar localhost
-export const devMode = true; 
+// O tipo de build controla o fallback; gerar um APK não reescreve este arquivo.
+export const devMode = typeof __DEV__ !== 'undefined' && __DEV__;
 
 const configuredApiUrl = typeof process !== 'undefined' && typeof process.env?.EXPO_PUBLIC_API_URL === 'string'
   ? process.env.EXPO_PUBLIC_API_URL.trim()
   : '';
 
-export const urlAPI = configuredApiUrl || (devMode
+const fallbackApiUrl = devMode
   ? (Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000')
-  : 'https://plenna-api.vercel.app/');
+  : 'https://plenna-api.vercel.app/';
+
+export const urlAPI = configuredApiUrl || fallbackApiUrl;

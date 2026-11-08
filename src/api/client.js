@@ -8,6 +8,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await tokenStorage.getToken();
+  if (config.usageMonitoringSessionId !== undefined) tokenStorage.assertSession(config.usageMonitoringSessionId);
   if (config.rf017SessionId !== undefined) {
     tokenStorage.assertSession(config.rf017SessionId);
   }

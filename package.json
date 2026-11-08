@@ -10,7 +10,9 @@
     "web": "expo start --web",
     "build": "node src/utils/buildScript.js && eas build -p android --profile preview",
     "test:offline": "node --import ./scripts/offline-network.mjs --experimental-vm-modules --test tests/*.test.mjs",
-    "test:rf018": "node scripts/test-rf018.mjs"
+    "test:rf018": "node scripts/test-motor-impulsividade.mjs",
+    "test:purchases": "node scripts/test-purchases.mjs",
+    "test:panorama": "node scripts/test-purchase-panorama.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

@@ -1,0 +1,153 @@
+{
+  "versao": 1,
+  "origem": "RESULTADO_PERSISTIDO",
+  "resumo": "As informações declaradas ajudam a contextualizar esta decisão, sem determinar impulsividade.",
+  "naturezaResumo": "INTERPRETADO",
+  "referenciasResumo": [
+    "contexto:1:revisao:1:planejamento",
+    "contexto:1:revisao:1:influenciaPromocional",
+    "contexto:1:revisao:1:necessidadeInesperada",
+    "contexto:1:revisao:1:momento",
+    "contexto:1:revisao:1:item:10",
+    "contexto:1:revisao:1:item:11"
+  ],
+  "reflexao": "Você contou que a compra não estava planejada e que uma promoção influenciou sua decisão. A oferta antecipou uma necessidade ou despertou uma vontade nova?",
+  "fatores": [
+    {
+      "codigo": "REGISTRO_UTILIZADO",
+      "natureza": "REGISTRADO",
+      "mensagem": "Registro utilizado nesta avaliação.",
+      "referencias": [
+        "compra:1"
+      ]
+    },
+    {
+      "codigo": "R2_PLANEJAMENTO",
+      "natureza": "DECLARADO",
+      "mensagem": "Você informou que a compra não estava planejada.",
+      "referencias": [
+        "contexto:1:revisao:1:planejamento"
+      ],
+      "campo": "planejamento",
+      "valor": "NAO"
+    },
+    {
+      "codigo": "R4_PROMOCAO",
+      "natureza": "DECLARADO",
+      "mensagem": "Você informou que uma promoção influenciou sua decisão.",
+      "referencias": [
+        "contexto:1:revisao:1:influenciaPromocional"
+      ],
+      "campo": "influenciaPromocional",
+      "valor": "SIM"
+    },
+    {
+      "codigo": "R5_NECESSIDADE",
+      "natureza": "DECLARADO",
+      "mensagem": "Você informou que não surgiu uma necessidade inesperada.",
+      "referencias": [
+        "contexto:1:revisao:1:necessidadeInesperada"
+      ],
+      "campo": "necessidadeInesperada",
+      "valor": "NAO"
+    },
+    {
+      "codigo": "R6_MOMENTO",
+      "natureza": "DECLARADO",
+      "mensagem": "Você informou que antecipou a compra.",
+      "referencias": [
+        "contexto:1:revisao:1:momento"
+      ],
+      "campo": "momento",
+      "valor": "ANTECIPADA"
+    },
+    {
+      "codigo": "R3_ITEM",
+      "natureza": "DECLARADO",
+      "mensagem": "Alimentacao ficticia: planejamento declarado como planejado.",
+      "referencias": [
+        "contexto:1:revisao:1:item:10"
+      ],
+      "campo": "planejamentoItem",
+      "valor": "SIM",
+      "itemId": 10
+    },
+    {
+      "codigo": "R3_ITEM",
+      "natureza": "DECLARADO",
+      "mensagem": "Limpeza ficticia: planejamento declarado como não planejado.",
+      "referencias": [
+        "contexto:1:revisao:1:item:11"
+      ],
+      "campo": "planejamentoItem",
+      "valor": "NAO",
+      "itemId": 11
+    }
+  ],
+  "totalFatores": 7,
+  "fatoresCompletos": true,
+  "regrasAplicadas": [
+    {
+      "codigo": "R2_PLANEJAMENTO",
+      "versao": 1,
+      "referencias": [
+        "contexto:1:revisao:1:planejamento"
+      ]
+    },
+    {
+      "codigo": "R4_PROMOCAO",
+      "versao": 1,
+      "referencias": [
+        "contexto:1:revisao:1:influenciaPromocional"
+      ]
+    },
+    {
+      "codigo": "R5_NECESSIDADE",
+      "versao": 1,
+      "referencias": [
+        "contexto:1:revisao:1:necessidadeInesperada"
+      ]
+    },
+    {
+      "codigo": "R6_MOMENTO",
+      "versao": 1,
+      "referencias": [
+        "contexto:1:revisao:1:momento"
+      ]
+    },
+    {
+      "codigo": "R3_ITEM",
+      "versao": 1,
+      "referencias": [
+        "contexto:1:revisao:1:item:10"
+      ]
+    },
+    {
+      "codigo": "R3_ITEM",
+      "versao": 1,
+      "referencias": [
+        "contexto:1:revisao:1:item:11"
+      ]
+    },
+    {
+      "codigo": "R7_CONTEXTO",
+      "versao": 1,
+      "referencias": [
+        "contexto:1:revisao:1:planejamento",
+        "contexto:1:revisao:1:influenciaPromocional",
+        "contexto:1:revisao:1:necessidadeInesperada",
+        "contexto:1:revisao:1:momento",
+        "contexto:1:revisao:1:item:10",
+        "contexto:1:revisao:1:item:11"
+      ]
+    }
+  ],
+  "limitacoes": [
+    "NAO_DIAGNOSTICA_IMPULSIVIDADE",
+    "REFERENCIA_ATUAL_SEM_VIGENCIA_HISTORICA",
+    "HORARIO_EFETIVO_NAO_COMPROVADO",
+    "HISTORICO_SEM_COBERTURA_COMPLETA",
+    "LIMITE_INDISPONIVEL"
+  ],
+  "historicoCompras": "NAO_REGISTRADO_NESTE_RESULTADO"
+}

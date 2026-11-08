@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import AppEmptyState from '../../Common/AppEmptyState';
-import { styles } from './styles';
+import { styles, presentationStyles } from './styles';
 import { COLORS } from '../../../constants';
 import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
 import { distribuicaoClassificacoes } from '../../../utils/distribuicaoClassificacoes';
@@ -15,6 +15,7 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export default function Impulsividade({
   data,
+  onSelect,
   impulsividade = [],
   title = 'Classificações registradas',
   emptyMessage = 'Nenhuma classificação disponível.',
@@ -30,7 +31,6 @@ export default function Impulsividade({
   const isEmptyArray = isArrayData && sourceData.length === 0;
   const isEmptyObject = isObjectData && Object.keys(sourceData).length === 0;
 
-  // Se não houver dados, retorna mensagem
   if ((!isArrayData && !isObjectData) || isEmptyArray || isEmptyObject) {
     return (
       <View style={styles.section}>
@@ -41,74 +41,97 @@ export default function Impulsividade({
     );
   }
 
+  if (isArrayData) {
+    const distribution = distribuicaoClassificacoes(sourceData);
+    const groups = distribution.groups.filter((group) => group.quantidade > 0);
+    const declared = groups.some((group) => ['IMPULSIVA', 'NAO_IMPULSIVA'].includes(group.codigo));
 
-  if(isArrayData) {
-    const distribution=distribuicaoClassificacoes(sourceData);
+    if (!declared) {
+      return (
+        <View style={styles.section}>
+          <ProfileCard title={title} variant="dashboard">
+            <AppEmptyState icon="clipboard-text-outline" title="Nenhuma classificação registrada neste período." compact />
+            {distribution.total > 0 && (
+              <Text style={styles.distributionLegendValue}>{distribution.total} compras sem classificação voluntária</Text>
+            )}
+          </ProfileCard>
+        </View>
+      );
+    }
+
     let currentOffset = 0;
-    const segments = distribution.groups
-      .filter((group) => group.quantidade > 0)
-      .map((group) => {
-        const segmentLength = (group.percentual / 100) * RING_CIRCUMFERENCE;
-        const offset = currentOffset;
-        currentOffset += segmentLength;
-        return {
-          ...group,
-          strokeDashoffset: RING_CIRCUMFERENCE - segmentLength,
-          offsetPosition: offset,
-        };
-      });
+    const labels = {
+      IMPULSIVA: 'Impulsivas',
+      NAO_IMPULSIVA: 'Não impulsivas',
+      PENDENTE: 'Sem classificação',
+    };
+    const segments = groups.map((group) => {
+      const segmentLength = (group.percentual / 100) * RING_CIRCUMFERENCE;
+      const offset = currentOffset;
+      currentOffset += segmentLength;
+      return {
+        ...group,
+        strokeDashoffset: RING_CIRCUMFERENCE - segmentLength,
+        offsetPosition: offset,
+      };
+    });
 
     return (
       <View style={styles.section}>
         <ProfileCard title={title} variant="dashboard">
-          {distribution.total === 0 ? (
-            <AppEmptyState icon="clipboard-text-outline" title={emptyMessage} compact />
-          ) : (
-            <View style={styles.distributionLayout}>
-              <View
-                style={styles.distributionChart}
-                accessible
-                accessibilityRole="image"
-                accessibilityLabel={`${distribution.total} compras confirmadas neste período`}
-              >
-                <Svg width={RING_SIZE} height={RING_SIZE} style={styles.distributionSvg}>
+          <View style={styles.distributionLayout}>
+            <View
+              style={styles.distributionChart}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel={`${distribution.total} compras: ${groups.map((group) => `${group.quantidade} ${labels[group.codigo] || group.nome}`).join(', ')}`}
+            >
+              <Svg width={RING_SIZE} height={RING_SIZE} style={styles.distributionSvg}>
+                <Circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_RADIUS}
+                  stroke={DASHBOARD_THEME.colors.track}
+                  strokeWidth={RING_STROKE}
+                  fill="transparent"
+                />
+                {segments.map((segment) => (
                   <Circle
+                    key={segment.codigo}
                     cx={RING_SIZE / 2}
                     cy={RING_SIZE / 2}
                     r={RING_RADIUS}
-                    stroke={DASHBOARD_THEME.colors.track}
+                    stroke={segment.cor}
                     strokeWidth={RING_STROKE}
                     fill="transparent"
+                    strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
+                    strokeDashoffset={segment.strokeDashoffset}
+                    strokeLinecap="butt"
+                    rotation={-90 + (360 * segment.offsetPosition) / RING_CIRCUMFERENCE}
+                    origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
                   />
-                  {segments.map((segment) => (
-                    <Circle
-                      key={segment.codigo}
-                      cx={RING_SIZE / 2}
-                      cy={RING_SIZE / 2}
-                      r={RING_RADIUS}
-                      stroke={segment.cor}
-                      strokeWidth={RING_STROKE}
-                      fill="transparent"
-                      strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
-                      strokeDashoffset={segment.strokeDashoffset}
-                      strokeLinecap="butt"
-                      rotation={-90 + (360 * segment.offsetPosition) / RING_CIRCUMFERENCE}
-                      origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
-                    />
-                  ))}
-                </Svg>
-                <View style={styles.distributionCenter}>
-                  <Text style={styles.distributionTotal}>{distribution.total}</Text>
-                  <Text style={styles.distributionTotalLabel}>confirmadas</Text>
-                </View>
+                ))}
+              </Svg>
+              <View style={styles.distributionCenter}>
+                <Text style={styles.distributionTotal}>{distribution.total}</Text>
+                <Text style={styles.distributionTotalLabel}>compras</Text>
               </View>
-
-              <View style={styles.distributionLegend}>
-                {distribution.groups.map((group) => (
-                  <View key={group.codigo} style={styles.distributionLegendItem}>
+            </View>
+            <View style={styles.distributionLegend}>
+              {groups.map((group) => (
+                <Pressable
+                  key={group.codigo}
+                  accessibilityRole="button"
+                  disabled={!onSelect}
+                  accessibilityLabel={`${labels[group.codigo] || group.nome}: ${group.quantidade} compras, ${group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}
+                  onPress={() => onSelect?.(group.codigo)}
+                  style={presentationStyles.inline1}
+                >
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: group.cor }} />
+                  <View style={{ flex: 1 }}>
                     <View style={styles.distributionLegendHeader}>
                       <Text style={styles.distributionLegendLabel} numberOfLines={1}>
-                        {group.nome}
+                        {labels[group.codigo] || group.nome}
                       </Text>
                       <Text style={styles.distributionLegendValue}>
                         {group.quantidade} · {group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
@@ -118,18 +141,56 @@ export default function Impulsividade({
                       <View style={[styles.distributionLegendFill, { width: `${group.percentual}%`, backgroundColor: group.cor }]} />
                     </View>
                   </View>
-                ))}
-              </View>
+                </Pressable>
+              ))}
             </View>
+          </View>
+          <Text style={presentationStyles.inline2}>
+            {groups.filter((group) => ['IMPULSIVA', 'NAO_IMPULSIVA'].includes(group.codigo)).reduce((sum, group) => sum + group.quantidade, 0)} classificadas · Classificações voluntárias
+          </Text>
+        </ProfileCard>
+      </View>
+    );
+  }
+
+  if (isObjectData && totalKey === 'acima_limite') {
+    const above = sourceData.acima_limite;
+    const within = sourceData.dentro_limite;
+    const valid = [above, within].every((value) => Number.isSafeInteger(value) && value >= 0);
+    const total = valid ? above + within : 0;
+
+    return (
+      <View style={styles.section}>
+        <ProfileCard title={title} variant="dashboard">
+          {!valid || total === 0 ? (
+            <AppEmptyState icon="clipboard-text-outline" title="Nenhuma comparação disponível neste período." compact />
+          ) : (
+            <>
+              <View style={presentationStyles.inline3}>
+                <View>
+                  <Text style={styles.chartPercent}>{above}</Text>
+                  <Text style={styles.distributionLegendValue}>acima do limite</Text>
+                </View>
+                <Text style={styles.distributionLegendLabel}>{within} dentro do limite</Text>
+              </View>
+              <View
+                style={styles.limitContextTrack}
+                accessible
+                accessibilityRole="progressbar"
+                accessibilityLabel={`${above} compras acima do limite entre ${total} avaliadas`}
+                accessibilityValue={{ min: 0, max: total, now: above }}
+              >
+                <View style={[styles.limitContextFill, { width: `${(above / total) * 100}%` }]} />
+              </View>
+              <Text style={styles.distributionLegendValue}>{total} compras com comparação disponível</Text>
+            </>
           )}
         </ProfileCard>
       </View>
     );
   }
 
-  // Normaliza tanto listas quanto objetos resumidos vindos da API
-  const totalQuantity = isArrayData ? sourceData.reduce((sum, item) => sum + Number(item?.quantidade || 0), 0) : Object.values(sourceData).reduce((sum, value) => sum + Number(value || 0), 0);
-
+  const totalQuantity = Object.values(sourceData).reduce((sum, value) => sum + Number(value || 0), 0);
   if (totalQuantity === 0) {
     return (
       <View style={styles.section}>
@@ -140,15 +201,11 @@ export default function Impulsividade({
     );
   }
 
-  const relevantQuantity = isArrayData
-    ? sourceData.find((item) => String(item?.[classificationKey] || '').toUpperCase() === String(classificationValue).toUpperCase())?.quantidade || 0
-    : Number(sourceData?.[totalKey || 'acima_limite'] ?? 0) || 0;
-
+  const relevantQuantity = Number(sourceData?.[totalKey || 'acima_limite'] ?? 0) || 0;
   const impulsivePercentage = totalQuantity > 0 ? Math.round((relevantQuantity / totalQuantity) * 100) : 0;
   const progress = Math.max(0, Math.min(100, impulsivePercentage));
   const progressOffset = RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE;
   const withinLimitQuantity = Math.max(0, totalQuantity - relevantQuantity);
-
   const centerValue = centerValueMode === 'quantity' ? relevantQuantity : `${progress}%`;
 
   return (
@@ -178,7 +235,6 @@ export default function Impulsividade({
                   origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
                 />
               </Svg>
-
               <View style={styles.ringCenter}>
                 <Text style={styles.chartPercent}>{centerValue}</Text>
                 <Text style={styles.chartCenterLabel}>{centerLabel}</Text>

@@ -1,0 +1,179 @@
+{
+  "versaoContrato": 1,
+  "versaoMotor": "contextual-2",
+  "compraId": 1,
+  "contextoRevisao": 1,
+  "estado": "CONTEXTO_DISPONIVEL",
+  "observacoes": [],
+  "declaracoes": [
+    {
+      "codigo": "R2_PLANEJAMENTO",
+      "mensagem": "Você informou que a compra não estava planejada.",
+      "referencias": [
+        "contexto:1:revisao:1:planejamento"
+      ],
+      "campo": "planejamento",
+      "valor": "NAO"
+    },
+    {
+      "codigo": "R4_PROMOCAO",
+      "mensagem": "Você informou que uma promoção influenciou sua decisão.",
+      "referencias": [
+        "contexto:1:revisao:1:influenciaPromocional"
+      ],
+      "campo": "influenciaPromocional",
+      "valor": "SIM"
+    },
+    {
+      "codigo": "R5_NECESSIDADE",
+      "mensagem": "Você informou que não surgiu uma necessidade inesperada.",
+      "referencias": [
+        "contexto:1:revisao:1:necessidadeInesperada"
+      ],
+      "campo": "necessidadeInesperada",
+      "valor": "NAO"
+    },
+    {
+      "codigo": "R6_MOMENTO",
+      "mensagem": "Você informou que antecipou a compra.",
+      "referencias": [
+        "contexto:1:revisao:1:momento"
+      ],
+      "campo": "momento",
+      "valor": "ANTECIPADA"
+    },
+    {
+      "codigo": "R3_ITEM",
+      "mensagem": "Alimentacao ficticia: planejamento declarado como planejado.",
+      "referencias": [
+        "contexto:1:revisao:1:item:10"
+      ],
+      "campo": "planejamentoItem",
+      "valor": "SIM",
+      "itemId": 10
+    },
+    {
+      "codigo": "R3_ITEM",
+      "mensagem": "Limpeza ficticia: planejamento declarado como não planejado.",
+      "referencias": [
+        "contexto:1:revisao:1:item:11"
+      ],
+      "campo": "planejamentoItem",
+      "valor": "NAO",
+      "itemId": 11
+    }
+  ],
+  "autopercepcao": null,
+  "interpretacao": {
+    "mensagem": "As informações declaradas ajudam a contextualizar esta decisão, sem determinar impulsividade.",
+    "reflexao": "Você contou que a compra não estava planejada e que uma promoção influenciou sua decisão. A oferta antecipou uma necessidade ou despertou uma vontade nova?",
+    "referencias": [
+      "contexto:1:revisao:1:planejamento",
+      "contexto:1:revisao:1:influenciaPromocional",
+      "contexto:1:revisao:1:necessidadeInesperada",
+      "contexto:1:revisao:1:momento",
+      "contexto:1:revisao:1:item:10",
+      "contexto:1:revisao:1:item:11"
+    ]
+  },
+  "evidencias": [
+    {
+      "referencia": "compra:1",
+      "natureza": "REGISTRADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:planejamento",
+      "natureza": "DECLARADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:influenciaPromocional",
+      "natureza": "DECLARADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:necessidadeInesperada",
+      "natureza": "DECLARADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:momento",
+      "natureza": "DECLARADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:item:10",
+      "natureza": "DECLARADO"
+    },
+    {
+      "referencia": "contexto:1:revisao:1:item:11",
+      "natureza": "DECLARADO"
+    }
+  ],
+  "limitacoes": [
+    "NAO_DIAGNOSTICA_IMPULSIVIDADE",
+    "REFERENCIA_ATUAL_SEM_VIGENCIA_HISTORICA",
+    "HORARIO_EFETIVO_NAO_COMPROVADO",
+    "HISTORICO_SEM_COBERTURA_COMPLETA",
+    "LIMITE_INDISPONIVEL"
+  ],
+  "regrasAplicadas": [
+    {
+      "codigo": "R2_PLANEJAMENTO",
+      "versao": 1,
+      "justificativa": "Registro de declaração voluntária, sem inferência e sem alteração da classificação legada.",
+      "referencias": [
+        "contexto:1:revisao:1:planejamento"
+      ]
+    },
+    {
+      "codigo": "R4_PROMOCAO",
+      "versao": 1,
+      "justificativa": "Registro de declaração voluntária, sem inferência e sem alteração da classificação legada.",
+      "referencias": [
+        "contexto:1:revisao:1:influenciaPromocional"
+      ]
+    },
+    {
+      "codigo": "R5_NECESSIDADE",
+      "versao": 1,
+      "justificativa": "Registro de declaração voluntária, sem inferência e sem alteração da classificação legada.",
+      "referencias": [
+        "contexto:1:revisao:1:necessidadeInesperada"
+      ]
+    },
+    {
+      "codigo": "R6_MOMENTO",
+      "versao": 1,
+      "justificativa": "Registro de declaração voluntária, sem inferência e sem alteração da classificação legada.",
+      "referencias": [
+        "contexto:1:revisao:1:momento"
+      ]
+    },
+    {
+      "codigo": "R3_ITEM",
+      "versao": 1,
+      "justificativa": "Considera somente a resposta deste item ativo; não define o planejamento da compra inteira.",
+      "referencias": [
+        "contexto:1:revisao:1:item:10"
+      ]
+    },
+    {
+      "codigo": "R3_ITEM",
+      "versao": 1,
+      "justificativa": "Considera somente a resposta deste item ativo; não define o planejamento da compra inteira.",
+      "referencias": [
+        "contexto:1:revisao:1:item:11"
+      ]
+    },
+    {
+      "codigo": "R7_CONTEXTO",
+      "versao": 1,
+      "justificativa": "Reflexão neutra restrita às declarações disponíveis; não conclui impulsividade.",
+      "referencias": [
+        "contexto:1:revisao:1:planejamento",
+        "contexto:1:revisao:1:influenciaPromocional",
+        "contexto:1:revisao:1:necessidadeInesperada",
+        "contexto:1:revisao:1:momento",
+        "contexto:1:revisao:1:item:10",
+        "contexto:1:revisao:1:item:11"
+      ]
+    }
+  ]
+}

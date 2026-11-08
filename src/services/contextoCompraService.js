@@ -224,7 +224,7 @@ export function criarEditorContexto({
       if (session.signal.aborted) invalidate();
     }
     check();
-    return { signal: controller.signal, rf017SessionId: session.id };
+    return { signal: controller.signal, usageMonitoringSessionId: session.id };
   }
   async function load(salvo = false) {
     if (busy) return;

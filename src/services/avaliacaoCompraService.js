@@ -10,6 +10,31 @@ const facts = (v) =>
       typeof f.mensagem === 'string' &&
       strings(f.referencias),
   );
+export function validarExplicacaoAvaliacao(e) {
+  if (e === undefined || e === null) return e;
+  if (!object(e) || e.versao !== 1 || e.origem !== 'RESULTADO_PERSISTIDO' ||
+      typeof e.resumo !== 'string' || e.naturezaResumo !== 'INTERPRETADO' || !strings(e.referenciasResumo) ||
+      !(e.reflexao === null || typeof e.reflexao === 'string') || !facts(e.fatores) ||
+      e.fatores.some(f => !['REGISTRADO','DECLARADO','INTERPRETADO'].includes(f.natureza) || !f.referencias.length ||
+        (f.campo !== undefined && typeof f.campo !== 'string') ||
+        (f.valor !== undefined && typeof f.valor !== 'string') ||
+        (f.itemId !== undefined && (!Number.isSafeInteger(f.itemId) || f.itemId < 1))) ||
+      !Number.isSafeInteger(e.totalFatores) || e.totalFatores < e.fatores.length ||
+      typeof e.fatoresCompletos !== 'boolean' || e.fatoresCompletos !== (e.totalFatores === e.fatores.length) ||
+      !Array.isArray(e.regrasAplicadas) || e.regrasAplicadas.some(r => !object(r) || typeof r.codigo !== 'string' || r.versao !== 1 || !strings(r.referencias)) ||
+      !strings(e.limitacoes) || e.historicoCompras !== 'NAO_REGISTRADO_NESTE_RESULTADO') throw Error('INVALID_ASSESSMENT_EXPLANATION');
+  return e;
+}
+
+// Rollout compatível: somente GET; servidor anterior pode rejeitar o parâmetro novo.
+export async function consultarAvaliacaoComExplicacao(client, url, options) {
+  try {
+    return await client.get(url, { ...options, params: { ...options?.params, explicacao: '1' } });
+  } catch (error) {
+    if (error?.response?.status !== 400 || options?.signal?.aborted) throw error;
+    return client.get(url, options);
+  }
+}
 export function validarAvaliacao(data, compraId) {
   if (
     !object(data) ||
@@ -82,11 +107,16 @@ export function validarAvaliacao(data, compraId) {
       ))
   )
     throw Error('INVALID_ASSESSMENT');
+  const explicacao = validarExplicacaoAvaliacao(data.explicacao);
+  if (explicacao && (!r || explicacao.resumo !== r.interpretacao.mensagem ||
+      explicacao.reflexao !== r.interpretacao.reflexao || !explicacao.fatoresCompletos))
+    throw Error('INVALID_ASSESSMENT_EXPLANATION');
   return data;
 }
 
 export function criarConsultaAvaliacao({
   compraId,
+  avaliacaoId,
   client,
   storage,
   onChange,
@@ -105,6 +135,7 @@ export function criarConsultaAvaliacao({
     storage.assertSession(session.id);
   };
   async function run(calcular = false, revisaoEsperada) {
+    if (calcular && avaliacaoId !== undefined) throw Error('HISTORICAL_ASSESSMENT_READ_ONLY');
     if (busy) return;
     busy = true;
     const id = ++generation;
@@ -123,16 +154,17 @@ export function criarConsultaAvaliacao({
         if (session.signal.aborted) abort();
       }
       check();
-      const options = { signal: controller.signal, rf017SessionId: session.id };
+      const options = { signal: controller.signal, usageMonitoringSessionId: session.id };
       const url = `/v2/compras/${compraId}/avaliacoes`;
       const response = calcular
         ? await client.post(url, { revisaoEsperada }, options)
-        : await client.get(url + '/atual', options);
+        : await consultarAvaliacaoComExplicacao(client, url + '/' + (avaliacaoId ?? 'atual'), options);
       check();
       const dados = validarAvaliacao(response.data, compraId);
+      if (avaliacaoId !== undefined && dados.avaliacaoId !== avaliacaoId) throw Error('ASSESSMENT_MISMATCH');
       if (calcular && dados.resultado?.contextoRevisao !== revisaoEsperada)
         throw Error('CONTEXT_CHANGED');
-      if (id === generation) emit({ status: 'ready', dados });
+      if (id === generation) emit({ status: 'ready', dados, consultadoEm:new Date().toISOString() });
     } catch (error) {
       if (id === generation && !disposed)
         emit({

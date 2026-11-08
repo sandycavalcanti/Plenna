@@ -11,8 +11,8 @@ const source = transformSync(await readFile(path, 'utf8'), {
   plugins: ['@babel/plugin-transform-typescript'],
 }).code;
 
-async function carregar(platform, resolver) {
-  const context = vm.createContext({});
+async function carregar(platform, resolver, localValidationEnabled = false, development = false, diagnosticOptIn) {
+  const context = vm.createContext({__DEV__:development,process:{env:{EXPO_PUBLIC_USAGE_NATIVE_DIAGNOSTIC:diagnosticOptIn}}});
   const expo = new vm.SyntheticModule(['requireOptionalNativeModule'], function () {
     this.setExport('requireOptionalNativeModule', resolver);
   }, { context });
@@ -21,6 +21,9 @@ async function carregar(platform, resolver) {
   }, { context });
   const mod = new vm.SourceTextModule(source, { context });
   await mod.link(name => {
+    if (name.endsWith('/api/localValidationPolicy')) return new vm.SyntheticModule(['localValidation'], function () {
+      this.setExport('localValidation', { enabled: localValidationEnabled });
+    }, { context });
     if (name === 'expo-modules-core') return expo;
     if (name === 'react-native') return rn;
     throw new Error('Import inesperado: ' + name);
@@ -28,6 +31,15 @@ async function carregar(platform, resolver) {
   await mod.evaluate();
   return mod.namespace;
 }
+
+test('validação local bloqueia todas as entradas de uso sem resolver o nativo', async () => {
+  const mod = await carregar('android', () => { throw Error('Nativo não autorizado'); }, true);
+  assert.equal((await mod.getModuleStatus()).available, false);
+  assert.equal(await mod.hasUsageAccess(), false);
+  assert.equal(await mod.openUsageAccessSettings(), false);
+  assert.equal((await mod.getUsageEvents(0, 1)).length, 0);
+  assert.equal((await mod.getForegroundUsage(0, 1)).length, 0);
+});
 function moduloNativoSimulado(getModuleStatus) {
   return {
     getModuleStatus,

@@ -1,30 +1,84 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
 import { Platform } from 'react-native';
 import type { ModuleStatus, PlennaUsageStatsNativeModule, UsageEvent, ForegroundUsage } from './PlennaUsageStats.types';
-
-type UnavailableReason = Extract<ModuleStatus, { available: false }>['reason'];
-
-function resolverModulo(): { native: Partial<PlennaUsageStatsNativeModule> | null; reason?: UnavailableReason } {
+import type { NativeUsageSnapshot, NativeUsageObservation } from './PlennaUsageStats.types';
+export async function getUsageObservations(windows: {
+  start: number;
+  end: number;
+}[], packages: string[], eligibleFrom: number, includeDetails: boolean): Promise<NativeUsageObservation[]> {
+  const {
+    native
+  } = resolverModulo();
+  if (typeof native?.getUsageObservations !== 'function') throw new Error('RF017_V3_NATIVE_REQUIRED');
+  return native.getUsageObservations(windows, packages, eligibleFrom, includeDetails);
+}
+export function cancelUsageCollection() {
+  const {
+    native
+  } = resolverModulo();
+  return native?.cancelUsageCollection?.() ?? false;
+}
+export async function getInstallationAnchor(): Promise<string> {
+  const {
+    native
+  } = resolverModulo();
+  if (typeof native?.getInstallationAnchor !== 'function') throw new Error('RF017_V2_NATIVE_REQUIRED');
+  return native.getInstallationAnchor();
+}
+export async function getUsageSnapshots(windows: {
+  start: number;
+  end: number;
+}[], packages: string[]): Promise<NativeUsageSnapshot[]> {
+  const {
+    native
+  } = resolverModulo();
+  if (typeof native?.getUsageSnapshots !== 'function') return windows.map(() => ({
+    sourceStatus: 'UNAVAILABLE',
+    reason: 'SOURCE_UNAVAILABLE'
+  }));
+  return native.getUsageSnapshots(windows, packages);
+}
+type UnavailableReason = Extract<ModuleStatus, {
+  available: false;
+}>['reason'];
+function resolverModulo(): {
+  native: Partial<PlennaUsageStatsNativeModule> | null;
+  reason?: UnavailableReason;
+} {
   if (Platform.OS !== 'android') {
-    return { native: null, reason: 'unsupported_platform' };
+    return {
+      native: null,
+      reason: 'unsupported_platform'
+    };
   }
   try {
     const native = requireOptionalNativeModule<Partial<PlennaUsageStatsNativeModule>>('PlennaUsageStats');
-    return native ? { native } : { native: null, reason: 'native_module_unavailable' };
+    return native ? {
+      native
+    } : {
+      native: null,
+      reason: 'native_module_unavailable'
+    };
   } catch {
-    return { native: null, reason: 'native_diagnostic_failed' };
+    return {
+      native: null,
+      reason: 'native_diagnostic_failed'
+    };
   }
 }
-
 export async function getModuleStatus(): Promise<ModuleStatus> {
-  const { native, reason } = resolverModulo();
+  const {
+    native,
+    reason
+  } = resolverModulo();
   const indisponivel = (motivo: UnavailableReason): ModuleStatus => ({
-    available: false, platform: Platform.OS, module: 'plenna-usage-stats', reason: motivo,
+    available: false,
+    platform: Platform.OS,
+    module: 'plenna-usage-stats',
+    reason: motivo
   });
   if (!native) return indisponivel(reason!);
-  const metodos: (keyof PlennaUsageStatsNativeModule)[] = [
-    'getModuleStatus', 'hasUsageAccess', 'openUsageAccessSettings', 'getUsageEvents', 'getForegroundUsage',
-  ];
+  const metodos: (keyof PlennaUsageStatsNativeModule)[] = ['getModuleStatus', 'hasUsageAccess', 'openUsageAccessSettings', 'getUsageEvents', 'getForegroundUsage'];
   if (metodos.some(nome => typeof native[nome] !== 'function')) {
     return indisponivel('native_module_incompatible');
   }
@@ -38,29 +92,27 @@ export async function getModuleStatus(): Promise<ModuleStatus> {
   }
   return indisponivel('native_diagnostic_failed');
 }
-
 export async function hasUsageAccess(): Promise<boolean> {
-  const { native } = resolverModulo();
+  const {
+    native
+  } = resolverModulo();
   return typeof native?.hasUsageAccess === 'function' ? await native.hasUsageAccess() : false;
 }
-
 export async function openUsageAccessSettings(): Promise<boolean> {
-  const { native } = resolverModulo();
+  const {
+    native
+  } = resolverModulo();
   return typeof native?.openUsageAccessSettings === 'function' ? await native.openUsageAccessSettings() : false;
 }
-
-export async function getUsageEvents(
-  startTime: number,
-  endTime: number
-): Promise<UsageEvent[]> {
-  const { native } = resolverModulo();
+export async function getUsageEvents(startTime: number, endTime: number): Promise<UsageEvent[]> {
+  const {
+    native
+  } = resolverModulo();
   return typeof native?.getUsageEvents === 'function' ? await native.getUsageEvents(startTime, endTime) : [];
 }
-
-export async function getForegroundUsage(
-  startTime: number,
-  endTime: number
-): Promise<ForegroundUsage[]> {
-  const { native } = resolverModulo();
+export async function getForegroundUsage(startTime: number, endTime: number): Promise<ForegroundUsage[]> {
+  const {
+    native
+  } = resolverModulo();
   return typeof native?.getForegroundUsage === 'function' ? await native.getForegroundUsage(startTime, endTime) : [];
 }

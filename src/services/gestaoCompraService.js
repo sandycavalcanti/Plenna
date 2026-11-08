@@ -1,5 +1,6 @@
 export function moedaParaCentavos(text) {
-  const value = String(text).trim();
+  let value = String(text).trim().replace(/^R\$\s*/, '');
+  if (/^\d{1,3}(?:\.\d{3})+,\d{1,2}$/.test(value)) value = value.replace(/\./g, '');
   if (!/^\d+(?:[,.]\d{1,2})?$/.test(value)) return null;
   const [whole, fraction = ''] = value.replace(',', '.').split('.');
   const result = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
@@ -72,7 +73,7 @@ export function criarGravadorEvento({ client, storage, uuid, compraId }) {
       response = await client.post(
         `/v2/compras/${compraId}/eventos`,
         pending.body,
-        { signal: session.signal, rf017SessionId: session.id, timeout: 15000 },
+        { signal: session.signal, usageMonitoringSessionId: session.id, timeout: 15000 },
       );
     } catch (e) {
       if (e?.response?.status === 409) {
@@ -103,6 +104,12 @@ export function criarGravadorEvento({ client, storage, uuid, compraId }) {
             'quantidade',
             'valorCentavos',
             'classificacao',
+            'avaliacaoId',
+            'versaoMotor',
+            'versaoInterpretacao',
+            'interpretacaoId',
+            'resposta',
+            'confirmarImpulsiva',
           ].includes(k) && e.dados?.[k] !== v,
       )
     )

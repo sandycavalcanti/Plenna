@@ -2,40 +2,44 @@ import { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
 import { tokenStorage } from '../api/tokenStorage';
 export function useEstadoCompra(compraId, refreshKey) {
-  const [data, setData] = useState(null);
+  const [state, setState] = useState({ data: null, loading: true, error: false });
   useEffect(() => {
     let active = true,
       session,
       clear;
-    setData(null);
+    const update = next => setState({ compraId, refreshKey, ...next });
+    update({ data: null, loading: true, error: false });
     (async () => {
       try {
         session = await tokenStorage.captureSession();
-        if (!session) return;
+        if (!active) return;
+        if (!session) { update({ data: null, loading: false, error: true }); return; }
+        tokenStorage.assertSession(session.id);
         clear = () => {
           active = false;
-          setData(null);
+          update({ data: null, loading: false, error: false });
         };
         session.signal.addEventListener('abort', clear, { once: true });
         const r = await apiClient.get(`/v2/compras/${compraId}/eventos`, {
+          params: {compacto:'1'},
           signal: session.signal,
-          rf017SessionId: session.id,
+          usageMonitoringSessionId: session.id,
         });
         tokenStorage.assertSession(session.id);
-        if (
-          active &&
-          r.data?.versaoContrato === 1 &&
-          r.data.compraId === compraId &&
-          r.data.disponivel &&
-          r.data.resumo
-        )
-          setData(r.data);
-      } catch {}
+        if (r.data?.versaoContrato !== 1 || r.data.compraId !== compraId ||
+          r.data.disponivel !== true || !r.data.resumo || !Array.isArray(r.data.eventos)) {
+          throw Error('INVALID_EVENT_CONTRACT');
+        }
+        if (active) update({ data: r.data, loading: false, error: false });
+      } catch {
+        if (active && !session?.signal.aborted) update({ data: null, loading: false, error: true });
+      }
     })();
     return () => {
       active = false;
       session?.signal.removeEventListener('abort', clear);
     };
   }, [compraId, refreshKey]);
-  return data;
+  return state.compraId === compraId && state.refreshKey === refreshKey
+    ? state : { data: null, loading: true, error: false };
 }

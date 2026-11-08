@@ -165,7 +165,8 @@ test('known revision conflict permits a fresh operation after reload', async () 
 });
 test('money and civil dates reject ambiguous or invented values', () => {
   assert.equal(moedaParaCentavos('12,35'), 1235);
-  for (const x of ['1.234,56', '-1', 'NaN', '0', '12.345'])
+  assert.equal(moedaParaCentavos('R$ 1.234,56'), 123456);
+  for (const x of ['-1', 'NaN', '0', '12.345'])
     assert.equal(moedaParaCentavos(x), null);
   assert.equal(dataEfetiva(''), null);
   assert.equal(dataEfetiva('23/10/2026'), '2026-10-23');
@@ -195,13 +196,15 @@ const native = Object.fromEntries(
     'View',
     'Text',
     'Pressable',
+    'TouchableOpacity',
     'ScrollView',
     'TextInput',
     'ActivityIndicator',
+    'KeyboardAvoidingView',
   ].map((k) => [k, k]),
 );
 native.StyleSheet = { create: (v) => v };
-function sheet({ action, item, fail = false } = {}) {
+function sheet({ action, item, fail = false, eventos = [], compra = {}, eventoInicial = null } = {}) {
   const { storage } = session();
   let writes = [],
     rev = 0;
@@ -211,6 +214,7 @@ function sheet({ action, item, fail = false } = {}) {
     '@expo/vector-icons': { Ionicons: 'Icon' },
     'expo-crypto': { randomUUID: () => 'op' },
     '../../api/tokenStorage': { tokenStorage: storage },
+    '../CustomButton': { __esModule:true, default:props=>({type:'Pressable',props:{...props,children:[props.title]}}) },
     '../../api/client': {
       apiClient: {
         get: async () => ({
@@ -219,7 +223,7 @@ function sheet({ action, item, fail = false } = {}) {
             compraId: 1,
             disponivel: true,
             revisao: rev,
-            eventos: [],
+            eventos,
           },
         }),
         post: async (u, b) => {
@@ -238,9 +242,10 @@ function sheet({ action, item, fail = false } = {}) {
   r.mount(
     r.load('src/components/PurchaseComponents/GerenciarCompra.js').default,
     {
-      compra: { compra_id: 1, compra_status: 'CONFIRMADA' },
+      compra: { compra_id: 1, compra_status: 'CONFIRMADA', ...compra },
       item,
       acaoInicial: action,
+      eventoInicial,
       onClose() {},
       onSaved() {},
     },
@@ -249,12 +254,50 @@ function sheet({ action, item, fail = false } = {}) {
     r,
     writes,
     press(label) {
-      const n = r.nodes((n) => n.props.onPress && text(n) === label)[0];
+      const n = r.nodes((n) => n.props.onPress && text(n) === (label === 'Confirmar registro' ? {DEVOLUCAO: 'Confirmar devolução', REEMBOLSO: 'Confirmar reembolso', CANCELAMENTO: 'Confirmar cancelamento', CLASSIFICACAO: 'Salvar classificação'}[action] : label.replace(' do registro', '')))[0];
       assert.ok(n, label);
       n.props.onPress();
     },
   };
 }
+test('correção preenche valor e data; anulação mantém o evento e usa confirmação própria', async () => {
+  const original = {id: 8, itemId: null, tipo: 'REEMBOLSO', dados: {valorCentavos: 1250}, dataEfetiva: '2026-10-31'};
+  const s = sheet({eventoInicial: original, eventos: [original], compra: {compra_valor: '100.00'}});
+  await s.r.flush();
+  assert.equal(s.r.nodes(n => n.props.accessibilityLabel === 'Valor reembolsado')[0].props.value, 'R$ 12,50');
+  assert.ok(s.r.nodes(n => n.type === 'Text' && text(n) === '31/10/2026').length);
+  s.r.nodes(n => n.props.accessibilityRole === 'checkbox')[0].props.onPress(); await s.r.flush();
+  s.press('Confirmar anulação'); await s.r.flush();
+  assert.equal(s.writes[0].corrigeEventoId, 8);
+  assert.equal(s.writes[0].anulado, true);
+  assert.equal(s.writes[0].valorCentavos, 1250);
+  assert.deepEqual(original.dados, {valorCentavos: 1250});
+  s.r.unmount();
+});
+test('salvar correção acrescenta evento com escopo e valor revisado', async () => {
+  const original = {id: 9, itemId: null, tipo: 'REEMBOLSO', dados: {valorCentavos: 1000}, dataEfetiva: null};
+  const s = sheet({eventoInicial: original, eventos: [original], compra: {compra_valor: '100.00'}});
+  await s.r.flush();
+  s.r.nodes(n => n.props.accessibilityLabel === 'Valor reembolsado')[0].props.onChangeText('15,00');
+  await s.r.flush(); s.press('Salvar correção'); await s.r.flush();
+  assert.equal(s.writes[0].corrigeEventoId, 9);
+  assert.equal(s.writes[0].anulado, false);
+  assert.equal(s.writes[0].valorCentavos, 1500);
+  assert.equal(s.writes[0].itemId, undefined);
+  assert.equal(original.dados.valorCentavos, 1000);
+  s.r.unmount();
+});
+test('reembolso integral usa somente o saldo restante e não envia novo discriminador', async () => {
+  const s = sheet({action: 'REEMBOLSO', compra: {compra_valor: '100.00'}, eventos: [{id: 1, tipo: 'REEMBOLSO', dados: {valorCentavos: 2500}}]});
+  await s.r.flush(); s.press('Integral'); await s.r.flush();
+  assert.equal(s.r.nodes(n => n.props.accessibilityLabel === 'Valor reembolsado')[0].props.value, 'R$ 75,00');
+  s.press('Confirmar reembolso'); await s.r.flush();
+  assert.equal(s.writes[0].valorCentavos, 7500);
+  assert.equal(s.writes[0].tipo, 'REEMBOLSO');
+  assert.equal(s.writes[0].tipoReembolso, undefined);
+  s.r.unmount();
+});
+
 for (const [label, reason] of [
   ['Registro duplicado', 'DUPLICADO'],
   ['Registro incorreto', 'INCORRETO'],
@@ -289,6 +332,81 @@ test('partial item return remains scoped and does not invent a refund', async ()
   assert.equal(s.writes[0].valorCentavos, undefined);
   s.r.unmount();
 });
+
+test('última unidade é fixa e uma devolução sem saldo não é enviada', async () => {
+  const item = { compra_item_id: 9, compra_item_nome: 'Livro', compra_item_quantidade: 2, compra_item_valor: '15.00' };
+  const prior = { id: 1, itemId: 9, tipo: 'DEVOLUCAO', dados: { quantidade: 1 } };
+  const s = sheet({ action: 'DEVOLUCAO', item, eventos: [prior] });
+  await s.r.flush();
+  assert.equal(s.r.nodes(n => n.props.accessibilityLabel === 'Quantidade do evento').length, 0);
+  s.press('Confirmar registro');
+  await s.r.flush();
+  assert.equal(s.writes[0].quantidade, 1);
+  assert.equal(s.writes[0].tipo, 'DEVOLUCAO');
+  s.r.unmount();
+  const exhausted = sheet({ action: 'DEVOLUCAO', item, eventos: [{ ...prior, dados: { quantidade: 2 } }] });
+  await exhausted.r.flush();
+  exhausted.press('Confirmar registro');
+  await exhausted.r.flush();
+  assert.equal(exhausted.writes.length, 0);
+  exhausted.r.unmount();
+});
+
+test('seletor inteiro usa um controle e respeita os limites', async () => {
+  const s = sheet({ action: 'DEVOLUCAO', item: { compra_item_id: 9, compra_item_quantidade: 3, compra_item_valor: '10.00' } });
+  await s.r.flush();
+  assert.equal(s.r.nodes(n => n.props.accessibilityLabel === 'Quantidade do evento').length, 0);
+  const plus = () => s.r.nodes(n => n.props.accessibilityLabel === 'Aumentar quantidade')[0];
+  const minus = () => s.r.nodes(n => n.props.accessibilityLabel === 'Diminuir quantidade')[0];
+  assert.equal(minus().props.disabled, true);
+  plus().props.onPress(); await s.r.flush();
+  plus().props.onPress(); await s.r.flush();
+  assert.equal(plus().props.disabled, true);
+  minus().props.onPress(); await s.r.flush();
+  s.press('Confirmar registro'); await s.r.flush();
+  assert.equal(s.writes[0].quantidade, 2);
+  assert.equal(s.writes[0].valorCentavos, undefined);
+  s.r.unmount();
+});
+
+test('máscara permite colar, editar e apagar; bloqueia reembolso além do saldo', async () => {
+  const s = sheet({ action: 'REEMBOLSO', compra: { compra_valor: '100.00' }, eventos: [{ id: 1, tipo: 'REEMBOLSO', dados: { valorCentavos: 7500 }, itemId: null }] });
+  await s.r.flush();
+  const input = () => s.r.nodes(n => n.props.accessibilityLabel === 'Valor reembolsado')[0];
+  input().props.onChangeText('R$ 1.234,56');
+  await s.r.flush();
+  assert.equal(input().props.value, 'R$ 1.234,56');
+  s.press('Confirmar registro');
+  await s.r.flush();
+  assert.equal(s.writes.length, 0);
+  input().props.onChangeText('');
+  await s.r.flush();
+  assert.equal(input().props.value, '');
+  input().props.onChangeText('25,00');
+  await s.r.flush();
+  s.press('Confirmar registro');
+  await s.r.flush();
+  assert.equal(s.writes[0].valorCentavos, 2500);
+  s.r.unmount();
+});
+
+test('voltar da exclusão não envia operação e cancelamento não envia valor', async () => {
+  const s = sheet({ action: 'EXCLUSAO_REGISTRO' });
+  await s.r.flush();
+  s.press('Voltar às opções');
+  await s.r.flush();
+  assert.equal(s.writes.length, 0);
+  s.r.unmount();
+  const cancel = sheet({ action: 'CANCELAMENTO' });
+  await cancel.r.flush();
+  assert.ok(cancel.r.nodes(n => n.type === 'Text' && text(n).includes('A situação do registro permanece Confirmada')).length);
+  cancel.press('Confirmar registro');
+  await cancel.r.flush();
+  assert.equal(cancel.writes[0].tipo, 'CANCELAMENTO');
+  assert.equal(cancel.writes[0].valorCentavos, undefined);
+  assert.equal(cancel.writes[0].dataEfetiva, null);
+  cancel.r.unmount();
+});
 test('failed refund preserves entered amount and form', async () => {
   const s = sheet({ action: 'REEMBOLSO', fail: true });
   await s.r.flush();
@@ -301,7 +419,7 @@ test('failed refund preserves entered amount and form', async () => {
   assert.equal(
     s.r.nodes((n) => n.props.accessibilityLabel === 'Valor reembolsado')[0]
       .props.value,
-    '35,50',
+    'R$ 35,50',
   );
   assert.equal(s.writes[0].valorCentavos, 3550);
   assert.ok(s.r.nodes((n) => n.props.accessibilityRole === 'alert').length);
@@ -391,6 +509,7 @@ test('summary batches keep session and reject foreign or duplicated purchase ide
                       ]
                     : ids.map((compraId) => ({
                         compraId,
+                        oculto: mode === 'visibility-missing' ? undefined : false,
                         classificacao: compraId === 1 ? 'IMPULSIVA' : 'PENDENTE',
                       })),
             },
@@ -405,7 +524,9 @@ test('summary batches keep session and reject foreign or duplicated purchase ide
   );
   assert.equal(calls.length, 2);
   assert.equal(result[1].classificacao, 'IMPULSIVA');
-  assert.equal(calls[0].rf017SessionId, 1);
+  assert.equal(calls[0].usageMonitoringSessionId, 1);
+  mode = 'visibility-missing';
+  await assert.rejects(consultarResumosCompras([{ compra_id: 1 }]));
   mode = 'foreign';
   await assert.rejects(consultarResumosCompras([{ compra_id: 1 }]));
   mode = 'duplicate';

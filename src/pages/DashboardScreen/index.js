@@ -1,3 +1,9 @@
+import { segundosHistoricoUso, filtrarHistoricoUso } from '../../utils/historicoTempoUso';
+import ResumoFinanceiroPeriodo from '../../components/DashboardComponents/ResumoFinanceiroPeriodo';
+import { mensagemErroAnalytics, diagnosticoAnalytics } from '../../utils/erroAnalytics';
+import { useResumoHome } from '../../hooks/useResumoHome';
+import UsageTimePanel from '../../components/UsageTimePanel';
+import { usageMonitoringReadsEnabled } from '../../api/usageMonitoringPolicy';
 import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
 import DescobertasDashboard from '../../components/DashboardComponents/DescobertasDashboard';
 import MovimentacoesCompra from '../../components/DashboardComponents/MovimentacoesCompra';
@@ -818,6 +824,10 @@ export default function DashboardScreen({ route, navigation }) {
   const pagerRef = useRef(null);
   const overviewScrollRef = useRef(null);
   const overviewSectionPositionsRef = useRef({});
+  const usageFocusRequest = route?.params?.focoTempo;
+  const overviewMeasurementVersionRef = useRef(0);
+  const overviewSectionNodesRef = useRef({});
+  const overviewContentRef = useRef(null);
   const pendingOverviewSectionRef = useRef(null);
   const overviewAbortRef = useRef(null);
   const contextAbortRef = useRef(null);
@@ -847,6 +857,8 @@ export default function DashboardScreen({ route, navigation }) {
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const maxMonth = currentMonth;
   const accountStartMonth = getMonthInTimezone(usuario?.usuario_data_criacao);
+  const financeiro = useResumoHome(selectedMonth);
+  const tempoUsoLoading = overviewLoading;
   const comportamento = useAnaliseComportamento(selectedMonth);
   const overviewSection = routeIndicator === 'tempo'
     ? 'tempo'
@@ -863,33 +875,73 @@ export default function DashboardScreen({ route, navigation }) {
   useEffect(() => {
     if (!isValidMonth(incomingPeriod) || compareMonths(incomingPeriod, currentMonth) > 0) return;
     if (accountStartMonth && compareMonths(incomingPeriod, accountStartMonth) < 0) return;
-    setSelectedMonth((current) => (current === incomingPeriod ? current : incomingPeriod));
-    setEvolutionEnd((current) => (current === incomingPeriod ? current : incomingPeriod));
-    setCompareMonthB((current) => (current === incomingPeriod ? current : incomingPeriod));
+    setSelectedMonth(current => current === incomingPeriod ? current : incomingPeriod);
+    // O detalhe da Home seleciona o mês da visão geral e preserva os filtros de comparação.
+    if (routeIndicator === 'tempo') return;
+    setEvolutionEnd(current => current === incomingPeriod ? current : incomingPeriod);
+    setCompareMonthB(current => current === incomingPeriod ? current : incomingPeriod);
     const previousMonth = shiftMonth(incomingPeriod, -1);
-    setCompareMonthA((current) => (current === previousMonth ? current : previousMonth));
-  }, [accountStartMonth, currentMonth, incomingPeriod]);
-
+    setCompareMonthA(current => current === previousMonth ? current : previousMonth);
+  }, [accountStartMonth, currentMonth, incomingPeriod, usageFocusRequest, routeIndicator]);
   useEffect(() => {
-    if (activeTab !== 0 || !overviewSection) return;
+    if (isFocused && overviewSection) setActiveTab(0);
+  }, [isFocused, overviewSection, incomingPeriod, usageFocusRequest]);
+  useEffect(() => {
+    if (!isFocused || activeTab !== 0 || !overviewSection) return;
+    overviewMeasurementVersionRef.current++;
+    overviewSectionPositionsRef.current = {};
     pendingOverviewSectionRef.current = overviewSection;
-    const y = overviewSectionPositionsRef.current[overviewSection];
-    if (typeof y === 'number') {
-      overviewScrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+    return () => {
+      overviewMeasurementVersionRef.current++;
       pendingOverviewSectionRef.current = null;
-    }
-  }, [activeTab, overviewSection, selectedMonth]);
+    };
+  }, [activeTab, overviewSection, incomingPeriod, isFocused, usageFocusRequest]);
 
-  const markOverviewSection = useCallback((section) => (event) => {
+  // Aguarda o período e os cartões carregarem antes de concluir a navegação.
+  // A medição nativa acompanha mudanças de layout sem temporizadores.
+  const scrollToOverviewSection = useCallback(() => {
+    const section = pendingOverviewSectionRef.current;
+    const position = overviewSectionPositionsRef.current[section];
+    if (!section || !isFocused || activeTab !== 0 || overviewLoading || financeiro.loading || tempoUsoLoading) return;
+    if (incomingPeriod && selectedMonth !== incomingPeriod) return;
+    if (!position || position.month !== selectedMonth || !overviewScrollRef.current) return;
+    overviewScrollRef.current.scrollTo({
+      y: Math.max(0, position.y - 12),
+      animated: true
+    });
+    pendingOverviewSectionRef.current = null;
+    navigation.setParams?.({
+      indicador: undefined,
+      periodo: undefined,
+      focoTempo: undefined
+    });
+  }, [isFocused, activeTab, overviewLoading, financeiro.loading, tempoUsoLoading, incomingPeriod, selectedMonth, navigation, usageFocusRequest]);
+  const measureOverviewSection = useCallback(() => {
+    // Mede a posição no conteúdo do ScrollView após a atualização do React.
+    // O retorno nativo de measureLayout considera mudanças assíncronas do layout.
+    if (!pendingOverviewSectionRef.current) return;
+    const version = overviewMeasurementVersionRef.current;
+    const section = pendingOverviewSectionRef.current;
+    const node = overviewSectionNodesRef.current[section];
+    node?.measureLayout?.(overviewContentRef.current, (_x, y) => {
+      if (version !== overviewMeasurementVersionRef.current) return;
+      overviewSectionPositionsRef.current[section] = {
+        y,
+        month: selectedMonth
+      };
+      scrollToOverviewSection();
+    }, () => {});
+  }, [selectedMonth, scrollToOverviewSection]);
+  useEffect(measureOverviewSection, [measureOverviewSection]);
+  const markOverviewSection = useCallback(section => event => {
     const y = event.nativeEvent.layout.y;
-    overviewSectionPositionsRef.current[section] = y;
-    if (pendingOverviewSectionRef.current === section) {
-      overviewScrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
-      pendingOverviewSectionRef.current = null;
-    }
-  }, []);
+    overviewSectionPositionsRef.current[section] = {
+      y,
+      month: selectedMonth
+    };
+    scrollToOverviewSection();
+  }, [selectedMonth, scrollToOverviewSection]);
   const mark = markOverviewSection;
-
   const openPicker = useCallback((target) => setPickerTarget(target), []);
   const closePicker = useCallback(() => setPickerTarget(null), []);
 
@@ -939,20 +991,26 @@ export default function DashboardScreen({ route, navigation }) {
     setOverviewLoading(true);
     setOverviewError(null);
     setOverviewData(null);
-
     try {
-      const data = await getDashboardAnalytics({ mode: 'month', month: selectedMonth }, { signal: controller.signal });
+      const data = await getDashboardAnalytics({
+        mode: 'month',
+        month: selectedMonth
+      }, {
+        signal: controller.signal
+      });
       if (requestId !== overviewRequestRef.current || controller.signal.aborted) return;
       setOverviewData(data);
     } catch (error) {
       if (requestId !== overviewRequestRef.current || isCanceled(error)) return;
-      logApiErrors(error, 'Erro ao buscar analytics do período');
-      setOverviewError('Confira sua conexão e tente carregar o período novamente.');
+      logApiErrors(error, 'Erro ao buscar analytics do período', true, diagnosticoAnalytics(error, {
+        mode: 'month',
+        month: selectedMonth
+      }));
+      setOverviewError(mensagemErroAnalytics(error));
     } finally {
       if (requestId === overviewRequestRef.current) setOverviewLoading(false);
     }
   }, [selectedMonth]);
-
   const loadComparison = useCallback(async () => {
     if (comparisonMode === 'compare' && compareMonthA === compareMonthB) {
       setComparisonData(null);
@@ -1042,46 +1100,31 @@ export default function DashboardScreen({ route, navigation }) {
   }, [activeTab, comportamento.refresh, descobertasResumo.refresh, loadComparison, loadContext, loadOverview]);
 
   const period = overviewData?.periodos?.[0] || null;
-  const metaValue = Math.max(0, Number(usuario?.usuario_meta_valor_mensal) || 0);
-  const metaCents = Math.max(0, Math.round(metaValue * 100));
-  const totalCents = Math.max(0, Number(period?.total_centavos) || 0);
-  const metaUsagePercent = metaCents > 0 ? (totalCents / metaCents) * 100 : 0;
-  const metaStatus = metaCents <= 0 ? 'undefined' : metaUsagePercent > 100 ? 'exceeded' : metaUsagePercent >= 80 ? 'near' : 'within';
-  const metaExcessCents = metaCents > 0 ? Math.max(totalCents - metaCents, 0) : 0;
-  const metaStatusColor = {
-    undefined: COLORS.dadoUm,
-    exceeded: COLORS.dashboardGastosGeraisAviso,
-    near: DASHBOARD_COLORS.caution,
-    within: DASHBOARD_COLORS.positive,
-  }[metaStatus];
   const limitData = period?.compras_acima_limite || { acima_limite: 0, dentro_limite: 0 };
   const isHistoricalMonth = selectedMonth !== currentMonth;
-  const dailyUsageMinutes = getDailyUsageMinutes(tempoUso);
-  const financialScaleCents = Math.max(totalCents, metaCents, 1);
-  const limitBarWidth = metaCents > 0 ? Math.min(100, (metaCents / financialScaleCents) * 100) : 0;
-  const spentBarWidth = totalCents > 0 ? Math.min(100, (totalCents / financialScaleCents) * 100) : 0;
-  const usagePercentValue = metaCents > 0 ? `${metaUsagePercent.toFixed(2).replace('.', ',')}%` : null;
-  const metricCards = [
-    {
-      key: 'acima-limite',
-      label: 'Acima do limite',
-      value: String(limitData.acima_limite || 0),
-      subtitle: `${limitData.dentro_limite || 0} dentro do limite`,
-      iconColor: COLORS.dashboardGastosGeraisAviso,
-      icon: 'alert-circle-outline',
-    },
-    { key: 'descontos', label: 'Descontos', value: formatCents(period?.desconto_centavos || 0), subtitle: 'economia registrada', iconColor: COLORS.dadoDois, icon: 'sale' },
-
-    {
-      key: 'tempo-sites',
-      label: 'Tempo em sites',
-      value: formatDailyDuration(dailyUsageMinutes),
-      subtitle: dailyUsageMinutes > 0 ? 'registrado hoje' : 'nenhum registro hoje',
-      iconColor: COLORS.customButtonFundo,
-      icon: 'clock-outline',
-    },
-  ];
-
+  const dailyUsageMinutes = segundosHistoricoUso(filtrarHistoricoUso(tempoUso, selectedMonth)) / 60;
+  const metricCards = [{
+    key: 'acima-limite',
+    label: 'Acima do limite',
+    value: String(limitData.acima_limite || 0),
+    subtitle: `${limitData.dentro_limite || 0} dentro do limite`,
+    iconColor: COLORS.dashboardGastosGeraisAviso,
+    icon: 'alert-circle-outline'
+  }, {
+    key: 'descontos',
+    label: 'Descontos',
+    value: formatCents(period?.desconto_centavos || 0),
+    subtitle: 'economia registrada',
+    iconColor: COLORS.dadoDois,
+    icon: 'sale'
+  }, {
+    key: 'tempo-sites',
+    label: 'Tempo em aplicativos',
+    value: usageMonitoringReadsEnabled ? 'Ver tempo registrado' : formatDailyDuration(dailyUsageMinutes),
+    subtitle: usageMonitoringReadsEnabled ? 'tempo em aplicativos no mês' : dailyUsageMinutes > 0 ? 'registrado no mês' : 'nenhum registro no mês',
+    iconColor: COLORS.customButtonFundo,
+    icon: 'clock-outline'
+  }];
   const renderOverview = () => {
     if (overviewLoading && !overviewData) return <LoadingState />;
     if (overviewError && !overviewData) return <ErrorState message={overviewError} onRetry={loadOverview} />;
@@ -1089,6 +1132,7 @@ export default function DashboardScreen({ route, navigation }) {
     return (
       <ScrollView
         ref={overviewScrollRef}
+        onContentSizeChange={measureOverviewSection}
         style={styles.pageScroll}
         contentContainerStyle={[styles.pageContent, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
@@ -1100,72 +1144,8 @@ export default function DashboardScreen({ route, navigation }) {
           label="Mês analisado"
         />
 
-        <View onLayout={mark('financial')} style={styles.financialSummaryCard}>
-          <View style={styles.financialSummaryHeader}>
-            <View>
-              <Text style={styles.financialSummaryEyebrow}>Resumo financeiro</Text>
-              <Text style={styles.financialSummaryLabel}>Gastos do mês</Text>
-            </View>
-            {isHistoricalMonth ? <Text style={styles.financialSummaryContext}>Configuração atual</Text> : null}
-          </View>
-          <Text style={styles.financialSummaryValue}>
-            {formatCents(totalCents)} <Text style={styles.financialSummaryValueSuffix}>gastos</Text>
-          </Text>
-
-          {metaCents > 0 ? (
-            <View style={styles.financialBars}>
-              <View style={styles.financialBarRow}>
-                <View style={styles.financialBarHeader}>
-                  <Text style={styles.financialBarLabel}>Limite mensal</Text>
-                  <Text style={styles.financialBarValue}>{formatReais(metaValue)}</Text>
-                </View>
-                <View
-                  style={styles.financialBarTrack}
-                  accessible
-                  accessibilityRole="progressbar"
-                  accessibilityLabel={`Limite mensal de ${formatReais(metaValue)}`}
-                >
-                  <View style={[styles.financialBarFill, styles.financialBarLimitFill, { width: `${limitBarWidth}%` }]} />
-                </View>
-              </View>
-              <View style={styles.financialBarRow}>
-                <View style={styles.financialBarHeader}>
-                  <Text style={styles.financialBarLabel}>Gastos do mês</Text>
-                  <Text style={styles.financialBarValue}>{formatCents(totalCents)}</Text>
-                </View>
-                <View
-                  style={styles.financialBarTrack}
-                  accessible
-                  accessibilityRole="progressbar"
-                  accessibilityLabel={`Gastos do mês de ${formatCents(totalCents)}`}
-                >
-                  <View style={[styles.financialBarFill, styles.financialBarSpentFill, { width: `${spentBarWidth}%`, backgroundColor: metaStatusColor }]} />
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.noLimitState}>
-              <Text style={styles.noLimitTitle}>Limite mensal não configurado</Text>
-              <Text style={styles.noLimitText}>O gasto é exibido sem comparação ou percentual de limite.</Text>
-            </View>
-          )}
-
-          <View style={styles.financialSummaryStatus}>
-            {metaExcessCents > 0 ? (
-              <View style={styles.financialSummaryExcess}>
-                <MaterialCommunityIcons name="alert-circle-outline" size={18} color={metaStatusColor} />
-                <Text style={[styles.financialSummaryExcessText, { color: metaStatusColor }]}>
-                  {formatCents(metaExcessCents)} acima do limite
-                </Text>
-              </View>
-            ) : null}
-            {usagePercentValue ? (
-              <View style={styles.financialSummaryPercentBlock}>
-                <Text style={[styles.financialSummaryPercentValue, { color: metaStatusColor }]}>{usagePercentValue}</Text>
-                <Text style={styles.financialSummaryPercentLabel}>do limite utilizado</Text>
-              </View>
-            ) : null}
-          </View>
+        <View onLayout={mark('financial')}>
+          <ResumoFinanceiroPeriodo dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} />
         </View>
 
         {!period || period.quantidade_compras === 0 ? (
@@ -1198,7 +1178,7 @@ export default function DashboardScreen({ route, navigation }) {
         </View>
 
         <View onLayout={mark('categories')}>
-          <Categoria gastosCategoria={period?.categorias || []} />
+          <Categoria gastosCategoria={period?.categorias || []} onSelect={categoriaId => navigation.navigate('Purchases', { filtroConsumo: { periodo: selectedMonth, timezone: ANALYTICS_TIMEZONE, categoriaId } })} />
         </View>
         <FormaPagamento gastosFormaPagamento={period?.formas_pagamento || []} />
         <Impulsividade data={period?.impulsividade || []} />
@@ -1212,8 +1192,8 @@ export default function DashboardScreen({ route, navigation }) {
           centerValueMode="quantity"
           totalKey="acima_limite"
         />
-        <View onLayout={mark('tempo')}>
-          <TempoApp tempoUso={tempoUso} title="Tempo de uso · Hoje" />
+        <View ref={node => { overviewSectionNodesRef.current.tempo = node; }} collapsable={false} onLayout={mark('tempo')}>
+          {usageMonitoringReadsEnabled ? <UsageTimePanel month={selectedMonth} onSettings={() => navigation.navigate('Profile')} /> : <TempoApp tempoUso={tempoUso} mes={selectedMonth} />}
         </View>
       </ScrollView>
     );

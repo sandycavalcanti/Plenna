@@ -111,7 +111,7 @@ test('loads both authenticated endpoints with captured session', async () => {
   assert.equal(h.editor.getState().status, 'ready');
   assert.equal(h.calls.length, 2);
   assert.ok(
-    h.calls.every((c) => c.config.rf017SessionId === 7 && c.config.signal),
+    h.calls.every((c) => c.config.usageMonitoringSessionId === 7 && c.config.signal),
   );
   h.editor.dispose();
 });
@@ -283,6 +283,7 @@ function screen({
   historico = null,
   nativeOverrides = {},
   etapaInicial = 'responder',
+  revisaoInicial,
   items = p().itens,
 } = {}) {
   let current = initial,
@@ -364,6 +365,8 @@ function screen({
   const h = createRenderer({
     'react-native': native,
     'expo-crypto': { randomUUID: () => 'ui-operation' },
+    '../../api/client': { apiClient: client },
+    '../../api/tokenStorage': {tokenStorage:{captureSession:async()=>({id:1,signal:controller.signal}),assertSession:()=>{if(controller.signal.aborted)throw Error('session');}}},
     '../../../api/client': { apiClient: client },
     '../../../api/tokenStorage': {
       tokenStorage: {
@@ -378,6 +381,7 @@ function screen({
     h.load('src/components/PurchaseComponents/ContextoCompra/index.js').default,
     {
       compraId: 1,
+      revisaoInicial,
       ...(etapaInicial === null ? {} : { etapaInicial }),
       onClose: () => {
         closed++;
@@ -385,7 +389,7 @@ function screen({
     },
   );
   const press = (label) => {
-    const node = h.nodes((n) => n.type === 'Pressable' && text(n) === label)[0];
+    const node = h.nodes((n) => n.type === 'Pressable' && (text(n) === label || n.props.accessibilityLabel === label))[0];
     assert.ok(node, 'missing ' + label);
     assert.ok(!node.props.disabled, 'disabled ' + label);
     node.props.onPress();
@@ -402,6 +406,138 @@ function screen({
   };
 }
 
+test('resposta apenas em rascunho não oferece exclusão de resposta registrada', async () => {
+  const s = screen();
+  await s.h.flush();
+  s.press('SIM');
+  await s.h.flush();
+  assert.equal(s.h.nodes(n => n.type === 'Text' && text(n) === 'Remover resposta').length, 0);
+  assert.equal(s.writes.length, 0);
+  s.h.unmount();
+});
+
+test('limpar escolha restaura ausência sem enviar remoção nem recuperar rascunho antigo', async () => {
+  const s = screen();
+  await s.h.flush();
+  s.press('PREFIRO_NAO_RESPONDER');
+  await s.h.flush();
+  assert.equal(s.h.nodes(n => n.type === 'Pressable' && text(n) === 'Pular por enquanto').length, 0);
+  s.press('Limpar escolha');
+  await s.h.flush();
+  assert.equal(s.h.nodes(n => n.props.accessibilityRole === 'radio' && n.props.accessibilityState.checked).length, 0);
+  const component = s.h.load('src/components/PurchaseComponents/ContextoCompra/index.js').default;
+  s.h.unmount();
+  s.h.mount(component, { compraId: 1, etapaInicial: 'responder', onClose() {} });
+  await s.h.flush();
+  assert.equal(s.h.nodes(n => n.props.accessibilityRole === 'radio' && n.props.accessibilityState.checked).length, 0);
+  s.press('Concluir por agora');
+  await s.h.flush();
+  assert.equal(s.writes.length, 0);
+  s.h.unmount();
+});
+
+test('remoção registrada tem feedback e pode ser substituída antes da confirmação', async () => {
+  const s = screen({ initial: c({ revisao: 2, respostas: { planejamento: 'SIM' } }) });
+  await s.h.flush();
+  s.press('Concluir por agora');
+  await s.h.flush();
+  s.press('Contexto');
+  await s.h.flush();
+  s.press('Revisar respostas');
+  await s.h.flush();
+  s.press('Remover resposta');
+  await s.h.flush();
+  assert.ok(s.h.nodes(n => n.type === 'Text' && text(n) === 'A resposta será removida ao salvar.').length);
+  assert.equal(s.h.nodes(n => n.type === 'Pressable' && text(n) === 'Remover resposta').length, 0);
+  s.press('NAO_LEMBRO');
+  await s.h.flush();
+  s.press('Concluir por agora');
+  await s.h.flush();
+  assert.deepEqual(s.writes[0].respostas, { planejamento: 'NAO_LEMBRO' });
+  s.h.unmount();
+});
+
+test('seis perguntas preservam alternativas e a última oferece somente uma conclusão', async () => {
+  const s = screen();
+  await s.h.flush();
+  s.press('Em parte');
+  await s.h.flush();
+  const expected = [...fields, 'E Livro, estava nos seus planos?'];
+  for (let i = 0; i < expected.length; i++) {
+    assert.ok(s.h.nodes(n => n.type === 'Text' && text(n) === expected[i]).length);
+    const radios = s.h.nodes(n => n.props.accessibilityRole === 'radio');
+    assert.deepEqual(radios.map(n => n.props.accessibilityLabel),
+      (i === 5 ? p().planejamentoItemOpcoes : p().catalogo[i].opcoes).map(o => o.valor === 'PARCIALMENTE' ? 'Em parte' : o.texto));
+    if (i < expected.length - 1) {
+      s.press(i === 0 ? 'Continuar →' : 'Pular por enquanto');
+      await s.h.flush();
+    }
+  }
+  assert.equal(s.h.nodes(n => n.type === 'Pressable' && text(n) === 'Concluir por agora').length, 0);
+  assert.equal(s.h.nodes(n => n.type === 'Pressable' && text(n) === 'Pular por enquanto').length, 0);
+  s.h.nodes(n => n.props.accessibilityLabel === 'Pergunta anterior')[0].props.onPress();
+  await s.h.flush();
+  assert.ok(s.h.nodes(n => n.type === 'Text' && text(n) === 'autopercepcaoImpulsividade').length);
+  assert.equal(s.writes.length, 0);
+  s.h.unmount();
+});
+
+test('contexto permite revisar diretamente um item sem selecionar o planejamento geral', async () => {
+  const s = screen({initial:c({revisao:1,respostas:{planejamento:'SIM'}})});
+  await s.h.flush();
+  s.press('Concluir por agora');
+  await s.h.flush();
+  s.press('Contexto');
+  await s.h.flush();
+  const itemButton=s.h.nodes(n=>n.type==='Pressable'&&n.props.accessibilityLabel?.startsWith('Revisar planejamento de '))[0];
+  assert.ok(itemButton);
+  itemButton.props.onPress();
+  await s.h.flush();
+  assert.ok(s.h.nodes(n=>n.type==='Text'&&text(n).startsWith('E ')).length);
+  assert.equal(s.writes.length,0);
+  s.h.unmount();
+});
+
+test('four histories follow the purchase timeline, load on demand and return without writes', async () => {
+ const s=screen({etapaInicial:'compra'}),calls=[];
+ const original=s.client.get;
+ s.client.get=async(url,config)=>{
+  calls.push({url,params:config?.params});
+  if(url.endsWith('/eventos/historico')){
+   const decisao=config?.params?.finalidade==='ANALISE';
+   return {data:{versaoContrato:1,compraId:1,eventos:decisao?[{id:200,revisao:200,itemId:null,tipo:'CLASSIFICACAO',dados:{classificacao:'IMPULSIVA'},registradaEm:'2026-11-07T12:00:00Z',dataEfetiva:null,corrigido:false,anulado:false}]:Array.from({length:50},(_,i)=>({id:100-i,revisao:100-i,itemId:config?.params?.escopo==='ITENS'?2:null,tipo:'REEMBOLSO',dados:{valorCentavos:100},registradaEm:'2026-11-07T12:00:00Z',dataEfetiva:null,corrigido:false,anulado:false})),proximaAntes:decisao?null:51}};
+  }
+  if(url.endsWith('/contexto/historico'))return {data:{versaoContrato:1,compraId:1,revisoes:[],proximaAntes:null}};
+  if(url.endsWith('/avaliacoes/historico'))return {data:{versaoContrato:1,compraId:1,avaliacoes:[],proximoAntes:null}};
+  return original(url,config);
+ };
+ await s.h.flush();s.press('Hist\u00f3rico');await s.h.flush();
+ const labels=['Hist\u00f3rico de respostas','Hist\u00f3rico de avalia\u00e7\u00f5es','Hist\u00f3rico de reflex\u00f5es','Hist\u00f3rico de classifica\u00e7\u00f5es'];
+ const displayed=()=>s.h.nodes(n=>n.type==='Text').map(text).join(' ');
+ assert.ok(displayed().indexOf('Outros hist\u00f3ricos')>displayed().indexOf('Eventos anteriores'));
+ assert.doesNotMatch(displayed(),/Consultar registros/);
+ assert.equal(calls.filter(c=>/contexto\/historico|avaliacoes\/historico/.test(c.url)).length,0);
+ assert.equal(calls.filter(c=>c.params?.finalidade==='ANALISE').length,0);
+ s.h.nodes(n=>n.props.accessibilityRole==='radio'&&text(n)==='Itens')[0].props.onPress();await s.h.flush();
+ for(let i=0;i<labels.length;i++){
+  const before=calls.length;s.press(labels[i]);await s.h.flush();
+  assert.ok(s.h.nodes(n=>n.type==='Pressable'&&text(n)==='Voltar ao hist\u00f3rico da compra').length);
+  const newCalls=calls.slice(before);
+  const expected=i===0?'/contexto/historico':i===3?'/eventos/historico':'/avaliacoes/historico';
+  assert.equal(newCalls.filter(c=>c.url.endsWith(expected)).length,1);
+  if(i===3){assert.equal(newCalls[0].params.finalidade,'ANALISE');assert.match(displayed(),/Impulsiva/);}
+  assert.doesNotMatch(displayed(),/N\u00e3o foi poss\u00edvel consultar|N\u00e3o foi poss\u00edvel carregar/);
+  if(i===3){s.h.nodes(n=>n.type==='Modal')[0].props.onRequestClose();}else s.press('Voltar ao hist\u00f3rico da compra');
+  await s.h.flush();
+  assert.match(displayed(),/Outros hist\u00f3ricos/);
+ }
+ const itens=s.h.nodes(n=>n.props.accessibilityRole==='radio'&&text(n)==='Itens')[0];assert.equal(itens.props.accessibilityState.checked,true);
+ assert.equal(calls.filter(c=>c.url.endsWith('/eventos/historico')&&c.params?.finalidade==='COMPRA').length,2);
+ assert.equal(s.writes.length,0);
+ s.press('An\u00e1lise');await s.h.flush();assert.doesNotMatch(displayed(),/Outros hist\u00f3ricos|Hist\u00f3rico de respostas|Hist\u00f3rico de classifica\u00e7\u00f5es/);
+ assert.equal(s.writes.length,0);s.h.unmount();
+});
+
 test('wizard presents one question and dynamic progress; partial planning retains item planning on save', async () => {
   const s = screen();
   await s.h.flush();
@@ -415,15 +551,13 @@ test('wizard presents one question and dynamic progress; partial planning retain
   );
   s.press('Em parte');
   await s.h.flush();
-  s.press('Adicionar mais contexto');
-  await s.h.flush();
   assert.equal(
     s.h.nodes((n) => n.props.accessibilityRole === 'progressbar')[0].props
       .accessibilityValue.max,
     6,
   );
   for (let i = 0; i < 5; i++) {
-    s.press('Continuar →');
+    s.press(i === 0 ? 'Continuar →' : 'Pular por enquanto');
     await s.h.flush();
   }
   assert.ok(
@@ -431,14 +565,42 @@ test('wizard presents one question and dynamic progress; partial planning retain
   );
   s.press('SIM');
   await s.h.flush();
-  s.press('Salvar e descobrir');
+  s.press('Concluir');
   await s.h.flush();
   assert.equal(s.writes[0].respostas.planejamento, 'PARCIALMENTE');
   assert.deepEqual(s.writes[0].itens, [{ itemId: 10, planejamento: 'SIM' }]);
   assert.ok(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'O PLENNA observou')
+    s.h.nodes((n) => n.type === 'Text' && text(n) === 'Análise do Plenna')
       .length,
   );
+  s.h.unmount();
+});
+test('entrada Compra adia contexto e alternância preserva dados já carregados',async()=>{
+ const s=screen({etapaInicial:'compra'}),calls=[];const get=s.client.get;s.client.get=async(...args)=>{calls.push(args[0]);return get(...args);};
+ await s.h.flush();assert.equal(calls.length,0);
+ s.press('Contexto');await s.h.flush();await s.h.flush();
+ const loaded=calls.filter(url=>url.endsWith('/contexto')||url.endsWith('/perguntas')).length;assert.equal(loaded,2);
+ s.press('Itens');await s.h.flush();s.press('Contexto');await s.h.flush();
+ assert.equal(calls.filter(url=>url.endsWith('/contexto')||url.endsWith('/perguntas')).length,loaded);s.h.unmount();
+});
+test('revisão conhecida pela lista evita consulta histórica duplicada ao abrir análise',async()=>{
+ const s=screen({etapaInicial:'compra',revisaoInicial:1,initial:c({revisao:1})}),calls=[];
+ const get=s.client.get;s.client.get=async(...args)=>{calls.push(args[0]);return get(...args);};
+ await s.h.flush();s.press('Análise');await s.h.flush();await s.h.flush();
+ assert.equal(calls.filter(url=>url.endsWith('/indicadores-historicos')).length,0);assert.equal(calls.filter(url=>url.endsWith('/avaliacoes/atual')).length,1);s.h.unmount();
+});
+
+test('F43: mudar de perspectiva preserva respostas opcionais ainda não salvas', async () => {
+  const s = screen();await s.h.flush();
+  s.press('Em parte');await s.h.flush();
+  s.press('Itens');await s.h.flush();
+  assert.equal(s.h.nodes(node=>node.props.accessibilityRole==='radio').length,0);
+  s.press('Análise');await s.h.flush();
+  assert.equal(s.writes.length,0);
+  s.press('Contexto');await s.h.flush();
+  assert.ok(s.h.nodes(node=>node.props.accessibilityRole==='radio' && node.props.accessibilityState?.checked).length);
+  s.press('Concluir por agora');await s.h.flush();
+  assert.equal(s.writes[0].respostas.planejamento,'PARCIALMENTE');
   s.h.unmount();
 });
 test('skip and previous navigation preserve optional choices without manufacturing answers', async () => {
@@ -478,7 +640,9 @@ test('review supports explicit removal and conflicts require confirmed reload', 
   await s.h.flush();
   s.press('Concluir por agora');
   await s.h.flush();
-  s.press('Revisar percepção');
+  s.press('Contexto');
+  await s.h.flush();
+  s.press('Revisar respostas');
   await s.h.flush();
   s.press('Remover resposta');
   await s.h.flush();
@@ -542,25 +706,30 @@ test('four areas retain versioned reflection independently without duplicate exp
   await s.h.flush();
   s.press('Concluir por agora');
   await s.h.flush();
-  for (const title of [
-    'O PLENNA observou',
-    'Sua percepção',
-    'Histórico e gerenciamento',
-  ])
+  for (const [area, title] of [
+    ['Análise', 'Análise do Plenna'],
+    ['Contexto', 'Contexto da compra'],
+    ['Histórico', 'Histórico da compra'],
+  ]) {
+    s.press(area);
+    await s.h.flush();
     assert.ok(
       s.h.nodes((n) => n.type === 'Text' && text(n) === title).length,
       title,
     );
+  }
   assert.equal(
     s.h.nodes((n) => n.type === 'Text' && text(n) === 'Explorar minha compra →')
       .length,
     0,
   );
-  s.press('Reflexão registrada');
+  s.press('Análise');
+  await s.h.flush();
+  s.press('Entender esta análise');
   await s.h.flush();
   assert.ok(
     s.h.nodes(
-      (n) => n.type === 'Text' && text(n).includes('não está disponível agora'),
+      (n) => n.type === 'Text' && text(n).includes('Não foi possível consultar a análise agora.'),
     ).length,
   );
   assert.equal(s.writes.length, 0);
@@ -579,7 +748,7 @@ test('empty adaptive invitation set opens the summary without a blank question s
   });
   await s.h.flush();
   assert.ok(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'O PLENNA observou')
+    s.h.nodes((n) => n.type === 'Text' && text(n) === 'Análise do Plenna')
       .length,
   );
   assert.equal(
@@ -617,17 +786,23 @@ test('default entry shows automatic observations before any optional question; a
   const s = screen({ historico, etapaInicial: null });
   await s.h.flush();
   assert.ok(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'O PLENNA observou')
+    s.h.nodes((n) => n.type === 'Text' && text(n) === 'Análise do Plenna')
       .length,
   );
-  assert.ok(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'R$ 100,00').length,
-  );
+  s.press('Entender esta análise');
+  await s.h.flush();
+  assert.ok(s.h.nodes((n) => n.type === 'Text' && text(n).includes('Sem evidências válidas suficientes')).length);
   assert.equal(
     s.h.nodes((n) => n.props.accessibilityRole === 'radio').length,
     0,
   );
   assert.equal(s.writes.length, 0);
+  s.h.nodes(n=>n.type==='Modal')[0].props.onRequestClose();
+  await s.h.flush();
+  assert.equal(s.h.nodes(n=>n.props.accessibilityLabel==='Fechar Entender esta análise').length,0);
+  assert.equal(s.closed(),0);
+  s.press('Contexto');
+  await s.h.flush();
   s.press('Adicionar contexto · opcional');
   await s.h.flush();
   assert.ok(s.h.nodes((n) => n.props.accessibilityRole === 'radio').length);
@@ -640,9 +815,11 @@ test('management is separate from optional contextual answers', async () => {
   await s.h.flush();
   s.press('Concluir por agora');
   await s.h.flush();
+  s.press('Histórico');
+  await s.h.flush();
   assert.ok(
     s.h.nodes(
-      (n) => n.type === 'Text' && text(n) === 'Eventos e operações da compra',
+      (n) => n.type === 'Text' && text(n) === 'Histórico da compra',
     ).length,
   );
   assert.equal(
@@ -651,6 +828,8 @@ test('management is separate from optional contextual answers', async () => {
     0,
   );
   assert.equal(s.writes.length, 0);
+  s.press('Contexto');
+  await s.h.flush();
   assert.ok(
     s.h.nodes((n) => n.type === 'Text' && text(n) === 'Planejada').length,
   );
@@ -685,12 +864,16 @@ test('a failed question service never blocks automatic analysis or history explo
     throw Error('questions unavailable');
   };
   await s.h.flush();
-  assert.ok(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'R$ 100,00').length,
-  );
+  s.press('Entender esta análise');
+  await s.h.flush();
+  assert.ok(s.h.nodes((n) => n.type === 'Text' && text(n).includes('Sem evidências válidas suficientes')).length);
+  s.press('Fechar Entender esta análise');
+  await s.h.flush();
+  s.press('Histórico');
+  await s.h.flush();
   assert.ok(
     s.h.nodes(
-      (n) => n.type === 'Text' && text(n) === 'Eventos e operações da compra',
+      (n) => n.type === 'Text' && text(n) === 'Histórico da compra',
     ).length,
   );
   assert.equal(s.writes.length, 0);
@@ -903,14 +1086,14 @@ test('successful save advances to Discover even when reflection is unavailable',
   await s.h.flush();
   assert.equal(s.writes.length, 1);
   assert.ok(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'O PLENNA observou')
+    s.h.nodes((n) => n.type === 'Text' && text(n) === 'Análise do Plenna')
       .length,
   );
-  s.press('Reflexão registrada');
+  s.press('Entender esta análise');
   await s.h.flush();
   assert.ok(
     s.h.nodes(
-      (n) => n.type === 'Text' && text(n).includes('não está disponível agora'),
+      (n) => n.type === 'Text' && text(n).includes('Não foi possível consultar a análise agora.'),
     ).length,
   );
   assert.equal(s.writes.length, 1);
@@ -927,10 +1110,8 @@ test('question seven of seven saves both item plans and advances only after ackn
   await s.h.flush();
   s.press('Em parte');
   await s.h.flush();
-  s.press('Adicionar mais contexto');
-  await s.h.flush();
   for (let i = 0; i < 6; i++) {
-    s.press('Continuar →');
+    s.press(i === 0 ? 'Continuar →' : 'Pular por enquanto');
     await s.h.flush();
   }
   const progress = s.h.nodes(
@@ -940,13 +1121,13 @@ test('question seven of seven saves both item plans and advances only after ackn
   assert.equal(progress.max, 7);
   s.press('SIM');
   await s.h.flush();
-  s.press('Salvar e descobrir');
+  s.press('Concluir');
   await s.h.flush();
   assert.ok(
     s.writes[0].itens.some((i) => i.itemId === 11 && i.planejamento === 'SIM'),
   );
   assert.ok(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'O PLENNA observou')
+    s.h.nodes((n) => n.type === 'Text' && text(n) === 'Análise do Plenna')
       .length,
   );
   s.h.unmount();
@@ -969,7 +1150,7 @@ test('network failure retains selected answers in the question and allows retry'
     )[0].props.accessibilityState.checked,
   );
   assert.equal(
-    s.h.nodes((n) => n.type === 'Text' && text(n) === 'O PLENNA observou')
+    s.h.nodes((n) => n.type === 'Text' && text(n) === 'Análise do Plenna')
       .length,
     0,
   );
@@ -981,17 +1162,15 @@ test('network failure retains selected answers in the question and allows retry'
   s.h.unmount();
 });
 
-test('optional context starts with at most two questions and expanding preserves the selected answer', async () => {
+test('optional context exposes all applicable questions and preserves explicit refusal', async () => {
   const s = screen();
   await s.h.flush();
   assert.equal(
     s.h.nodes((n) => n.props.accessibilityRole === 'progressbar')[0].props
       .accessibilityValue.max,
-    2,
+    4,
   );
   s.press('PREFIRO_NAO_RESPONDER');
-  await s.h.flush();
-  s.press('Adicionar mais contexto');
   await s.h.flush();
   assert.ok(
     s.h.nodes((n) => n.props.accessibilityRole === 'progressbar')[0].props
@@ -1011,6 +1190,49 @@ test('optional context starts with at most two questions and expanding preserves
   s.h.unmount();
 });
 
+function editarArrependimento(s, action) {
+  s.h.nodes(n=>n.props.accessibilityLabel==='Editar arrependimento')[0].props.onPress();
+  s.alerts.at(-1)[2].find(button=>button.text===action).onPress?.();
+}
+
+for (const informado of [false, true]) test(`arrependimento compacto mantém edição e cancelamento: informado=${informado}`, async () => {
+  const s = screen({initial: informado ? c({revisao:1,eventosPosteriores:['ARREPENDIMENTO']}) : c()});
+  await s.h.flush();
+  s.press('Concluir por agora');
+  await s.h.flush();
+  s.press('Contexto');
+  await s.h.flush();
+  const card = s.h.nodes(n => n.type === 'View' && n.props.children.some(child => text(child) === 'Classificação voluntária'))[0];
+  assert.ok(card);
+  assert.match(text(card), /Arrependimento/);
+  assert.match(text(card), informado ? /Informado/ : /Não informado/);
+  const action = informado ? 'Remover declaração de arrependimento' : 'Informar arrependimento';
+  assert.equal(s.h.nodes(n=>n.type==='Pressable' && text(n)===action).length,0);
+  assert.doesNotMatch(text(card), /Contexto salvo em|cancelamento ou|reembolso/);
+  assert.equal(s.h.nodes(n=>n.type==='Pressable' && n.props.accessibilityState?.expanded!==undefined && text(n).includes('Arrependimento')).length,0);
+  editarArrependimento(s,'Cancelar');
+  assert.equal(s.writes.length,0);
+  editarArrependimento(s,action);await s.h.flush();
+  assert.deepEqual(s.writes[0].eventosPosteriores,informado ? [] : ['ARREPENDIMENTO']);
+  assert.ok(s.h.nodes(n=>n.type==='Text' && text(n)===(informado ? 'Não informado' : 'Informado')).length);
+  s.h.unmount();
+});
+
+test('falha ao salvar arrependimento mantém declaração e permite nova tentativa', async () => {
+  const s = screen({initial:c({revisao:1,eventosPosteriores:['ARREPENDIMENTO','CANCELAMENTO']})});
+  await s.h.flush();s.press('Concluir por agora');await s.h.flush();s.press('Contexto');await s.h.flush();
+  const patch=s.client.patch;
+  s.client.patch=async()=>{throw Error('offline');};
+  editarArrependimento(s,'Remover declaração de arrependimento');await s.h.flush();
+  assert.ok(s.h.nodes(n=>n.type==='Text' && text(n)==='Informado').length);
+  assert.ok(s.h.nodes(n=>n.props.accessibilityRole==='alert').length);
+  s.client.patch=patch;
+  editarArrependimento(s,'Remover declaração de arrependimento');await s.h.flush();
+  assert.deepEqual(s.writes[0].eventosPosteriores,['CANCELAMENTO']);
+  assert.ok(s.h.nodes(n=>n.type==='Text' && text(n)==='Não informado').length);
+  s.h.unmount();
+});
+
 test('regret remains independently editable without turning it into cancellation or refund', async () => {
   const s = screen({
     initial: c({
@@ -1022,9 +1244,9 @@ test('regret remains independently editable without turning it into cancellation
   await s.h.flush();
   s.press('Concluir por agora');
   await s.h.flush();
-  s.press('Arrependimento · opcional');
+  s.press('Contexto');
   await s.h.flush();
-  s.press('Informar arrependimento');
+  editarArrependimento(s,'Informar arrependimento');
   await s.h.flush();
   assert.deepEqual(s.writes[0].eventosPosteriores, [
     'CANCELAMENTO',
@@ -1032,8 +1254,10 @@ test('regret remains independently editable without turning it into cancellation
   ]);
   assert.deepEqual(s.writes[0].respostas, {});
   assert.deepEqual(s.writes[0].itens, []);
-  s.press('Remover declaração de arrependimento');
+  editarArrependimento(s,'Remover declaração de arrependimento');
   await s.h.flush();
   assert.deepEqual(s.writes[1].eventosPosteriores, ['CANCELAMENTO']);
+  assert.equal(s.h.nodes(n => n.type === 'Text' && text(n) === 'Arrependimento informado').length, 0);
+  assert.ok(s.h.nodes(n => n.type === 'Text' && text(n) === 'Arrependimento').length);
   s.h.unmount();
 });

@@ -9,71 +9,74 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     // A borda sutil deixa a sombra fazer a separação principal entre os cards.
     borderColor: 'rgba(131, 111, 226, 0.12)',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
     shadowColor: '#2F356B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+    shadowOpacity: 0.02,
     shadowRadius: 10,
-    elevation: 3,
+    elevation: 0
   },
   pendingCard: {
     // O amarelo suave destaca a decisão pendente sem tratar a compra como erro.
     backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(131, 111, 226, 0.18)',
+    borderColor: 'rgba(131, 111, 226, 0.18)'
   },
   headerRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 10,
+    gap: 10
   },
   headerInfo: {
     flex: 1,
-    minWidth: 0,
-    gap: 3,
+    minWidth: 100,
+    gap: 3
   },
   establishment: {
     color: COLORS.histChatItemTitulo,
-    fontSize: 19,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '700'
   },
   date: {
     color: COLORS.histChatItemMensagem,
     fontSize: 13,
-    marginTop: 2,
+    marginTop: 2
   },
   value: {
-    color: COLORS.dashboardGastosGeraisValor,
-    fontSize: 20,
+    color: COLORS.cadTitulo,
+    fontSize: 16,
     fontWeight: '700',
-    textAlign: 'right',
+    textAlign: 'right'
   },
   headerValueGroup: {
     flexDirection: 'row',
     flexShrink: 0,
+    flexWrap: 'wrap',
+    maxWidth: '100%',
     alignItems: 'center',
-    gap: 6,
+    gap: 6
   },
   purchaseDeleteIconButton: {
     // A lixeira permanece fácil de tocar, mas não domina o card como o antigo
     // botão textual no rodapé. Ela só é renderizada para compras confirmadas.
-    width: 32,
-    height: 32,
-    minHeight: 32,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     marginLeft: 3,
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   badgesRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 7,
-    marginTop: 13,
+    marginTop: 13
   },
   emailOriginBadge: {
     flexDirection: 'row',
@@ -82,66 +85,79 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
     borderRadius: 999,
     paddingHorizontal: 9,
-    paddingVertical: 5,
+    paddingVertical: 5
   },
   emailOriginBadgeText: {
     color: COLORS.cadTitulo,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '600'
   },
   statusBadge: {
     // O status usa um tom positivo/lilás, separado visualmente da classificação.
     backgroundColor: COLORS.perfilPermissaoAvisoFundo,
     borderRadius: 999,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 5
   },
   statusBadgeText: {
     color: COLORS.perfilProfileCardTitulo,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '700'
   },
-  pendingStatusBadge: { backgroundColor: '#FBE4AE' },
-  pendingMessageRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 14 },
-  pendingMessage: { color: '#8A5A00', fontSize: 13, fontWeight: '700' },
+  pendingStatusBadge: {
+    backgroundColor: '#FBE4AE'
+  },
+  pendingMessageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: 14
+  },
+  pendingMessage: {
+    color: '#8A5A00',
+    fontSize: 13,
+    fontWeight: '700'
+  },
   classificationBadge: {
+    maxWidth: '100%',
+    flexShrink: 1,
     // A classificação padrão usa o lilás suave da identidade do aplicativo.
     backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
     borderRadius: 999,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 5
   },
   classificationBadgeText: {
     color: COLORS.cadTitulo,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '700'
   },
   impulsiveBadge: {
     // A classificação impulsiva ganha um alerta rosado mais quente para
     // merecer maior atenção, sem recorrer a um vermelho agressivo.
-    backgroundColor: '#D98291',
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo
   },
   impulsiveBadgeText: {
     // Texto claro aumenta a legibilidade sobre o fundo rosado de alerta.
-    color: '#FFF7FA',
+    color: COLORS.cadTitulo
   },
   itemsSummary: {
     color: COLORS.dadoUm,
     fontSize: 12,
-    marginLeft: 'auto',
+    marginLeft: 'auto'
   },
   itemsSection: {
     marginTop: 16,
     paddingTop: 13,
     borderTopWidth: 1,
     borderTopColor: '#F0EDF7',
-    gap: 8,
+    gap: 8
   },
   itemsTitle: {
     color: COLORS.histChatItemTitulo,
     fontSize: 14,
     fontWeight: '700',
-    marginBottom: 1,
+    marginBottom: 1
   },
   itemRow: {
     minHeight: 52,
@@ -152,7 +168,7 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.cadCaixaPreferenciasFundo,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 8
   },
   categoryIconBox: {
     // O fundo tonalizado mantém o ícone delicado e conectado à paleta do app.
@@ -161,42 +177,44 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo,
+    backgroundColor: COLORS.cadCaixaPreferenciasValorFundo
   },
   itemInfo: {
     flex: 1,
-    gap: 3,
+    gap: 3
   },
   itemName: {
     color: COLORS.histChatItemTitulo,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '600'
   },
   itemDetails: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 8
   },
   itemSecondary: {
     color: COLORS.dadoUm,
-    fontSize: 11,
+    fontSize: 11
   },
   itemValue: {
     color: COLORS.cadTitulo,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '700'
   },
   itemDeleteButton: {
-    width: 34,
-    minHeight: 34,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
+    width: 48,
+    height: 48,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo
   },
   purchaseActionRow: {
     alignItems: 'flex-end',
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0EDF7',
+    borderTopColor: '#F0EDF7'
   },
   purchaseDeleteButton: {
     minHeight: 40,
@@ -207,14 +225,60 @@ export const styles = StyleSheet.create({
     gap: 7,
     // A ação continua claramente destrutiva, mas usa um fundo suave para
     // funcionar como ação secundária e não como botão principal do card.
-    backgroundColor: COLORS.perfilPermissaoAvisoFundo,
+    backgroundColor: COLORS.perfilPermissaoAvisoFundo
   },
   purchaseDeleteText: {
     color: COLORS.cadTextoAdicionarLimites,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '700'
   },
-  statusActionsGroup: { flexDirection: 'row', width: '100%', gap: 10, marginLeft: 0 },
-  ignoreButton: { flex: 1, width: 'auto', minHeight: 40 },
-  confirmButton: { flex: 1, width: 'auto', minHeight: 40 },
+  statusActionsGroup: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 10,
+    marginLeft: 0
+  },
+  ignoreButton: {
+    flex: 1,
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: '#FBE4AE'
+  },
+  ignoreButtonText: {
+    color: '#8A5A00',
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  confirmButton: {
+    flex: 1,
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: COLORS.cadTitulo
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  disabledAction: {
+    opacity: 0.6
+  }
+});
+export const presentationStyles = StyleSheet.create({
+  inline1: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  }
 });

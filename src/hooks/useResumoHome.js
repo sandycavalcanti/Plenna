@@ -13,7 +13,7 @@ export function useResumoHome(periodo) {
     try {
       session = await tokenStorage.captureSession();
       if (!session) throw new Error('SESSION_REQUIRED');
-      const { data } = await apiClient.get('/home/resumo', { params: { periodo }, signal: session.signal, rf017SessionId: session.id });
+      const { data } = await apiClient.get('/home/resumo', { params: { periodo, versao: 3 }, signal: session.signal, usageMonitoringSessionId: session.id });
       tokenStorage.assertSession(session.id);
       const dados = validarResumoHome(data, periodo);
       if (id === request.current) setState({ periodo, dados, loading: false, error: false });
