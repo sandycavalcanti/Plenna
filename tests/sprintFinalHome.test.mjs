@@ -53,7 +53,13 @@ const COLORS={surface:'#FFFFFF',metaProgressFill:'#893467'};
 const component=new Function('React','View','Text','ActivityIndicator','useState','CustomButton','MetaSummaryCard','COLORS',js+';return MetasHome;')(React,'View','Text','Spinner',()=>[false,()=>{}],CustomButton,MetaSummaryCard,COLORS);
 test('metas actual contents, progress summary, multiple complete unknown and loading failure',()=>{
  const one={id:1,nome:'Viagem',valor:'300.00',valorReservado:'120.00',progressoPercentual:40,valorRestante:'180.00',data:'2026-12-01',concluida:false};
- assert.match(text(component({metas:[]})),/Criar uma meta/);
+ assert.match(text(component({metas:[],periodo:'2026-11',periodoAtual:'2026-11'})),/Sua pr\u00f3xima conquista come\u00e7a aqui!/);
+ assert.match(text(component({metas:[],periodo:'2026-11',periodoAtual:'2026-11'})),/Crie uma meta e comece a acompanhar seu progresso\./);
+ assert.match(text(component({metas:[],periodo:'2026-11',periodoAtual:'2026-11'})),/\+ Criar meta/);
+ const historicalEmpty=text(component({metas:[],periodo:'2026-10',periodoAtual:'2026-11'}));
+ assert.match(historicalEmpty,/Nenhuma meta neste per\u00edodo/);
+ assert.match(historicalEmpty,/Voc\u00ea ainda n\u00e3o tinha metas registradas nesse m\u00eas\./);
+ assert.doesNotMatch(historicalEmpty,/\+ Criar meta/);
  assert.match(text(component({metas:[one]})),/Viagem/);
   assert.doesNotMatch(text(component({metas:[one]})),/Reservado:\s+R\$ 120,00/);
   assert.match(text(component({metas:[one]})),/Progresso\s+40%/);
@@ -100,6 +106,7 @@ test('Home hierarchy consumes safe summary and actual metas without old shortcut
  const s=await read('src/pages/HomeScreen/index.js');
  assert.doesNotMatch(s,/ResumoInterativo|Explore seu consumo|Seus próximos passos|useAnaliseComportamento|fetchCompras/);
  assert.ok(s.indexOf('<CardFinanceiroHome')<s.indexOf('<MetasHome'));assert.ok(s.indexOf('<MetasHome')<s.indexOf('Tempo em aplicativos'));
+ assert.match(s,/periodoAtual=\{periodoMensalSaoPaulo\(\)\}/);
  assert.doesNotMatch(s,/navigate\('Dashboard',\s*\{\s*periodo/);
  assert.match(s,/itensParaVoce\.map/);
 });

@@ -45,6 +45,14 @@ export function listarMetas(config = {}) {
   return apiClient.get('/metas', config);
 }
 
+export function listarMetasHistorico(periodo, config = {}) {
+  if (typeof periodo !== 'string' || !/^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(periodo)) throw new TypeError('período de metas inválido');
+  return apiClient.get('/metas/historico', {
+    ...config,
+    params: { ...(config.params || {}), periodo },
+  });
+}
+
 export function criarMeta(data, config = {}) {
   return apiClient.post('/metas', prepararPayloadMeta(data), config);
 }

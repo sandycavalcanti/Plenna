@@ -38,24 +38,17 @@ export const styles = StyleSheet.create({
   },
 
   notificationButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    backgroundColor: 'transparent',
     position: 'relative',
   },
 
   notificationButtonPending: {
-    backgroundColor: '#FFF2F7',
-    borderWidth: 1,
-    borderColor: 'rgba(192, 44, 122, 0.2)',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
 
   notificationBadge: {

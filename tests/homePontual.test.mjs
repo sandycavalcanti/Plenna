@@ -4,12 +4,12 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Home keeps fixed budget and metas independent from the selected month', async () => {
+test('Home keeps fixed budget and loads metas for the selected month', async () => {
   const home = await read('src/pages/HomeScreen/index.js');
   const chart = await read('src/utils/meiaLuaHome.js');
 
   assert.match(home, /useRecomendacoesHome\(periodo\)/);
-  assert.match(home, /useMetasHome\(\)/);
+  assert.match(home, /useMetasHome\(periodo\)/);
   assert.match(home, /orcamentoFixo=\{usuario\?\.usuario_meta_valor_mensal\}/);
   assert.match(chart, /orcamentoFixoCentavos/);
   assert.match(chart, /hasFixedBudget/);

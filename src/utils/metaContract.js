@@ -76,3 +76,59 @@ export function normalizarRespostaMetas(payload) {
     return meta;
   });
 }
+
+function dataValida(value, allowNull = false) {
+  if (allowNull && value === null) return true;
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function invalidHistorico(index, meta, field, reason) {
+  const normalized = normalizarMetaRegistro(meta);
+  throw new ContratoMetasError({
+    index,
+    metaId: normalized?.meta_id ?? null,
+    field,
+    reason,
+  });
+}
+
+/** Valida o contrato mensal sem transformar histórico incompleto em saldo atual. */
+export function normalizarRespostaHistoricoMetas(payload, periodoEsperado) {
+  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.metas)) {
+    throw new ContratoMetasError({ index: null, metaId: null, field: 'resposta', reason: 'objeto_historico_obrigatorio' });
+  }
+  if (payload.versaoContrato !== 2 || payload.referenciaTemporal !== 'America/Sao_Paulo' ||
+    typeof payload.periodo !== 'string' || !/^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(payload.periodo) ||
+    (periodoEsperado && payload.periodo !== periodoEsperado) ||
+    !Array.isArray(payload.limitacoes) || payload.limitacoes.some((item) => typeof item !== 'string')) {
+    throw new ContratoMetasError({ index: null, metaId: null, field: 'resposta', reason: 'contrato_historico_invalido' });
+  }
+
+  const ids = new Set();
+  const metas = payload.metas.map((rawMeta, index) => {
+    const normalized = normalizarMetaRegistro(rawMeta);
+    if (!normalized) invalidHistorico(index, rawMeta, 'meta', 'objeto_obrigatorio');
+    const meta = { ...normalized };
+    if (!meta.meta_id) invalidHistorico(index, rawMeta, 'meta_id', 'identificador_invalido');
+    if (ids.has(meta.meta_id)) invalidHistorico(index, rawMeta, 'meta_id', 'identificador_duplicado');
+    if (typeof meta.meta_titulo !== 'string' || !meta.meta_titulo.trim()) invalidHistorico(index, rawMeta, 'meta_titulo', 'titulo_obrigatorio');
+    if (!dinheiroValido(meta.meta_valor)) invalidHistorico(index, rawMeta, 'meta_valor', 'valor_monetario_invalido');
+    if (!dinheiroValido(meta.meta_valor_reservado)) invalidHistorico(index, rawMeta, 'meta_valor_reservado', 'valor_monetario_invalido');
+    if (!temValor(meta.progresso_percentual) || !Number.isFinite(Number(meta.progresso_percentual)) || Number(meta.progresso_percentual) < 0) {
+      invalidHistorico(index, rawMeta, 'progresso_percentual', 'percentual_invalido');
+    }
+    if (typeof meta.meta_completado !== 'boolean') invalidHistorico(index, rawMeta, 'meta_completado', 'boolean_obrigatorio');
+    if (!dataValida(rawMeta.meta_data_criacao)) invalidHistorico(index, rawMeta, 'meta_data_criacao', 'data_invalida');
+    if (!dataValida(rawMeta.meta_data_conclusao, true)) invalidHistorico(index, rawMeta, 'meta_data_conclusao', 'data_invalida');
+    for (const field of ['saldo_historico_disponivel', 'historico_completo']) {
+      if (typeof rawMeta[field] !== 'boolean') invalidHistorico(index, rawMeta, field, 'boolean_obrigatorio');
+    }
+    if (!Array.isArray(rawMeta.historico_limitacoes) || rawMeta.historico_limitacoes.some((item) => typeof item !== 'string')) {
+      invalidHistorico(index, rawMeta, 'historico_limitacoes', 'lista_invalida');
+    }
+    ids.add(meta.meta_id);
+    return { ...meta, meta_data_conclusao: rawMeta.meta_data_conclusao ?? null };
+  });
+
+  return { ...payload, metas };
+}

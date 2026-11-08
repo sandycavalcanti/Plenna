@@ -35,7 +35,7 @@ export default function HomeScreen({ navigation }) {
   const financeiro = useResumoHome(periodo);
   const descobertas = useDescobertasResumo(periodo);
   const tempo = useTempoUsoHome(!usageMonitoringReadsEnabled);
-  const metas = useMetasHome();
+  const metas = useMetasHome(periodo);
   const recomendacoes = useRecomendacoesHome(periodo);
   const [usuario, setUsuario] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -89,7 +89,7 @@ export default function HomeScreen({ navigation }) {
       Animated.timing(bellRotation, { toValue: -10, duration: 100, useNativeDriver: true }),
       Animated.timing(bellRotation, { toValue: 10, duration: 100, useNativeDriver: true }),
       Animated.timing(bellRotation, { toValue: 0, duration: 90, useNativeDriver: true }),
-      Animated.delay(2000),
+      Animated.delay(3000),
     ]);
     const loop = Animated.loop(shake, { resetBeforeIteration: false });
     bellAnimationRef.current = loop;
@@ -168,7 +168,7 @@ export default function HomeScreen({ navigation }) {
           </View>
           <TouchableOpacity style={[styles.notificationButton, unreadCount > 0 ? styles.notificationButtonPending : null]} onPress={openNotifications} activeOpacity={0.8}>
             <Animated.View style={{ transform: [{ rotate: bellRotation.interpolate({ inputRange: [-10, 10], outputRange: ['-10deg', '10deg'] }) }] }}>
-              <MaterialCommunityIcons name="bell-outline" size={26} color={unreadCount > 0 ? '#C02C7A' : COLORS.dadoUm} />
+              <MaterialCommunityIcons name="bell-outline" size={26} color={COLORS.dashboardMetaValor} />
             </Animated.View>
             {unreadBadgeLabel ? <View style={styles.notificationBadge}><Text style={styles.notificationBadgeText}>{unreadBadgeLabel}</Text></View> : null}
           </TouchableOpacity>
@@ -179,6 +179,8 @@ export default function HomeScreen({ navigation }) {
         <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} orcamentoFixo={usuario?.usuario_meta_valor_mensal} /></View>
         <MetasHome
           {...metas}
+          periodo={periodo}
+          periodoAtual={periodoMensalSaoPaulo()}
           onRetry={metas.refresh}
           onCreate={() => navigation.navigate('EditProfile', { mode: 'metas' })}
           onOpen={(meta) => navigation.navigate('MetaDetails', { metaId: meta.id, meta })}

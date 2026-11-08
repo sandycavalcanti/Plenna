@@ -109,6 +109,8 @@ test('Home e Perfil abrem detalhes sem usar o toque de navegação para alternar
   assert.match(profileMetas, /navigation\.navigate\('MetaDetails', \{ metaId: meta\.meta_id, meta \}\)/);
   assert.match(sharedCard, /accessibilityRole="checkbox"/);
   assert.match(sharedCard, /accessibilityRole="button"/);
+  assert.match(sharedCard, /Concluída/);
+  assert.doesNotMatch(sharedCard, /Em acompanhamento/);
   assert.match(routes, /name="MetaDetails"/);
 });
 
@@ -134,6 +136,7 @@ test('detalhes não introduz compras, dashboards ou ações financeiras fora do 
   const screen = await read('src/pages/MetaDetailsScreen/index.js');
   assert.doesNotMatch(screen, /tb_compra|compras|Dashboard|analisar_metas/);
   assert.match(screen, /concluirMeta/);
+  assert.match(screen, /confirmarConclusaoMeta/);
   assert.match(screen, /Marcar como concluída/);
   assert.match(screen, /Nenhuma movimentação registrada ainda/);
 });

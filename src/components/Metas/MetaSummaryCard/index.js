@@ -52,12 +52,10 @@ export default function MetaSummaryCard({ meta, onOpen, onToggleComplete }) {
         </View>
         <View style={styles.copy}>
           <Text style={styles.name} numberOfLines={2}>{nome}</Text>
-          <View style={[styles.statusBadge, completed ? styles.completedBadge : styles.activeBadge]}>
-            <View style={[styles.statusDot, completed ? styles.completedDot : styles.activeDot]} />
-            <Text style={[styles.statusText, completed ? styles.completedText : styles.activeText]}>
-              {completed ? 'Marcada como concluída' : 'Em acompanhamento'}
-            </Text>
-          </View>
+          {completed ? <View style={[styles.statusBadge, styles.completedBadge]}>
+            <View style={[styles.statusDot, styles.completedDot]} />
+            <Text style={[styles.statusText, styles.completedText]}>Concluída</Text>
+          </View> : null}
         </View>
         {onToggleComplete ? (
           <CustomButton

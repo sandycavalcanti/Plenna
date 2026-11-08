@@ -9,6 +9,7 @@ import { tokenStorage } from '../../api/tokenStorage';
 import { useCofrinhoMetas } from '../../hooks/useCofrinhoMetas';
 import { formatarValorMeta, formatarValorMetaEmEdicao, valorMetaParaCentavos, normalizarValorMeta, formatarPercentualMeta } from '../../utils/metaMoney';
 import { normalizarMetaRegistro } from '../../utils/metaContract';
+import { confirmarConclusaoMeta } from '../../utils/confirmarConclusaoMeta';
 import { COLORS } from '../../constants';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import MetaFormSheet from '../../components/Metas/MetaFormSheet';
@@ -246,7 +247,7 @@ export default function MetaDetailsScreen() {
     setSubmitting(false);
   }, [deposit, meta, metaId, loadHistory, movementForm, pendingOperation, pendingScope, prepare, submitting, withdraw]);
 
-  const toggleCompletion = useCallback(async () => {
+  const persistCompletion = useCallback(async () => {
     if (!meta || completionLoading) return;
     setCompletionLoading(true);
     setCompletionError(null);
@@ -259,6 +260,11 @@ export default function MetaDetailsScreen() {
       setCompletionLoading(false);
     }
   }, [completionLoading, meta, metaId]);
+
+  const toggleCompletion = useCallback(() => {
+    if (!meta || completionLoading) return;
+    confirmarConclusaoMeta(meta, persistCompletion);
+  }, [completionLoading, meta, persistCompletion]);
 
   const openEdit = useCallback(() => {
     if (!meta || metaFormSaving || metaDeleting) return;

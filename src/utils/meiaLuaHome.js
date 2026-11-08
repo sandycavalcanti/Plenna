@@ -42,11 +42,12 @@ export function apresentarMeiaLua(dados, orcamentoFixoCentavos = null) {
     ? percentFromPeriod
     : null;
 
-  // Com orçamento fixo, cobertura parcial não é apresentada como faixa
-  // confirmada. A chamada sem orçamento fixo conserva as faixas do indicador
-  // consolidado quando a API já forneceu percentual comprovado.
-  const partialFixedReference = hasFixedBudget && (f?.qualidade === 'PARCIAL' || f?.cobertura !== 'COMPLETA');
-  const state = percent === null || partialFixedReference
+  // Cobertura parcial continua conservadora abaixo do limite. Se o total
+  // conhecido já excede o orçamento, o excesso é comprovado mesmo sem a
+  // cobertura completa dos registros.
+  const comparisonExceedsBudget = configuredBudget !== null && ((knownTotal !== null && knownTotal > configuredBudget) || (typeof percentFromPeriod === 'number' && percentFromPeriod > 100));
+  const partialReference = !comparisonExceedsBudget && (f?.qualidade === 'PARCIAL' || f?.cobertura !== 'COMPLETA');
+  const state = percent === null || partialReference
     ? 'NEUTRO'
     : percent > 100
       ? 'VERMELHO'

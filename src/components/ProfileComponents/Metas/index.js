@@ -7,6 +7,7 @@ import AppEmptyState from '../../Common/AppEmptyState';
 import styles from './styles';
 import { logApiErrors } from '../../../utils/error';
 import { concluirMeta } from '../../../api/metas';
+import { confirmarConclusaoMeta } from '../../../utils/confirmarConclusaoMeta';
 
 export default function Metas({ metas, error = false, onRetry }) {
   const navigation = useNavigation();
@@ -16,14 +17,14 @@ export default function Metas({ metas, error = false, onRetry }) {
     setMetasVisiveis(Array.isArray(metas) ? metas : []);
   }, [metas]);
 
-  function alternarMeta(metaId, isCompleted) {
-    concluirMeta(metaId, !isCompleted)
+  function alternarMeta(meta) {
+    confirmarConclusaoMeta(meta, () => concluirMeta(meta.meta_id, !meta.meta_completado)
       .then(() => {
-        setMetasVisiveis((current) => current.map((meta) => (
-          meta.meta_id === metaId ? { ...meta, meta_completado: !meta.meta_completado } : meta
+        setMetasVisiveis((current) => current.map((currentMeta) => (
+          currentMeta.meta_id === meta.meta_id ? { ...currentMeta, meta_completado: !currentMeta.meta_completado } : currentMeta
         )));
       })
-      .catch((requestError) => logApiErrors(requestError, 'Erro ao atualizar meta'));
+      .catch((requestError) => logApiErrors(requestError, 'Erro ao atualizar meta')));
   }
 
   function abrirMeta(meta) {
@@ -34,7 +35,7 @@ export default function Metas({ metas, error = false, onRetry }) {
     <ProfileCard
       title="Minhas metas"
       variant="profile"
-      actionIcon="view-list-outline"
+      actionIcon="pencil-outline"
       actionAccessibilityLabel="Gerenciar metas"
       onEdit={() => navigation.navigate('EditProfile', { mode: 'metas' })}
     >
@@ -63,7 +64,7 @@ export default function Metas({ metas, error = false, onRetry }) {
               key={meta.meta_id}
               meta={meta}
               onOpen={abrirMeta}
-              onToggleComplete={() => alternarMeta(meta.meta_id, meta.meta_completado)}
+              onToggleComplete={() => alternarMeta(meta)}
             />
           ))}
         </View>

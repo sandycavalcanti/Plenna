@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
   primaryButton: {
     backgroundColor: COLORS.dadoDois,
     flex: 1,
-    marginRight: 12,
+    width: '100%',
   },
 
   primaryButtonText: {
@@ -44,21 +44,4 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  secondaryButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: COLORS.dadoDois,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-
-  secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.dadoDois,
-  },
 });

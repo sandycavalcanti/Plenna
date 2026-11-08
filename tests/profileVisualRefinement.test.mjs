@@ -51,7 +51,7 @@ test('seções mantêm navegação, metas e segurança com detalhes visuais disc
   const screen = await read('src/pages/ProfileScreen/index.js');
 
   assert.doesNotMatch(metas, /<ProfileCard[^>]*\bicon=/);
-  assert.match(metas, /actionIcon="view-list-outline"/);
+  assert.match(metas, /actionIcon="pencil-outline"/);
   assert.match(metas, /actionAccessibilityLabel="Gerenciar metas"/);
   assert.doesNotMatch(metas, /actionLabel="Gerenciar"/);
   assert.match(metas, /MetaDetails/);
