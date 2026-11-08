@@ -518,7 +518,7 @@ test('four histories follow the purchase timeline, load on demand and return wit
  assert.doesNotMatch(displayed(),/Consultar registros/);
  assert.equal(calls.filter(c=>/contexto\/historico|avaliacoes\/historico/.test(c.url)).length,0);
  assert.equal(calls.filter(c=>c.params?.finalidade==='ANALISE').length,0);
- s.press('Itens');await s.h.flush();
+ s.h.nodes(n=>n.props.accessibilityRole==='radio'&&text(n)==='Itens')[0].props.onPress();await s.h.flush();
  for(let i=0;i<labels.length;i++){
   const before=calls.length;s.press(labels[i]);await s.h.flush();
   assert.ok(s.h.nodes(n=>n.type==='Pressable'&&text(n)==='Voltar ao hist\u00f3rico da compra').length);
@@ -531,7 +531,7 @@ test('four histories follow the purchase timeline, load on demand and return wit
   await s.h.flush();
   assert.match(displayed(),/Outros hist\u00f3ricos/);
  }
- const itens=s.h.nodes(n=>n.type==='Pressable'&&text(n)==='Itens')[0];assert.equal(itens.props.accessibilityState.checked,true);
+ const itens=s.h.nodes(n=>n.props.accessibilityRole==='radio'&&text(n)==='Itens')[0];assert.equal(itens.props.accessibilityState.checked,true);
  assert.equal(calls.filter(c=>c.url.endsWith('/eventos/historico')&&c.params?.finalidade==='COMPRA').length,2);
  assert.equal(s.writes.length,0);
  s.press('An\u00e1lise');await s.h.flush();assert.doesNotMatch(displayed(),/Outros hist\u00f3ricos|Hist\u00f3rico de respostas|Hist\u00f3rico de classifica\u00e7\u00f5es/);
@@ -580,7 +580,7 @@ test('entrada Compra adia contexto e alternância preserva dados já carregados'
  await s.h.flush();assert.equal(calls.length,0);
  s.press('Contexto');await s.h.flush();await s.h.flush();
  const loaded=calls.filter(url=>url.endsWith('/contexto')||url.endsWith('/perguntas')).length;assert.equal(loaded,2);
- s.press('Compra');await s.h.flush();s.press('Contexto');await s.h.flush();
+ s.press('Itens');await s.h.flush();s.press('Contexto');await s.h.flush();
  assert.equal(calls.filter(url=>url.endsWith('/contexto')||url.endsWith('/perguntas')).length,loaded);s.h.unmount();
 });
 test('revisão conhecida pela lista evita consulta histórica duplicada ao abrir análise',async()=>{
@@ -593,7 +593,7 @@ test('revisão conhecida pela lista evita consulta histórica duplicada ao abrir
 test('F43: mudar de perspectiva preserva respostas opcionais ainda não salvas', async () => {
   const s = screen();await s.h.flush();
   s.press('Em parte');await s.h.flush();
-  s.press('Compra');await s.h.flush();
+  s.press('Itens');await s.h.flush();
   assert.equal(s.h.nodes(node=>node.props.accessibilityRole==='radio').length,0);
   s.press('Análise');await s.h.flush();
   assert.equal(s.writes.length,0);
