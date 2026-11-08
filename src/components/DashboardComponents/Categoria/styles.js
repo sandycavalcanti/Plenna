@@ -167,10 +167,3 @@ export const styles = StyleSheet.create({
     fontWeight: '500'
   }
 });
-export const presentationStyles = StyleSheet.create({
-  inline1: {
-    color: '#655A70',
-    fontSize: 12,
-    lineHeight: 18
-  }
-});

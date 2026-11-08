@@ -177,15 +177,6 @@ export const styles = StyleSheet.create({
     color: T.ink,
   },
 
-  financialSummaryContext: {
-    maxWidth: '42%',
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '700',
-    color: T.muted,
-    textAlign: 'right',
-  },
-
   financialSummaryValue: {
     marginTop: 9,
     fontSize: 29,
@@ -193,13 +184,6 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.7,
     color: T.ink,
-  },
-
-  financialSummaryValueSuffix: {
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0,
-    color: T.body,
   },
 
   financialBars: {
@@ -308,14 +292,6 @@ export const styles = StyleSheet.create({
     fontSize: 19,
     lineHeight: 23,
     fontWeight: '800',
-  },
-
-  financialSummaryPercentLabel: {
-    marginTop: 2,
-    fontSize: 11,
-    fontWeight: '600',
-    color: T.muted,
-    textAlign: 'right',
   },
 
   noLimitState: {

@@ -3,10 +3,10 @@ import { View, Text, Pressable } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import ProfileCard from '../../ProfileComponents/ProfileCard';
 import AppEmptyState from '../../Common/AppEmptyState';
-import { styles, presentationStyles } from './styles';
-import { COLORS } from '../../../constants';
+import { styles } from './styles';
 import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
 import { distribuicaoClassificacoes } from '../../../utils/distribuicaoClassificacoes';
+import { corPorProporcao } from '../../../utils/meiaLuaHome';
 
 const RING_SIZE = 136;
 const RING_STROKE = 12;
@@ -44,36 +44,22 @@ export default function Impulsividade({
   if (isArrayData) {
     const distribution = distribuicaoClassificacoes(sourceData);
     const groups = distribution.groups.filter((group) => group.quantidade > 0);
-    const declared = groups.some((group) => ['IMPULSIVA', 'NAO_IMPULSIVA'].includes(group.codigo));
-
-    if (!declared) {
+    if (distribution.total === 0) {
       return (
         <View style={styles.section}>
           <ProfileCard title={title} variant="dashboard">
-            <AppEmptyState icon="clipboard-text-outline" title="Nenhuma classificação registrada neste período." compact />
-            {distribution.total > 0 && (
-              <Text style={styles.distributionLegendValue}>{distribution.total} compras sem classificação voluntária</Text>
-            )}
+            <AppEmptyState icon="clipboard-text-outline" title={emptyMessage} compact />
           </ProfileCard>
         </View>
       );
     }
 
     let currentOffset = 0;
-    const labels = {
-      IMPULSIVA: 'Impulsivas',
-      NAO_IMPULSIVA: 'Não impulsivas',
-      PENDENTE: 'Sem classificação',
-    };
     const segments = groups.map((group) => {
       const segmentLength = (group.percentual / 100) * RING_CIRCUMFERENCE;
       const offset = currentOffset;
       currentOffset += segmentLength;
-      return {
-        ...group,
-        strokeDashoffset: RING_CIRCUMFERENCE - segmentLength,
-        offsetPosition: offset,
-      };
+      return { ...group, strokeDashoffset: RING_CIRCUMFERENCE - segmentLength, offsetPosition: offset };
     });
 
     return (
@@ -84,17 +70,10 @@ export default function Impulsividade({
               style={styles.distributionChart}
               accessible
               accessibilityRole="image"
-              accessibilityLabel={`${distribution.total} compras: ${groups.map((group) => `${group.quantidade} ${labels[group.codigo] || group.nome}`).join(', ')}`}
+              accessibilityLabel={`${distribution.total} compras confirmadas neste período`}
             >
               <Svg width={RING_SIZE} height={RING_SIZE} style={styles.distributionSvg}>
-                <Circle
-                  cx={RING_SIZE / 2}
-                  cy={RING_SIZE / 2}
-                  r={RING_RADIUS}
-                  stroke={DASHBOARD_THEME.colors.track}
-                  strokeWidth={RING_STROKE}
-                  fill="transparent"
-                />
+                <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke={DASHBOARD_THEME.colors.track} strokeWidth={RING_STROKE} fill="transparent" />
                 {segments.map((segment) => (
                   <Circle
                     key={segment.codigo}
@@ -114,40 +93,31 @@ export default function Impulsividade({
               </Svg>
               <View style={styles.distributionCenter}>
                 <Text style={styles.distributionTotal}>{distribution.total}</Text>
-                <Text style={styles.distributionTotalLabel}>compras</Text>
+                <Text style={styles.distributionTotalLabel}>confirmadas</Text>
               </View>
             </View>
+
             <View style={styles.distributionLegend}>
               {groups.map((group) => (
                 <Pressable
                   key={group.codigo}
                   accessibilityRole="button"
                   disabled={!onSelect}
-                  accessibilityLabel={`${labels[group.codigo] || group.nome}: ${group.quantidade} compras, ${group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}
+                  accessibilityLabel={`${group.nome}: ${group.quantidade} compras, ${group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}
                   onPress={() => onSelect?.(group.codigo)}
-                  style={presentationStyles.inline1}
+                  style={styles.distributionLegendItem}
                 >
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: group.cor }} />
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.distributionLegendHeader}>
-                      <Text style={styles.distributionLegendLabel} numberOfLines={1}>
-                        {labels[group.codigo] || group.nome}
-                      </Text>
-                      <Text style={styles.distributionLegendValue}>
-                        {group.quantidade} · {group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
-                      </Text>
-                    </View>
-                    <View style={styles.distributionLegendTrack}>
-                      <View style={[styles.distributionLegendFill, { width: `${group.percentual}%`, backgroundColor: group.cor }]} />
-                    </View>
+                  <View style={styles.distributionLegendHeader}>
+                    <Text style={styles.distributionLegendLabel} numberOfLines={1}>{group.nome}</Text>
+                    <Text style={styles.distributionLegendValue}>{group.quantidade} · {group.percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%</Text>
+                  </View>
+                  <View style={styles.distributionLegendTrack}>
+                    <View style={[styles.distributionLegendFill, { width: `${group.percentual}%`, backgroundColor: group.cor }]} />
                   </View>
                 </Pressable>
               ))}
             </View>
           </View>
-          <Text style={presentationStyles.inline2}>
-            {groups.filter((group) => ['IMPULSIVA', 'NAO_IMPULSIVA'].includes(group.codigo)).reduce((sum, group) => sum + group.quantidade, 0)} classificadas · Classificações voluntárias
-          </Text>
         </ProfileCard>
       </View>
     );
@@ -159,32 +129,47 @@ export default function Impulsividade({
     const valid = [above, within].every((value) => Number.isSafeInteger(value) && value >= 0);
     const total = valid ? above + within : 0;
 
+    if (!valid || total === 0) {
+      return (
+        <View style={styles.section}>
+          <ProfileCard title={title} variant="dashboard">
+            <AppEmptyState icon="clipboard-text-outline" title="Nenhuma comparação disponível neste período." compact />
+          </ProfileCard>
+        </View>
+      );
+    }
+
+    const progress = (above / total) * 100;
+    const progressOffset = RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE;
+    const limitColor = corPorProporcao(above, total, 'RISCO');
     return (
       <View style={styles.section}>
         <ProfileCard title={title} variant="dashboard">
-          {!valid || total === 0 ? (
-            <AppEmptyState icon="clipboard-text-outline" title="Nenhuma comparação disponível neste período." compact />
-          ) : (
-            <>
-              <View style={presentationStyles.inline3}>
-                <View>
-                  <Text style={styles.chartPercent}>{above}</Text>
-                  <Text style={styles.distributionLegendValue}>acima do limite</Text>
+          <View style={styles.heroCard}>
+            <View style={styles.ringWrap}>
+              <View style={styles.ringShell} accessible accessibilityRole="image" accessibilityLabel={`${above} compras acima do limite neste período`}>
+                <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ringSvg}>
+                  <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke="#EAE3F7" strokeWidth={RING_STROKE} fill="transparent" />
+                  <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke={limitColor} strokeWidth={RING_STROKE} fill="transparent" strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`} strokeDashoffset={progressOffset} strokeLinecap="round" rotation="-90" origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`} />
+                </Svg>
+                <View style={styles.ringCenter}>
+                  <Text style={[styles.chartPercent, { color: limitColor }]}>{above}</Text>
+                  <Text style={styles.chartCenterLabel}>{centerLabel}</Text>
                 </View>
-                <Text style={styles.distributionLegendLabel}>{within} dentro do limite</Text>
               </View>
-              <View
-                style={styles.limitContextTrack}
-                accessible
-                accessibilityRole="progressbar"
-                accessibilityLabel={`${above} compras acima do limite entre ${total} avaliadas`}
-                accessibilityValue={{ min: 0, max: total, now: above }}
-              >
-                <View style={[styles.limitContextFill, { width: `${(above / total) * 100}%` }]} />
+            </View>
+            <View style={styles.limitContext}>
+              <View style={styles.limitContextHeader}>
+                <Text style={styles.limitContextTitle}>Distribuição do período</Text>
+                <Text style={styles.limitContextTotal}>{total} compras</Text>
               </View>
-              <Text style={styles.distributionLegendValue}>{total} compras com comparação disponível</Text>
-            </>
-          )}
+              <View style={styles.limitContextTrack}><View style={[styles.limitContextFill, { width: `${progress}%`, backgroundColor: limitColor }]} /></View>
+              <View style={styles.limitContextLabels}>
+                <Text style={styles.limitContextLabel}>{above} acima do limite</Text>
+                <Text style={styles.limitContextLabel}>{within} dentro do limite</Text>
+              </View>
+            </View>
+          </View>
         </ProfileCard>
       </View>
     );
@@ -207,36 +192,20 @@ export default function Impulsividade({
   const progressOffset = RING_CIRCUMFERENCE - (progress / 100) * RING_CIRCUMFERENCE;
   const withinLimitQuantity = Math.max(0, totalQuantity - relevantQuantity);
   const centerValue = centerValueMode === 'quantity' ? relevantQuantity : `${progress}%`;
+  const indicatorColor = corPorProporcao(relevantQuantity, totalQuantity, 'RISCO');
 
   return (
     <View style={styles.section}>
       <ProfileCard title={title} variant="dashboard">
         <View style={styles.heroCard}>
           <View style={styles.ringWrap}>
-            <View
-              style={styles.ringShell}
-              accessible
-              accessibilityRole="image"
-              accessibilityLabel={`${relevantQuantity} compras acima do limite neste período`}
-            >
+            <View style={styles.ringShell} accessible accessibilityRole="image" accessibilityLabel={`${relevantQuantity} compras acima do limite neste período`}>
               <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ringSvg}>
                 <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke="#EAE3F7" strokeWidth={RING_STROKE} fill="transparent" />
-                <Circle
-                  cx={RING_SIZE / 2}
-                  cy={RING_SIZE / 2}
-                  r={RING_RADIUS}
-                  stroke={COLORS.dadoDois}
-                  strokeWidth={RING_STROKE}
-                  fill="transparent"
-                  strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
-                  strokeDashoffset={progressOffset}
-                  strokeLinecap="round"
-                  rotation="-90"
-                  origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
-                />
+                <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke={indicatorColor} strokeWidth={RING_STROKE} fill="transparent" strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`} strokeDashoffset={progressOffset} strokeLinecap="round" rotation="-90" origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`} />
               </Svg>
               <View style={styles.ringCenter}>
-                <Text style={styles.chartPercent}>{centerValue}</Text>
+                <Text style={[styles.chartPercent, { color: indicatorColor }]}>{centerValue}</Text>
                 <Text style={styles.chartCenterLabel}>{centerLabel}</Text>
               </View>
             </View>
@@ -246,9 +215,7 @@ export default function Impulsividade({
               <Text style={styles.limitContextTitle}>Distribuição do período</Text>
               <Text style={styles.limitContextTotal}>{totalQuantity} compras</Text>
             </View>
-            <View style={styles.limitContextTrack}>
-              <View style={[styles.limitContextFill, { width: `${progress}%` }]} />
-            </View>
+            <View style={styles.limitContextTrack}><View style={[styles.limitContextFill, { width: `${progress}%`, backgroundColor: indicatorColor }]} /></View>
             <View style={styles.limitContextLabels}>
               <Text style={styles.limitContextLabel}>{relevantQuantity} acima do limite</Text>
               <Text style={styles.limitContextLabel}>{withinLimitQuantity} dentro do limite</Text>

@@ -1,4 +1,3 @@
-import { presentationStyles } from "./styles";
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -92,7 +91,6 @@ export default function Categoria({
   }
   return <View style={styles.section}>
       <ProfileCard title="Gastos por categoria" variant="dashboard">
-        <Text style={presentationStyles.inline1}>Valores dos itens com dados disponíveis. Descontos da compra não estão distribuídos entre categorias.</Text>
         <View style={styles.summaryCard}>
           <View style={styles.summaryCopy}>
             <Text style={styles.summaryLabel}>Categoria principal</Text>
@@ -141,7 +139,7 @@ export default function Categoria({
         </View>
 
         {categories.length >= 1 && <TouchableOpacity style={styles.expandButton} onPress={() => setExpanded(!expanded)}>
-            <Text style={styles.expandButtonText}>{expanded ? 'Recolher categorias' : `Ver categorias (${categories.length})`}</Text>
+            <Text style={styles.expandButtonText}>{expanded ? 'Recolher' : `Ver mais (${categories.length})`}</Text>
             <MaterialCommunityIcons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.dadoDois} />
           </TouchableOpacity>}
       </ProfileCard>

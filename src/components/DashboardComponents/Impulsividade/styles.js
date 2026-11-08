@@ -13,14 +13,13 @@ export const styles = StyleSheet.create({
     padding: 5
   },
   distributionLayout: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 10
+    gap: 16
   },
   distributionChart: {
-    width: 104,
-    height: 104,
+    width: 136,
+    height: 136,
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center'
@@ -48,9 +47,8 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.35
   },
   distributionLegend: {
-    flex: 1,
-    minWidth: 110,
-    gap: 0
+    width: '100%',
+    gap: 12
   },
   distributionLegendItem: {
     gap: 6
@@ -182,27 +180,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999999',
     textAlign: 'center',
-    paddingVertical: 6,
+    paddingVertical: 16,
     fontWeight: '500'
-  }
-});
-export const presentationStyles = StyleSheet.create({
-  inline1: {
-    minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  inline2: {
-    color: '#76658A',
-    fontSize: 11,
-    marginTop: 6
-  },
-  inline3: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12
   }
 });

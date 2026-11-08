@@ -12,6 +12,7 @@ function StatCard({
   label,
   value,
   subtitle,
+  subtitleColor,
   cardStyle
 }) {
   return <View style={[styles.statCard, cardStyle, {
@@ -26,7 +27,7 @@ function StatCard({
       <View style={styles.statContent}>
         <Text style={styles.statLabel}>{label}</Text>
         <Text style={styles.statValue}>{value}</Text>
-        {subtitle ? <Text style={styles.statSubtitle}>{subtitle}</Text> : null}
+        {subtitle ? <Text style={[styles.statSubtitle, subtitleColor ? { color: subtitleColor } : null]}>{subtitle}</Text> : null}
       </View>
     </View>;
 }

@@ -6,6 +6,41 @@ export const CORES_ORCAMENTO = {
   NEUTRO: '#76658A',
 };
 
+const LIMITES_PERCENTUAIS = {
+  ORCAMENTO: { amarelo: 50, laranja: 75, vermelho: 100 },
+  RISCO: { amarelo: 25, laranja: 50, vermelho: 75 },
+};
+
+export function faixaPorPercentual(percentual, perfil = 'ORCAMENTO') {
+  const valor = Number(percentual);
+  if (!Number.isFinite(valor) || valor < 0) return 'NEUTRO';
+  const limites = LIMITES_PERCENTUAIS[perfil] || LIMITES_PERCENTUAIS.ORCAMENTO;
+
+  if (perfil === 'RISCO') {
+    if (valor >= limites.vermelho) return 'VERMELHO';
+    if (valor > limites.laranja) return 'LARANJA';
+    if (valor > limites.amarelo) return 'AMARELO';
+    return 'VERDE';
+  }
+  if (valor > limites.vermelho) return 'VERMELHO';
+  if (valor >= limites.laranja) return 'LARANJA';
+  if (valor >= limites.amarelo) return 'AMARELO';
+  return 'VERDE';
+}
+
+export function corPorPercentual(percentual, perfil = 'ORCAMENTO') {
+  return CORES_ORCAMENTO[faixaPorPercentual(percentual, perfil)];
+}
+
+export function corPorProporcao(parte, total, perfil = 'RISCO') {
+  const numerador = Number(parte);
+  const denominador = Number(total);
+  if (!Number.isFinite(numerador) || !Number.isFinite(denominador) || denominador <= 0) {
+    return CORES_ORCAMENTO.NEUTRO;
+  }
+  return corPorPercentual((numerador / denominador) * 100, perfil);
+}
+
 const colors = CORES_ORCAMENTO;
 
 /**
@@ -47,15 +82,7 @@ export function apresentarMeiaLua(dados, orcamentoFixoCentavos = null) {
   // cobertura completa dos registros.
   const comparisonExceedsBudget = configuredBudget !== null && ((knownTotal !== null && knownTotal > configuredBudget) || (typeof percentFromPeriod === 'number' && percentFromPeriod > 100));
   const partialReference = !comparisonExceedsBudget && (f?.qualidade === 'PARCIAL' || f?.cobertura !== 'COMPLETA');
-  const state = percent === null || partialReference
-    ? 'NEUTRO'
-    : percent > 100
-      ? 'VERMELHO'
-      : percent < 50
-        ? 'VERDE'
-        : percent < 75
-          ? 'AMARELO'
-          : 'LARANJA';
+  const state = percent === null || partialReference ? 'NEUTRO' : faixaPorPercentual(percent, 'ORCAMENTO');
   const messages = {
     VERDE: 'Faixa inicial do orçamento registrado',
     AMARELO: 'Acompanhe o orçamento utilizado',

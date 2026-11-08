@@ -1,7 +1,7 @@
 const definitions = [
- ['IMPULSIVA','Marcadas como impulsivas','#AA719C'],
- ['NAO_IMPULSIVA','Marcadas como não impulsivas','#688574'],
- ['PENDENTE','Sem classificação definida','#9A87AF'],
+ ['IMPULSIVA','Impulsiva','#B32646'],
+ ['NAO_IMPULSIVA','Não impulsiva','#267344'],
+ ['PENDENTE','Sem classificação','#76658A'],
 ];
 export function distribuicaoClassificacoes(rows = []) {
  const counts = new Map(definitions.map(([code])=>[code,0])); let other=0, missing=0, legacy=false;

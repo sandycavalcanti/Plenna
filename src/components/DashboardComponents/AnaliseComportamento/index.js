@@ -48,7 +48,6 @@ export default function AnaliseComportamento({
     const groups = concentration?.grupos ?? [];
     const recommendations = recomendacoes?.recomendacoes ?? [];
     content = <View style={styles.body}>
-        <Text style={styles.note}>Período: {analise.periodo}</Text>
         <View style={styles.metricRow}>
           <View style={styles.metric}>
             <View style={styles.metricTop}>
@@ -68,7 +67,7 @@ export default function AnaliseComportamento({
               }) : '--'}
               </Text>
             </View>
-            <Text style={styles.label}>Compras com valor conhecido</Text>
+            <Text style={styles.label}>Compras identificadas</Text>
           </View>
         </View>
 
@@ -116,7 +115,6 @@ export default function AnaliseComportamento({
             </Pressable>;
       })}
 
-        {recommendations.length > 0 && <Text style={styles.note}>Referência: limites atuais, sem vigência histórica comprovada.</Text>}
       </View>;
   }
   return <View style={styles.section}>
