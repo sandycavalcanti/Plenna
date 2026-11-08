@@ -1,3 +1,5 @@
+import { segundosHistoricoUso, filtrarHistoricoUso } from '../../utils/historicoTempoUso';
+import ResumoFinanceiroPeriodo from '../../components/DashboardComponents/ResumoFinanceiroPeriodo';
 import { mensagemErroAnalytics, diagnosticoAnalytics } from '../../utils/erroAnalytics';
 import { useResumoHome } from '../../hooks/useResumoHome';
 import UsageTimePanel from '../../components/UsageTimePanel';
@@ -1103,46 +1105,31 @@ export default function DashboardScreen({ route, navigation }) {
   }, [activeTab, comportamento.refresh, descobertasResumo.refresh, loadComparison, loadContext, loadOverview]);
 
   const period = overviewData?.periodos?.[0] || null;
-  const metaValue = Math.max(0, Number(usuario?.usuario_meta_valor_mensal) || 0);
-  const metaCents = Math.max(0, Math.round(metaValue * 100));
-  const totalCents = Math.max(0, Number(period?.total_centavos) || 0);
-  const metaUsagePercent = metaCents > 0 ? (totalCents / metaCents) * 100 : 0;
-  const metaStatus = metaCents <= 0 ? 'undefined' : metaUsagePercent > 100 ? 'exceeded' : metaUsagePercent >= 80 ? 'near' : 'within';
-  const metaExcessCents = metaCents > 0 ? Math.max(totalCents - metaCents, 0) : 0;
-  const metaStatusColor = {
-    undefined: COLORS.dadoUm,
-    exceeded: COLORS.dashboardGastosGeraisAviso,
-    near: DASHBOARD_COLORS.caution,
-    within: DASHBOARD_COLORS.positive,
-  }[metaStatus];
   const limitData = period?.compras_acima_limite || { acima_limite: 0, dentro_limite: 0 };
   const isHistoricalMonth = selectedMonth !== currentMonth;
-  const dailyUsageMinutes = getDailyUsageMinutes(tempoUso);
-  const financialScaleCents = Math.max(totalCents, metaCents, 1);
-  const limitBarWidth = metaCents > 0 ? Math.min(100, (metaCents / financialScaleCents) * 100) : 0;
-  const spentBarWidth = totalCents > 0 ? Math.min(100, (totalCents / financialScaleCents) * 100) : 0;
-  const usagePercentValue = metaCents > 0 ? `${metaUsagePercent.toFixed(2).replace('.', ',')}%` : null;
-  const metricCards = [
-    {
-      key: 'acima-limite',
-      label: 'Acima do limite',
-      value: String(limitData.acima_limite || 0),
-      subtitle: `${limitData.dentro_limite || 0} dentro do limite`,
-      iconColor: COLORS.dashboardGastosGeraisAviso,
-      icon: 'alert-circle-outline',
-    },
-    { key: 'descontos', label: 'Descontos', value: formatCents(period?.desconto_centavos || 0), subtitle: 'economia registrada', iconColor: COLORS.dadoDois, icon: 'sale' },
-
-    {
-      key: 'tempo-sites',
-      label: 'Tempo em sites',
-      value: formatDailyDuration(dailyUsageMinutes),
-      subtitle: dailyUsageMinutes > 0 ? 'registrado hoje' : 'nenhum registro hoje',
-      iconColor: COLORS.customButtonFundo,
-      icon: 'clock-outline',
-    },
-  ];
-
+  const dailyUsageMinutes = segundosHistoricoUso(filtrarHistoricoUso(tempoUso, selectedMonth)) / 60;
+  const metricCards = [{
+    key: 'acima-limite',
+    label: 'Acima do limite',
+    value: String(limitData.acima_limite || 0),
+    subtitle: `${limitData.dentro_limite || 0} dentro do limite`,
+    iconColor: COLORS.dashboardGastosGeraisAviso,
+    icon: 'alert-circle-outline'
+  }, {
+    key: 'descontos',
+    label: 'Descontos',
+    value: formatCents(period?.desconto_centavos || 0),
+    subtitle: 'economia registrada',
+    iconColor: COLORS.dadoDois,
+    icon: 'sale'
+  }, {
+    key: 'tempo-sites',
+    label: 'Tempo em aplicativos',
+    value: usageMonitoringReadsEnabled ? 'Ver tempo registrado' : formatDailyDuration(dailyUsageMinutes),
+    subtitle: usageMonitoringReadsEnabled ? 'tempo em aplicativos no mês' : dailyUsageMinutes > 0 ? 'registrado no mês' : 'nenhum registro no mês',
+    iconColor: COLORS.customButtonFundo,
+    icon: 'clock-outline'
+  }];
   const renderOverview = () => {
     if (overviewLoading && !overviewData) return <LoadingState />;
     if (overviewError && !overviewData) return <ErrorState message={overviewError} onRetry={loadOverview} />;
@@ -1162,72 +1149,8 @@ export default function DashboardScreen({ route, navigation }) {
           label="Mês analisado"
         />
 
-        <View onLayout={mark('financial')} style={styles.financialSummaryCard}>
-          <View style={styles.financialSummaryHeader}>
-            <View>
-              <Text style={styles.financialSummaryEyebrow}>Resumo financeiro</Text>
-              <Text style={styles.financialSummaryLabel}>Gastos do mês</Text>
-            </View>
-            {isHistoricalMonth ? <Text style={styles.financialSummaryContext}>Configuração atual</Text> : null}
-          </View>
-          <Text style={styles.financialSummaryValue}>
-            {formatCents(totalCents)} <Text style={styles.financialSummaryValueSuffix}>gastos</Text>
-          </Text>
-
-          {metaCents > 0 ? (
-            <View style={styles.financialBars}>
-              <View style={styles.financialBarRow}>
-                <View style={styles.financialBarHeader}>
-                  <Text style={styles.financialBarLabel}>Limite mensal</Text>
-                  <Text style={styles.financialBarValue}>{formatReais(metaValue)}</Text>
-                </View>
-                <View
-                  style={styles.financialBarTrack}
-                  accessible
-                  accessibilityRole="progressbar"
-                  accessibilityLabel={`Limite mensal de ${formatReais(metaValue)}`}
-                >
-                  <View style={[styles.financialBarFill, styles.financialBarLimitFill, { width: `${limitBarWidth}%` }]} />
-                </View>
-              </View>
-              <View style={styles.financialBarRow}>
-                <View style={styles.financialBarHeader}>
-                  <Text style={styles.financialBarLabel}>Gastos do mês</Text>
-                  <Text style={styles.financialBarValue}>{formatCents(totalCents)}</Text>
-                </View>
-                <View
-                  style={styles.financialBarTrack}
-                  accessible
-                  accessibilityRole="progressbar"
-                  accessibilityLabel={`Gastos do mês de ${formatCents(totalCents)}`}
-                >
-                  <View style={[styles.financialBarFill, styles.financialBarSpentFill, { width: `${spentBarWidth}%`, backgroundColor: metaStatusColor }]} />
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.noLimitState}>
-              <Text style={styles.noLimitTitle}>Limite mensal não configurado</Text>
-              <Text style={styles.noLimitText}>O gasto é exibido sem comparação ou percentual de limite.</Text>
-            </View>
-          )}
-
-          <View style={styles.financialSummaryStatus}>
-            {metaExcessCents > 0 ? (
-              <View style={styles.financialSummaryExcess}>
-                <MaterialCommunityIcons name="alert-circle-outline" size={18} color={metaStatusColor} />
-                <Text style={[styles.financialSummaryExcessText, { color: metaStatusColor }]}>
-                  {formatCents(metaExcessCents)} acima do limite
-                </Text>
-              </View>
-            ) : null}
-            {usagePercentValue ? (
-              <View style={styles.financialSummaryPercentBlock}>
-                <Text style={[styles.financialSummaryPercentValue, { color: metaStatusColor }]}>{usagePercentValue}</Text>
-                <Text style={styles.financialSummaryPercentLabel}>do limite utilizado</Text>
-              </View>
-            ) : null}
-          </View>
+        <View onLayout={mark('financial')}>
+          <ResumoFinanceiroPeriodo dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} />
         </View>
 
         {!period || period.quantidade_compras === 0 ? (
@@ -1261,7 +1184,7 @@ export default function DashboardScreen({ route, navigation }) {
         </View>
 
         <View onLayout={mark('categories')}>
-          <Categoria gastosCategoria={period?.categorias || []} />
+          <Categoria gastosCategoria={period?.categorias || []} onSelect={categoriaId => navigation.navigate('Purchases', { filtroConsumo: { periodo: selectedMonth, timezone: ANALYTICS_TIMEZONE, categoriaId } })} />
         </View>
         <FormaPagamento gastosFormaPagamento={period?.formas_pagamento || []} />
         <Impulsividade data={period?.impulsividade || []} />
