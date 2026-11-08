@@ -34,6 +34,11 @@ async function profile(options = {}) {
         return [{consentimento_tipo_codigo:'MONITORAMENTO_TEMPO_USO',consentimento_status:state.consent}, {consentimento_tipo_codigo:'MONITORAMENTO_ACESSOS',consentimento_status:state.detailed}];
       }, registrarConsentimento: register,
     },
+    '../../../api/email': {
+      consultarStatusEmail: async () => ({ connected: false, operational: false }),
+      iniciarConexaoEmail: async () => ({ url: 'https://accounts.google.com' }),
+    },
+    'expo-web-browser': { openAuthSessionAsync: async () => ({ type: 'dismiss' }) },
     '../../../services/monitoramentoConsentService': {alterarConsentimentoMonitoramento: async (value, session, registrar, assertSession) => {
       assertSession(session.id);await registrar('MONITORAMENTO_TEMPO_USO', value, {usageMonitoringSessionId: session.id, signal: session.signal});assertSession(session.id);
       return {consentConfirmed: true, activationPending: false};

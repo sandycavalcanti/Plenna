@@ -466,11 +466,20 @@ async function CadastrarUsuario() {
 
   async function vincularEmailGoogle() {
     try {
+      const session = await tokenStorage.captureSession();
+      if (!session) throw new Error('Sessao nao encontrada');
       const response = await apiClient.get('/email/connect');
       const authUrl = response.data.url;
-      await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
+      if (result?.type !== 'success') return;
+      tokenStorage.assertSession(session.id);
+      await registrarConsentimento('EMAIL', true, {
+        usageMonitoringSessionId: session.id,
+        signal: session.signal,
+      });
     } catch (error) {
       logApiErrors(error, 'Erro ao vincular e-mail ao Google');
+      Alert.alert('E-mail não ativado', 'Não foi possível confirmar a captura via e-mail. Você poderá ativá-la depois em Permissões.');
     }
   }
 

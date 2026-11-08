@@ -98,6 +98,11 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
       removeItem: async key => state.storage.delete(key),
     } },
     'src/api/client.js': { apiClient },
+    'src/api/email.js': {
+      consultarStatusEmail: async () => ({ connected: false, operational: false }),
+      iniciarConexaoEmail: async () => ({ url: 'https://accounts.google.com' }),
+    },
+    'expo-web-browser': { openAuthSessionAsync: async () => ({ type: 'dismiss' }) },
     'src/constants/config.js': {urlAPI:'http://127.0.0.1:3000'},
     'src/services/gmailOAuthService.js': {
       consultarStatusGmail: async () => ({ autorizacaoEmail: false, conexaoEmail: { conectado: false } }),
@@ -385,16 +390,16 @@ test('Permissions mantém diagnóstico sem coleta e atualiza permissão ao retor
   permissions.default({});
   const cleanup = state.effects[0]();
   await settle();
-  assert.equal(state.states[1], false);
-  assert.equal(state.states[2], false);
+  assert.equal(state.states[6], false);
+  assert.equal(state.states[7], false);
   state.permission = true;
   state.foreground();
   await settle();
-  assert.equal(state.states[2], true);
+  assert.equal(state.states[7], true);
   assert.equal(state.coletas.length, 0);
   await token.clearToken();
-  assert.equal(state.states[1], false);
-  assert.equal(state.states[2], false);
+  assert.equal(state.states[6], false);
+  assert.equal(state.states[7], false);
   cleanup();
 });
 

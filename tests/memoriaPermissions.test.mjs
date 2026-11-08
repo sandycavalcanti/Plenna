@@ -87,6 +87,13 @@ async function ambiente() {
       openUsageAccessSettings: async () => false,
     },
     'src/api/consentimento.js': api,
+    'src/api/email.js': {
+      consultarStatusEmail: async () => ({ connected: false, operational: false }),
+      iniciarConexaoEmail: async () => ({ url: 'https://accounts.google.com' }),
+    },
+    'expo-web-browser': {
+      openAuthSessionAsync: async () => ({ type: 'dismiss' }),
+    },
     'src/api/memoria.js': memoria,
     'src/api/tokenStorage.js': {
       tokenStorage: {

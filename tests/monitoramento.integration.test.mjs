@@ -18,6 +18,8 @@ function profile({ denied = false, offline = false } = {}) {
     '../UsageMonitoringControls':{__esModule:true,default:()=>null},
     '../../../api/tokenStorage':{tokenStorage:{captureSession:async()=>session,assertSession:()=>{}}},
     '../../../api/consentimento':{listarConsentimentos:async()=>{if(state.offline)throw Error('NETWORK');return [{consentimento_tipo_codigo:'MONITORAMENTO_TEMPO_USO',consentimento_status:state.consent}];},registrarConsentimento:async()=>{}},
+    '../../../api/email':{consultarStatusEmail:async()=>({connected:false,operational:false}),iniciarConexaoEmail:async()=>({url:'https://accounts.google.com'})},
+    'expo-web-browser':{openAuthSessionAsync:async()=>({type:'dismiss'})},
     '../../../services/monitoramentoConsentService':{alterarConsentimentoMonitoramento:async value=>{state.changes.push(value);state.consent=value;}},
     '../../../../modules/plenna-usage-stats':{getModuleStatus:async()=>({available:true}),hasUsageAccess:async()=>state.permission,openUsageAccessSettings:async()=>{state.settings++;return true;}},
     '../../../services/gmailOAuthService':{consultarStatusGmail:async()=>null,conectarGmailInterativo:async()=>{}},

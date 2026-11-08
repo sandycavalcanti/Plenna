@@ -17,9 +17,11 @@ import styles from './styles';
 import { alterarConsentimentoMonitoramento } from '../../../services/monitoramentoConsentService';
 import { getModuleStatus, hasUsageAccess, openUsageAccessSettings } from '../../../../modules/plenna-usage-stats';
 import { listarConsentimentos, registrarConsentimento } from '../../../api/consentimento';
+import { consultarStatusEmail, iniciarConexaoEmail } from '../../../api/email';
 import { tokenStorage } from '../../../api/tokenStorage';
 import { logApiErrors } from '../../../utils/error';
 import { COLORS } from '../../../constants/colors';
+import * as WebBrowser from 'expo-web-browser';
 
 function PrivacyDetails({ label = 'Privacidade e dados', children }) {
   const [expanded, setExpanded] = useState(false);
@@ -85,7 +87,12 @@ function logErroPermissoes(error, metodo, caminho, operacao) {
 }
 export default function Permissions({ data }) {
   const navigation = useNavigation();
-  const [emailEnabled, setEmailEnabled] = useState(data?.email ?? true);
+  const [emailEnabled, setEmailEnabled] = useState(false);
+  const [emailConnected, setEmailConnected] = useState(false);
+  const [emailStatusKnown, setEmailStatusKnown] = useState(false);
+  const [loadingEmail, setLoadingEmail] = useState(true);
+  const [emailActionLoading, setEmailActionLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [usageAccessEnabled, setUsageAccessEnabled] = useState(false);
   const [loadingTracking, setLoadingTracking] = useState(true);
@@ -111,9 +118,118 @@ export default function Permissions({ data }) {
   const alterandoPersonalizacao = useRef(false);
   const alterandoProatividade = useRef(false);
   const consultaMemoria = useRef(0);
+  const consultaEmail = useRef(0);
+  const alterandoEmail = useRef(false);
   function validarSessao(sessao) {
     tokenStorage.assertSession(sessao.id);
     if (!montado.current || sessao.signal.aborted) throw new Error('Operação cancelada');
+  }
+  function emailConsentimentoAtivo(consentimentos) {
+    return Array.isArray(consentimentos) && consentimentos.some(item => (
+      (item?.tb_consentimento_tipo?.consentimento_tipo_codigo ?? item?.consentimento_tipo_codigo) === 'EMAIL'
+      && item.consentimento_status === true
+    ));
+  }
+  function emailIntegracaoOperacional(status) {
+    return status?.connected === true && status?.operational === true;
+  }
+  async function carregarEstadoEmail() {
+    if (alterandoEmail.current) return;
+    const numero = ++consultaEmail.current;
+    let sessao;
+    try {
+      setLoadingEmail(true);
+      setEmailError('');
+      sessao = await tokenStorage.captureSession();
+      if (!sessao || !montado.current) return;
+      const [consentimentos, integracao] = await Promise.allSettled([
+        listarConsentimentos({ usageMonitoringSessionId: sessao.id, signal: sessao.signal }),
+        consultarStatusEmail({ usageMonitoringSessionId: sessao.id, signal: sessao.signal }),
+      ]);
+      validarSessao(sessao);
+      if (numero !== consultaEmail.current) return;
+      const consentKnown = consentimentos.status === 'fulfilled' && Array.isArray(consentimentos.value);
+      const integrationKnown = integracao.status === 'fulfilled' && integracao.value && typeof integracao.value === 'object';
+      if (!consentKnown || !integrationKnown) {
+        setEmailEnabled(false);
+        setEmailConnected(integrationKnown && integracao.value?.connected === true);
+        setEmailStatusKnown(false);
+        setEmailError('Não foi possível verificar a captura via e-mail.');
+        return;
+      }
+      const connected = emailIntegracaoOperacional(integracao.value);
+      setEmailConnected(connected);
+      setEmailEnabled(emailConsentimentoAtivo(consentimentos.value) && connected);
+      setEmailStatusKnown(true);
+    } catch (error) {
+      if (montado.current && numero === consultaEmail.current) {
+        setEmailEnabled(false);
+        setEmailConnected(false);
+        setEmailStatusKnown(false);
+        setEmailError('Não foi possível verificar a captura via e-mail.');
+        logErroPermissoes(error, 'GET', '/email/status', 'consultar_captura_email');
+      }
+    } finally {
+      if (montado.current && numero === consultaEmail.current) setLoadingEmail(false);
+    }
+  }
+  async function alterarEmail(value, sessao) {
+    if (alterandoEmail.current) return;
+    alterandoEmail.current = true;
+    consultaEmail.current++;
+    try {
+      validarSessao(sessao);
+      setEmailActionLoading(true);
+      setEmailError('');
+      if (value) {
+        let status = await consultarStatusEmail({ usageMonitoringSessionId: sessao.id, signal: sessao.signal });
+        validarSessao(sessao);
+        if (!emailIntegracaoOperacional(status)) {
+          const resposta = await iniciarConexaoEmail({ usageMonitoringSessionId: sessao.id, signal: sessao.signal });
+          const url = typeof resposta?.url === 'string' ? resposta.url : '';
+          if (!url) throw new Error('URL de conexão Gmail ausente');
+          const resultado = await WebBrowser.openAuthSessionAsync(url, 'plenna://oauth-success');
+          if (resultado?.type !== 'success') {
+            const cancelado = new Error('Conexão Gmail cancelada');
+            cancelado.code = 'EMAIL_OAUTH_CANCELLED';
+            throw cancelado;
+          }
+          validarSessao(sessao);
+          status = await consultarStatusEmail({ usageMonitoringSessionId: sessao.id, signal: sessao.signal });
+          if (!emailIntegracaoOperacional(status)) throw new Error('Conexão Gmail não confirmada');
+        }
+        await registrarConsentimento('EMAIL', true, {
+          usageMonitoringSessionId: sessao.id,
+          signal: sessao.signal,
+        });
+      } else {
+        await registrarConsentimento('EMAIL', false, {
+          usageMonitoringSessionId: sessao.id,
+          signal: sessao.signal,
+        });
+      }
+      validarSessao(sessao);
+      if (montado.current) {
+        setEmailEnabled(value);
+        setEmailConnected(value ? true : false);
+      }
+    } catch (error) {
+      if (montado.current && !sessao.signal.aborted) {
+        const mensagem = error?.code === 'EMAIL_OAUTH_CANCELLED'
+          ? 'Conexão cancelada. A captura continua desativada.'
+          : value
+            ? 'Não foi possível ativar a captura via e-mail.'
+            : 'Não foi possível desativar a captura via e-mail.';
+        setEmailError(mensagem);
+        Alert.alert(value ? 'Captura não ativada' : 'Captura não desativada', mensagem);
+      }
+    } finally {
+      alterandoEmail.current = false;
+      if (montado.current && !sessao.signal.aborted) {
+        setEmailActionLoading(false);
+        await carregarEstadoEmail();
+      }
+    }
   }
   async function carregarEstadoMonitoramento() {
     if (alterando.current) return;
@@ -189,6 +305,7 @@ export default function Permissions({ data }) {
       const limpar = () => {
         consulta.current++;
         consultaMemoria.current++;
+        consultaEmail.current++;
         setTrackingEnabled(false);
         setTrackingStatusKnown(false);
         setUsageAccessEnabled(false);
@@ -198,6 +315,10 @@ export default function Permissions({ data }) {
         setProactivityEnabled(false);
         setConsentimentosDisponiveis(false);
         setLoadingMemory(false);
+        setEmailEnabled(false);
+        setEmailConnected(false);
+        setEmailStatusKnown(false);
+        setLoadingEmail(false);
       };
       if (sessao.signal.aborted) limpar();else {
         sessao.signal.addEventListener('abort', limpar);
@@ -206,16 +327,24 @@ export default function Permissions({ data }) {
     }).catch(() => {});
     carregarEstadoMonitoramento();
     carregarEstadoMemoria();
+    carregarEstadoEmail();
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
         carregarEstadoMonitoramento();
         carregarEstadoMemoria();
+        carregarEstadoEmail();
       }
     });
     return () => {
       montado.current = false;
       consulta.current++;
       consultaMemoria.current++;
+      consultaEmail.current++;
+      alterandoEmail.current = false;
+      setEmailEnabled(false);
+      setEmailConnected(false);
+      setEmailStatusKnown(false);
+      setLoadingEmail(false);
       setMemoryEnabled(false);
       setPersonalizationEnabled(false);
       setProactivityEnabled(false);
@@ -224,27 +353,27 @@ export default function Permissions({ data }) {
       subscription.remove();
     };
   }, []);
-  function handleToggleEmail(value) {
-    if (!value) {
-      Alert.alert(
-        'Desativar captura por e-mail',
-        'Você pode perder a coleta automática de compras. Deseja continuar?',
-        [
-          {
-            text: 'Cancelar',
-            style: 'cancel',
-          },
-          {
-            text: 'Confirmar',
-            onPress: () => setEmailEnabled(false),
-          },
-        ]
-      );
-
-      return;
+  async function handleToggleEmail(value) {
+    if (loadingEmail || !emailStatusKnown || emailActionLoading || alterandoEmail.current) return;
+    try {
+      const sessao = await tokenStorage.captureSession();
+      if (!sessao) return;
+      validarSessao(sessao);
+      if (!value) {
+        Alert.alert(
+          'Desativar captura por e-mail',
+          'A captura automática será interrompida. Para reativar, talvez seja necessário reconectar o Gmail. Compras já registradas serão preservadas.',
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Desativar', style: 'destructive', onPress: () => alterarEmail(false, sessao) },
+          ],
+        );
+        return;
+      }
+      await alterarEmail(true, sessao);
+    } catch {
+      // A sessão inválida não deve alterar o estado local do controle.
     }
-
-    setEmailEnabled(true);
   }
 
   async function alterarMonitoramento(value, sessao) {
@@ -444,6 +573,15 @@ export default function Permissions({ data }) {
     alterarProatividade(true);
   }
   const statusMonitoramento = loadingTracking ? 'Verificando...' : !trackingStatusKnown ? 'Temporariamente indisponível' : !trackingEnabled ? 'Desativado' : nativeAvailable !== true || !usagePermissionKnown ? 'Temporariamente indisponível' : !usageAccessEnabled || monitoringStatus === 'PERMISSION_REQUIRED' ? 'Permissão necessária' : usageMonitoringEnabled && ['CHECKING', 'CONSENT_REQUIRED', 'SERVICE_DISABLED', 'SERVICE_UNAVAILABLE', 'SOURCE_UNAVAILABLE', 'STATUS_UNAVAILABLE', 'ERROR', 'DISABLED'].includes(monitoringStatus) ? 'Temporariamente indisponível' : monitoringStatus === 'ACTIVATION_REQUIRED' ? 'Ativação necessária' : monitoringStatus === 'CONTROLLED_PAUSE' ? 'Atualizações pausadas' : 'Ativado';
+  const statusEmail = loadingEmail
+    ? 'Verificando...'
+    : !emailStatusKnown
+      ? 'Temporariamente indisponível'
+      : emailEnabled
+        ? 'Ativado'
+        : emailConnected
+          ? 'Gmail conectado; captura desativada'
+          : 'Desativado';
   const aguardandoAtualizacao = statusMonitoramento === 'Ativado' && usageMonitoringEnabled && ['PENDING', 'SYNCING'].includes(monitoringStatus);
     return <ProfileCard title="Permissões e integrações" variant="profile">
       <View style={styles.row}>
@@ -457,11 +595,12 @@ export default function Permissions({ data }) {
           </Text>
 
           <Text style={styles.status}>
-            {emailEnabled ? 'Ativado' : 'Desativado'}
+            {statusEmail}
           </Text>
+          {emailError ? <Text style={styles.status}>{emailError}</Text> : null}
         </View>
 
-        <Switch value={emailEnabled} onValueChange={handleToggleEmail} trackColor={{
+        <Switch accessibilityLabel="Captura via e-mail" value={emailEnabled} onValueChange={handleToggleEmail} disabled={loadingEmail || !emailStatusKnown || emailActionLoading} trackColor={{
         false: 'rgba(131, 111, 226, 0.25)',
         true: '#A9A2F1'
       }} thumbColor={emailEnabled ? '#4652A4' : '#F4F3F4'} ios_backgroundColor="rgba(131, 111, 226, 0.25)" />
