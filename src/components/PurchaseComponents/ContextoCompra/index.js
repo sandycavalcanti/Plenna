@@ -36,7 +36,7 @@ export default function ContextoCompra({
     [indice, setIndice] = useState(0),
     [revisar, setRevisar] = useState(false),
     [retomado, setRetomado] = useState(false);
-  const [perspectiva, setPerspectiva] = useState(etapaInicial === 'responder' ? 'Contexto' : etapaInicial === 'compra' ? 'Compra' : 'Análise');
+  const [perspectiva, setPerspectiva] = useState(etapaInicial === 'responder' ? 'Contexto' : etapaInicial === 'compra' ? 'Itens' : 'Análise');
   const [historicoTela, setHistoricoTela] = useState(null);
   const [painelAnalise, setPainelAnalise] = useState(null);
   const [contextRequested, setContextRequested] = useState(etapaInicial !== 'compra');
@@ -92,7 +92,7 @@ export default function ContextoCompra({
     setRevisar(false);
     setEtapa(etapaInicial);
     setHistoricoTela(null);
-    setPerspectiva(etapaInicial === 'responder' ? 'Contexto' : etapaInicial === 'compra' ? 'Compra' : 'Análise');
+    setPerspectiva(etapaInicial === 'responder' ? 'Contexto' : etapaInicial === 'compra' ? 'Itens' : 'Análise');
     setRetomado(false);
     setPainelAnalise(null);
     setPrioridades([]);
@@ -343,7 +343,7 @@ export default function ContextoCompra({
           marginBottom: 8
         }]}>{compra.compra_fonte}</Text>}
         <View style={styles.tabs} accessibilityRole="tablist">
-          {['Compra', 'Contexto', 'Análise', 'Histórico'].map(label => <Pressable key={label} accessibilityRole="tab" accessibilityState={{
+          {['Contexto', 'Itens', 'Análise', 'Histórico'].map(label => <Pressable key={label} accessibilityRole="tab" accessibilityState={{
             selected: perspectiva === label,
             disabled: saving
           }} disabled={saving} onPress={() => setPerspectiva(label)} style={[styles.tab, perspectiva === label && styles.tabSelected]}>
@@ -353,19 +353,19 @@ export default function ContextoCompra({
         <ScrollView ref={scroll} style={{
           flex: 1
         }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          {['Compra', 'Histórico'].includes(perspectiva) && state.status !== 'session' && (estadoEventos.loading ? <ActivityIndicator accessibilityLabel="Carregando eventos da compra" color="#8660A1" /> : estadoEventos.error ? <View style={styles.notice}>
+          {['Itens', 'Histórico'].includes(perspectiva) && state.status !== 'session' && (estadoEventos.loading ? <ActivityIndicator accessibilityLabel="Carregando eventos da compra" color="#8660A1" /> : estadoEventos.error ? <View style={styles.notice}>
                 <Text accessibilityRole="alert" style={styles.note}>Eventos indisponíveis. Não foi possível verificar as movimentações.</Text>
                 <Pressable accessibilityRole="button" onPress={() => setRefreshKey(k => k + 1)} style={styles.action}>
                   <Text style={styles.link}>Tentar carregar eventos novamente</Text>
                 </Pressable>
               </View> : null)}
-          {state.status !== 'session' && perspectiva === 'Compra' && <ResumoCompra onContext={() => {
+          {state.status !== 'session' && perspectiva === 'Itens' && <ResumoCompra onContext={() => {
             setPerspectiva('Contexto');
             review();
           }} compra={compra} refreshKey={refreshKey} onManage={item => setGerenciar(item ? {
             item
           } : 'MENU')} />}
-          {state.status !== 'session' && perspectiva === 'Compra' && gestao?.resumo.cancelamentos > 0 && <Text style={styles.caption}>
+          {state.status !== 'session' && perspectiva === 'Itens' && gestao?.resumo.cancelamentos > 0 && <Text style={styles.caption}>
               Cancelamento registrado · consulte o escopo no histórico
             </Text>}
           {analysisVisited && state.status !== 'session' && <View accessibilityElementsHidden={perspectiva !== 'Análise'} importantForAccessibility={perspectiva === 'Análise' ? 'auto' : 'no-hide-descendants'} style={[styles.panel, {
