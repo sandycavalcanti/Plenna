@@ -73,6 +73,37 @@ export const styles = StyleSheet.create({
   panel: {
     gap: 12
   },
+  historyAccordion: {
+    gap: 8,
+    marginTop: 8
+  },
+  historyAccordionCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: DASHBOARD_THEME.colors.border,
+    overflow: 'hidden'
+  },
+  historyAccordionHeader: {
+    minHeight: 58,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  historyAccordionHeaderOpen: {
+    borderBottomWidth: 1,
+    borderBottomColor: DASHBOARD_THEME.colors.border
+  },
+  historyAccordionTitle: {
+    flex: 1,
+    minWidth: 0
+  },
+  historyAccordionContent: {
+    padding: 12,
+    gap: 8
+  },
   eyebrow: {
     fontSize: 11,
     fontWeight: '700',

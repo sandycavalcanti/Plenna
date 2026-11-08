@@ -81,7 +81,7 @@ test('fontes automática e contextual independentes, pergunta única e painel se
   const displayed=()=>s.h.nodes(n=>n.type==='Text').map(text).join(' ');
   assert.equal(s.calls.length,2);assert.equal(s.posts.length,0);
   assert.match(displayed(), /Análise do Plenna/);assert.match(displayed(), /Fatores relacionados/);
-  assert.match(displayed(), /Interpretação das suas declarações/);
+  assert.doesNotMatch(displayed(), /Interpretação das suas declarações/);
   const pergunta='Como o planejamento desses itens se encaixou numa compra que não estava nos planos?';
   assert.equal(displayed().split(pergunta).length-1,1);
   s.press('Entender esta análise');await s.h.flush();

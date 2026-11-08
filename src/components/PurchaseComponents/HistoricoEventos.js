@@ -154,9 +154,9 @@ export default function HistoricoEventos({
     loading: true
   };
   return <View style={s.card}><Text accessibilityRole="header" style={s.title}>{finalidade === 'ANALISE' ? 'Decisões registradas' : itemId ? 'Histórico do item' : 'Histórico da compra'}</Text>
- {!itemId && finalidade !== 'ANALISE' && <View style={s.chips}>{[['TODOS', 'Todos'], ['COMPRA', 'Compra'], ['ITENS', 'Itens']].map(([code, label]) => <Pressable key={code} accessibilityRole="radio" accessibilityState={{
+ {!itemId && finalidade !== 'ANALISE' && <View style={s.historyFilters}>{[['TODOS', 'Todos'], ['COMPRA', 'Compra'], ['ITENS', 'Itens']].map(([code, label]) => <Pressable key={code} accessibilityRole="radio" accessibilityState={{
         checked: scope === code
-      }} style={[s.chip, scope === code && s.selected]} onPress={() => {
+       }} style={[s.historyFilter, scope === code && s.historyFilterSelected]} onPress={() => {
         setScope(code);
         setCursor(null);
       }}><Text style={s.actionText}>{label}</Text></Pressable>)}</View>}

@@ -88,8 +88,8 @@ test('reflexões da projeção não fazem N+1 nem repetem fatores ou inventam re
 test('reflexão ausente tem estado próprio e não busca dados atuais',async()=>{
   const e={...fixture('avaliacaoExplicacao'),reflexao:null};
   const s=historyScreen({modo:'reflexoes',rows:[meta(4,{explicacao:e})]});await s.h.flush();
-  assert.match(s.displayed(),/Sem pergunta reflexiva registrada/);s.toggle(4);await s.h.flush();
-  assert.match(s.displayed(),/não registrou uma pergunta reflexiva/);assert.equal(s.calls.length,1);s.h.unmount();
+  assert.match(s.displayed(),/Nenhuma reflexão registrada/);s.toggle(4);await s.h.flush();
+  assert.match(s.displayed(),/Nenhuma reflexão registrada/);assert.equal(s.calls.length,1);s.h.unmount();
 });
 
 test('projeção completa de avaliação dispensa GET por linha e usa somente fatores registrados',async()=>{

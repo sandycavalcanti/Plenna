@@ -125,7 +125,7 @@ export default function AnaliseCompra({
       <View style={s.heading}><Ionicons name="sparkles-outline" size={22} color={DASHBOARD_THEME.colors.navy} /><Text accessibilityRole="header" style={s.title}>Análise do Plenna</Text></View>
       {ready && !restricaoInsight && <Text style={s.result}>{sinais.titulo}</Text>}
       {loading ? <ActivityIndicator accessibilityLabel="Consultando avaliação registrada" /> : <Text accessibilityRole={!ready || stale || restricaoInsight ? 'alert' : undefined} style={s.body}>{message}</Text>}
-      {insight && <Text style={s.caption}>{sinais.estado === 'NAO_IDENTIFICADOS' ? 'Isso não comprova ausência de impulsividade.' : 'Interpretação das suas declarações, sem classificação automática.'}</Text>}
+      {insight && sinais.estado === 'NAO_IDENTIFICADOS' && <Text style={s.caption}>Isso não comprova ausência de impulsividade.</Text>}
       {restricaoInsight === 'VERIFICACAO_INDISPONIVEL' && onRevalidar && <Pressable accessibilityRole="button" onPress={onRevalidar} style={s.action}><Text style={s.link}>Recarregar dados</Text></Pressable>}
       {!loading && state.status !== 'session' && !restricaoInsight && <Pressable accessibilityRole="button" onPress={ready && Number.isInteger(revisao) ? calcular : consultar} style={s.action}>
         <Text style={s.link}>{!ready ? 'Tentar novamente' : !Number.isInteger(revisao) ? 'Recarregar análise' : state.dados?.avaliacaoId ? 'Atualizar reflexão' : 'Gerar reflexão opcional'}</Text>

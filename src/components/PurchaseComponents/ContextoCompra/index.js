@@ -3,7 +3,7 @@ import HistoricoEventos from '../HistoricoEventos';
 import { purchaseStyles } from '../presentationStyles';
 import { DASHBOARD_THEME } from '../../../constants/dashboardTheme';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Alert, Animated, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Alert, Animated, LayoutAnimation, Modal, Platform, Pressable, ScrollView, Text, UIManager, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { randomUUID } from 'expo-crypto';
@@ -44,6 +44,7 @@ export default function ContextoCompra({
   useEffect(() => {
     if (['Contexto', 'Análise'].includes(perspectiva)) setContextRequested(true);
     if (perspectiva === 'Análise') setAnalysisVisited(true);
+    if (perspectiva !== 'Histórico') setHistoricoTela(null);
   }, [perspectiva]);
   const [gerenciar, setGerenciar] = useState(null),
     [refreshKey, setRefreshKey] = useState(0);
@@ -319,7 +320,12 @@ export default function ContextoCompra({
       y: 0,
       animated: false
     });
-  }, [perspectiva, historicoTela]);
+  }, [perspectiva]);
+  function toggleHistoricoTela(key) {
+    if (Platform?.OS === 'android') UIManager?.setLayoutAnimationEnabledExperimental?.(true);
+    LayoutAnimation?.configureNext?.(LayoutAnimation.Presets?.easeInEaseOut ?? {});
+    setHistoricoTela(current => current === key ? null : key);
+  }
   const AnimatedView = Animated?.View ?? View;
   return <Modal visible animationType="none" onRequestClose={back} presentationStyle="pageSheet">
       <SafeAreaView style={styles.container}>
@@ -338,10 +344,6 @@ export default function ContextoCompra({
             <Ionicons name="close" size={24} color="#594367" />
           </Pressable>
         </View>
-        {compra?.compra_fonte && <Text style={[purchaseStyles.caption, {
-          textAlign: 'center',
-          marginBottom: 8
-        }]}>{compra.compra_fonte}</Text>}
         <View style={styles.tabs} accessibilityRole="tablist">
           {['Contexto', 'Itens', 'Análise', 'Histórico'].map(label => <Pressable key={label} accessibilityRole="tab" accessibilityState={{
             selected: perspectiva === label,
@@ -507,25 +509,25 @@ export default function ContextoCompra({
                   <Text style={styles.link}>Revisar minhas respostas</Text>
                 </Pressable>}
             </View>}
-          <HistoricoEventos compra={compra} itens={compra?.tb_compra_item} compraId={compraId} refreshKey={refreshKey} active={perspectiva === 'Histórico' && !historicoTela} onCorrect={event => setGerenciar({
+          <HistoricoEventos compra={compra} itens={compra?.tb_compra_item} compraId={compraId} refreshKey={refreshKey} active={perspectiva === 'Histórico'} onCorrect={event => setGerenciar({
             event
           })} />
-          {perspectiva === 'Histórico' && state.status !== 'session' && (historicoTela ? <View style={styles.panel}>
-            <Pressable accessibilityRole="button" onPress={() => setHistoricoTela(null)} style={purchaseStyles.action}><Text style={purchaseStyles.actionText}>Voltar ao histórico da compra</Text></Pressable>
-            {historicoTela === 'classificacoes' ? <HistoricoEventos compraId={compraId} finalidade="ANALISE" refreshKey={refreshKey} /> : <>
-              <Text accessibilityRole="header" style={styles.question}>{{
-                  respostas: 'Histórico de respostas',
-                  avaliacoes: 'Histórico de avaliações',
-                  reflexoes: 'Histórico de reflexões'
-                }[historicoTela]}</Text>
-              {historicoTela === 'respostas' ? <HistoricoContexto itens={compra?.tb_compra_item} compraId={compraId} revisao={dados?.contexto.revisao ?? revisaoInicial} /> : <HistoricoAvaliacoes modo={historicoTela === 'reflexoes' ? 'reflexoes' : 'avaliacoes'} compraId={compraId} revisao={dados?.contexto.revisao ?? revisaoInicial} />}
-            </>}
-          </View> : <View style={purchaseStyles.card}>
+          {perspectiva === 'Histórico' && state.status !== 'session' && <View style={styles.historyAccordion}>
             <Text accessibilityRole="header" style={purchaseStyles.title}>Outros históricos</Text>
-            {[['respostas', 'clipboard-outline', 'Histórico de respostas'], ['avaliacoes', 'bar-chart-outline', 'Histórico de avaliações'], ['reflexoes', 'chatbubbles-outline', 'Histórico de reflexões'], ['classificacoes', 'person-outline', 'Histórico de classificações']].map(([key, icon, title]) => <Pressable key={key} accessibilityRole="button" onPress={() => setHistoricoTela(key)} style={purchaseStyles.navigationRow}>
-              <Ionicons name={icon} size={20} color={DASHBOARD_THEME.colors.navy} /><Text style={[purchaseStyles.title, purchaseStyles.copy]}>{title}</Text><Ionicons name="chevron-forward" size={18} color={DASHBOARD_THEME.colors.navy} />
-            </Pressable>)}
-          </View>)}
+            {[['respostas', 'clipboard-outline', 'Histórico de respostas'], ['avaliacoes', 'bar-chart-outline', 'Histórico de avaliações'], ['reflexoes', 'chatbubbles-outline', 'Histórico de reflexões'], ['classificacoes', 'person-outline', 'Histórico de classificações']].map(([key, icon, title]) => {
+              const expanded = historicoTela === key;
+              return <View key={key} style={styles.historyAccordionCard}>
+                <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={() => toggleHistoricoTela(key)} style={[styles.historyAccordionHeader, expanded && styles.historyAccordionHeaderOpen]}>
+                  <Ionicons name={icon} size={20} color={DASHBOARD_THEME.colors.navy} />
+                  <Text style={[purchaseStyles.title, styles.historyAccordionTitle]}>{title}</Text>
+                  <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={DASHBOARD_THEME.colors.navy} />
+                </Pressable>
+                {expanded && <View style={styles.historyAccordionContent}>
+                  {key === 'classificacoes' ? <HistoricoEventos compraId={compraId} finalidade="ANALISE" refreshKey={refreshKey} /> : key === 'respostas' ? <HistoricoContexto itens={compra?.tb_compra_item} compraId={compraId} revisao={dados?.contexto.revisao ?? revisaoInicial} /> : <HistoricoAvaliacoes modo={key === 'reflexoes' ? 'reflexoes' : 'avaliacoes'} compraId={compraId} revisao={dados?.contexto.revisao ?? revisaoInicial} />}
+                </View>}
+              </View>;
+            })}
+          </View>}
 
 
         </ScrollView>

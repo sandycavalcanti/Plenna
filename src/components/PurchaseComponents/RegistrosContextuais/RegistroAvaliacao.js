@@ -59,7 +59,7 @@ export default function RegistroAvaliacao({
   const explicacao = needsFull ? cached.dados?.explicacao : row.explicacao;
   const view = apresentarAvaliacaoHistorica(resultado, explicacao);
   const missing = available && !resultado && !explicacao;
-  const preview = reflections ? view.pergunta ?? view.reflexaoOriginal ?? (row.explicacao ? 'Sem pergunta reflexiva registrada.' : 'Consultar pergunta registrada.') : null;
+  const preview = reflections ? view.pergunta ?? view.reflexaoOriginal ?? 'Nenhuma reflexão registrada.' : null;
   const synthesis = view.resultado ?? (!/^As informações declaradas ajudam|^Não há contexto suficiente|^Esta compra não está ativa/.test(view.resumo ?? '') ? view.resumo : null) ?? {
     CONTEXTO_DISPONIVEL: 'Contexto registrado',
     DADOS_INSUFICIENTES: 'Contexto insuficiente',
@@ -73,10 +73,10 @@ export default function RegistroAvaliacao({
     </>}
     {missing && <Text style={s.text}>Conteúdo indisponível neste registro.</Text>}
     {available && !missing && (reflections ? <>
-      <View style={s.highlight}><Text style={s.text}>{view.pergunta ?? view.reflexaoOriginal ?? 'Esta avaliação não registrou uma pergunta reflexiva.'}</Text></View>
+      <View style={s.highlight}><Text style={s.text}>{view.pergunta ?? view.reflexaoOriginal ?? 'Nenhuma reflexão registrada.'}</Text></View>
     </> : <>
       <View style={s.highlight}><Text style={s.title}>{synthesis}</Text></View>
-      {!!view.fatores.length && <><Text style={s.title}>Fatores considerados</Text><Text style={s.caption}>Na reflexão registrada.</Text></>}
+      {!!view.fatores.length && <Text style={s.title}>Fatores considerados</Text>}
       {view.fatores.map(line => <LinhaHistorica key={line.id} {...line} />)}
       {!!view.outras.length && <Text style={s.title}>Outras respostas registradas</Text>}
       {view.outras.map(line => <LinhaHistorica key={line.id} {...line} />)}

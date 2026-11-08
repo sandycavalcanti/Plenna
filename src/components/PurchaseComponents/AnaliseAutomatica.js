@@ -126,9 +126,7 @@ export default function AnaliseAutomatica({
   const motivos = apresentarIndisponibilidades(d?.qualidadeDados.criteriosIndisponiveis);
   const limiteAtual = d?.referenciasFinanceiras?.limiteAtualCentavos;
   return <View style={s.card}>
-      <Text accessibilityRole="header" style={presentationStyles.inline1}>
-        {compact ? 'Nos seus registros' : 'Análise do Plenna'}
-      </Text>
+      {!compact && <Text accessibilityRole="header" style={presentationStyles.inline1}>Análise do Plenna</Text>}
       {current.loading ? <ActivityIndicator accessibilityLabel="Consultando análise automática" /> : current.error ? <Pressable accessibilityRole="button" onPress={() => setRetry(v => v + 1)} style={presentationStyles.inline2}>
           <Text style={{
         color: '#893467'

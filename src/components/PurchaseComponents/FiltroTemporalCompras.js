@@ -102,7 +102,6 @@ export default function FiltroTemporalCompras({
       }} />}
       {error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
       <Pressable accessibilityRole="button" onPress={() => apply(draft)} style={s.apply}><Text style={s.selectedText}>Aplicar período</Text></Pressable>
-      {filtros.modo !== 'INTERVALO' && <Text style={s.caption}>Escolha as datas e aplique para atualizar a lista.</Text>}
     </View>}
     {error && draft.modo !== 'INTERVALO' && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
     {draft.modo === 'TODOS' && <Text style={s.history}>

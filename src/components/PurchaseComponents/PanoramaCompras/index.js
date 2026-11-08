@@ -70,10 +70,9 @@ export default function PanoramaCompras({
     {current.status === 'error' && <><Text accessibilityRole="alert" style={s.body}>Não foi possível consultar o panorama.</Text><Pressable accessibilityRole="button" onPress={retry} style={s.action}><Text style={s.link}>Tentar novamente</Text></Pressable></>}
     {current.status === 'session' && <Text style={s.body}>Sua sessão mudou. Entre novamente para consultar.</Text>}</>;
   return <View style={s.card}>
-    <View style={s.row}><Ionicons name="stats-chart-outline" size={24} color={c.navy} /><View style={s.copy}><Text accessibilityRole="header" style={s.title}>Panorama das compras</Text><Text style={s.caption}>Hábitos e registros do período</Text></View></View>
+    <View style={s.row}><Ionicons name="stats-chart-outline" size={24} color={c.navy} /><View style={s.copy}><Text accessibilityRole="header" style={s.title}>Panorama das compras</Text></View></View>
     {estado}
     {d && <><View style={s.metrics}><View style={s.metric}><Text style={s.number}>{d.universo}</Text><Text style={s.body}>Compras elegíveis</Text></View><View style={s.metric}><Text style={s.number}>{d.comContexto}</Text><Text style={s.body}>Com contexto válido</Text></View></View>
-      <Text style={s.body}>{d.reflexao}</Text>
       <Pressable accessibilityRole="button" onPress={explorar} style={s.action}><Text style={s.link}>Explorar análise do período</Text><Ionicons name="chevron-forward" size={20} color={c.navy} /></Pressable></>}
     <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
       <SafeAreaView style={s.screen}><View style={s.header}><Pressable accessibilityRole="button" accessibilityLabel="Fechar análise do período" onPress={() => setOpen(false)} style={s.close}><Ionicons name="arrow-back" size={24} color={c.navy} /></Pressable><Text accessibilityRole="header" style={s.title}>Análise do período</Text></View>

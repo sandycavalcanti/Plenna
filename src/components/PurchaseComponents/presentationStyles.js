@@ -118,6 +118,28 @@ export const purchaseStyles = StyleSheet.create({
     gap: s.sm,
     marginVertical: s.sm
   },
+  historyFilters: {
+    flexDirection: 'row',
+    gap: s.sm,
+    width: '100%',
+    marginVertical: s.sm
+  },
+  historyFilter: {
+    flex: 1,
+    flexBasis: 0,
+    minHeight: 48,
+    paddingHorizontal: s.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: r.sm,
+    backgroundColor: c.surfaceMuted,
+    borderWidth: 1,
+    borderColor: c.border
+  },
+  historyFilterSelected: {
+    backgroundColor: c.accentSoft,
+    borderColor: c.accentSecondary
+  },
   chip: {
     minHeight: 48,
     paddingHorizontal: s.md,

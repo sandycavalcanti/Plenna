@@ -132,7 +132,6 @@ export default function PurchaseItem({
 }) {
   const [itemsExpanded, setItemsExpanded] = useState(false);
   const visibleItems = useMemo(() => (purchase.tb_compra_item || []).filter(item => item.compra_item_ativo !== 0 && !resumo?.itensOcultos?.includes(item.compra_item_id)), [purchase.tb_compra_item, resumo?.itensOcultos]);
-  const categories = useMemo(() => [...new Set(visibleItems.map(item => item.tb_categoria?.categoria_nome).filter(Boolean))].slice(0, 3).join(' · '), [visibleItems]);
   const movements = [[resumo?.cancelamentos, 'Cancelamento registrado'], [resumo?.devolucoes, 'Devolu\u00e7\u00e3o registrada'], [resumo?.reembolsadoCentavos, 'Reembolso registrado']].filter(([count]) => Number.isSafeInteger(count) && count > 0).map(([, label]) => label);
   const itemsCount = visibleItems.length;
   const establishment = purchase.compra_fonte || 'Origem não informada';
@@ -282,7 +281,7 @@ export default function PurchaseItem({
       </TouchableOpacity>}
       {/* Badges traduzem os enums sem alterar os dados recebidos da API. */}
       <View style={styles.badgesRow}>
-        {!isPending && <View style={styles.statusBadge}><Text style={styles.statusBadgeText}>{statusLabel}</Text></View>}
+        {purchase.compra_status !== 'CONFIRMADA' && <View style={styles.statusBadge}><Text style={styles.statusBadgeText}>{statusLabel}</Text></View>}
         {isEmailOrigin ? <View style={styles.emailOriginBadge} accessibilityLabel="Via e-mail">
             <MaterialCommunityIcons name="email-outline" size={14} color={COLORS.cadTitulo} />
             <Text style={styles.emailOriginBadgeText}>Via e-mail</Text>
@@ -297,9 +296,6 @@ export default function PurchaseItem({
           </View> : null}
         <Text style={styles.itemsSummary}>{itemsCount} {itemsCount === 1 ? 'item' : 'itens'}</Text>
       </View>
-      {!!categories && <Text style={[purchaseStyles.caption, {
-      marginTop: 6
-    }]} numberOfLines={2}>{categories}</Text>}
       {!!movements.length && <Text style={[purchaseStyles.caption, {
       marginTop: 4
     }]}>{movements.join(' \u00b7 ')}</Text>}

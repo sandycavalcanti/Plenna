@@ -34,18 +34,6 @@ export default function ResumoCompra({
         expanded
       }} onPress={() => setExpanded(v => !v)} style={[s.row, s.action]}><Ionicons name="bag-outline" size={22} color={DASHBOARD_THEME.colors.navy} /><Text style={[s.actionText, s.copy]}>{expanded ? 'Recolher itens' : `Ver detalhes dos itens (${items.length})`}</Text><Ionicons name="chevron-forward" size={19} color={DASHBOARD_THEME.colors.navy} /></Pressable>}
   </View>
-  <View style={[s.card, s.row]}><Text style={[s.title, s.copy]}>Situação do registro</Text><Text style={s.badge}>{status ?? 'Não informada'}</Text></View>
-  <View style={s.card}><Text style={s.title}>Ações</Text><View style={s.factorGrid}>
-    {onContext && <Pressable accessibilityRole="button" onPress={onContext} style={[s.factor, {
-          minHeight: 84
-        }]}><Ionicons name="create-outline" size={25} color={DASHBOARD_THEME.colors.navy} /><Text style={s.actionText}>Editar contexto</Text></Pressable>}
-    {!!items.length && <Pressable accessibilityRole="button" onPress={() => setExpanded(true)} style={[s.factor, {
-          minHeight: 84
-        }]}><Ionicons name="cube-outline" size={25} color={DASHBOARD_THEME.colors.navy} /><Text style={s.actionText}>Gerenciar itens</Text></Pressable>}
-    {onManage && ['CONFIRMADA', 'AGUARDANDO_CONFIRMACAO'].includes(compra.compra_status) && <Pressable accessibilityRole="button" onPress={() => onManage()} style={[s.factor, {
-          minHeight: 84
-        }]}><Ionicons name="options-outline" size={25} color={DASHBOARD_THEME.colors.navy} /><Text style={s.actionText}>Gerenciar compra</Text></Pressable>}
-  </View></View>
   {expanded && items.length > 0 && <><Text style={s.title}>Itens da compra</Text>{items.map(i => <View key={i.compra_item_id} style={[s.card, {
         marginTop: 8
       }]}><Pressable accessibilityRole="button" accessibilityLabel={`Detalhes de ${i.compra_item_nome}`} style={s.row} onPress={() => {
@@ -58,6 +46,18 @@ export default function ResumoCompra({
    </View></View>}
   </View>)}</>}
   {item && history && <HistoricoEventos itens={compra.tb_compra_item} compraId={compra.compra_id} itemId={item.compra_item_id} refreshKey={refreshKey} />}
+  <View style={[s.card, s.row]}><Text style={[s.title, s.copy]}>Situação do registro</Text><Text style={s.badge}>{status ?? 'Não informada'}</Text></View>
+  <View style={s.card}><Text style={s.title}>Ações</Text><View style={s.factorGrid}>
+    {onContext && <Pressable accessibilityRole="button" onPress={onContext} style={[s.factor, {
+          minHeight: 84
+        }]}><Ionicons name="create-outline" size={25} color={DASHBOARD_THEME.colors.navy} /><Text style={s.actionText}>Editar contexto</Text></Pressable>}
+    {!!items.length && <Pressable accessibilityRole="button" onPress={() => setExpanded(true)} style={[s.factor, {
+          minHeight: 84
+        }]}><Ionicons name="cube-outline" size={25} color={DASHBOARD_THEME.colors.navy} /><Text style={s.actionText}>Gerenciar itens</Text></Pressable>}
+    {onManage && ['CONFIRMADA', 'AGUARDANDO_CONFIRMACAO'].includes(compra.compra_status) && <Pressable accessibilityRole="button" onPress={() => onManage()} style={[s.factor, {
+          minHeight: 84
+        }]}><Ionicons name="options-outline" size={25} color={DASHBOARD_THEME.colors.navy} /><Text style={s.actionText}>Gerenciar compra</Text></Pressable>}
+  </View></View>
   <View style={s.card}><Text style={s.title}>Informações da compra</Text>
 
    {compra.tb_forma_pagamento?.forma_pagamento_nome && <View style={s.divider}><Text style={s.caption}>Forma de pagamento</Text><Text style={s.body}>{compra.tb_forma_pagamento.forma_pagamento_nome}</Text></View>}

@@ -96,14 +96,12 @@ export default function HistoricoAvaliacoes({
     justifyContent: 'center',
     paddingVertical: 8
   };
-  if (current.session) return <Text>Sua sessão mudou. Feche esta janela.</Text>;
+  if (current.session) return <Text>Sua sessão mudou. Entre novamente.</Text>;
   return <View style={styles.list}>
-
-    {modo === 'reflexoes' && <Text style={styles.caption}>Perguntas e reflexões geradas pelo PLENNA em cada avaliação.</Text>}
     {current.loading && <ActivityIndicator accessibilityLabel="Carregando histórico de avaliações" />}
     {current.error && <><Text accessibilityRole="alert">Não foi possível consultar as avaliações.</Text>
       <Pressable accessibilityRole="button" style={touch} onPress={() => setRetry(value => value + 1)}><Text>Tentar novamente</Text></Pressable></>}
-    {!current.loading && !current.error && current.rows.length === 0 && <Text>Nenhuma avaliação registrada nesta página.</Text>}
+    {!current.loading && !current.error && current.rows.length === 0 && <Text>Nenhuma avaliação registrada.</Text>}
     {current.rows.map(row => <RegistroAvaliacao key={row.avaliacaoId} row={row} compraId={compraId} modo={modo} expanded={selected === row.avaliacaoId} onToggle={() => setSelected(selected === row.avaliacaoId ? null : row.avaliacaoId)} />)}
     {!!current.next && <Pressable accessibilityRole="button" style={touch} onPress={() => {
       setSelected(null);

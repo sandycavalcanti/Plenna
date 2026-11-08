@@ -518,19 +518,26 @@ test('four histories follow the purchase timeline, load on demand and return wit
  assert.doesNotMatch(displayed(),/Consultar registros/);
  assert.equal(calls.filter(c=>/contexto\/historico|avaliacoes\/historico/.test(c.url)).length,0);
  assert.equal(calls.filter(c=>c.params?.finalidade==='ANALISE').length,0);
+ assert.equal(s.h.nodes(n=>n.type==='Pressable'&&n.props.accessibilityState?.expanded===true).length,0);
  s.h.nodes(n=>n.props.accessibilityRole==='radio'&&text(n)==='Itens')[0].props.onPress();await s.h.flush();
  for(let i=0;i<labels.length;i++){
   const before=calls.length;s.press(labels[i]);await s.h.flush();
-  assert.ok(s.h.nodes(n=>n.type==='Pressable'&&text(n)==='Voltar ao hist\u00f3rico da compra').length);
+  const expanded=s.h.nodes(n=>n.type==='Pressable'&&text(n)===labels[i]&&n.props.accessibilityState?.expanded===true);
+  assert.equal(expanded.length,1);
+  assert.equal(s.h.nodes(n=>n.type==='Pressable'&&text(n)==='Voltar ao hist\u00f3rico da compra').length,0);
   const newCalls=calls.slice(before);
   const expected=i===0?'/contexto/historico':i===3?'/eventos/historico':'/avaliacoes/historico';
   assert.equal(newCalls.filter(c=>c.url.endsWith(expected)).length,1);
   if(i===3){assert.equal(newCalls[0].params.finalidade,'ANALISE');assert.match(displayed(),/Impulsiva/);}
   assert.doesNotMatch(displayed(),/N\u00e3o foi poss\u00edvel consultar|N\u00e3o foi poss\u00edvel carregar/);
-  if(i===3){s.h.nodes(n=>n.type==='Modal')[0].props.onRequestClose();}else s.press('Voltar ao hist\u00f3rico da compra');
-  await s.h.flush();
-  assert.match(displayed(),/Outros hist\u00f3ricos/);
+  const afterOpen=calls.length;s.press(labels[i]);await s.h.flush();
+  assert.equal(s.h.nodes(n=>n.type==='Pressable'&&text(n)===labels[i]&&n.props.accessibilityState?.expanded===true).length,0);
+  assert.equal(calls.length,afterOpen);
  }
+ s.press(labels[0]);await s.h.flush();s.press(labels[1]);await s.h.flush();
+ assert.equal(s.h.nodes(n=>n.type==='Pressable'&&text(n)===labels[0]&&n.props.accessibilityState?.expanded===true).length,0);
+ assert.equal(s.h.nodes(n=>n.type==='Pressable'&&text(n)===labels[1]&&n.props.accessibilityState?.expanded===true).length,1);
+ s.press(labels[1]);await s.h.flush();
  const itens=s.h.nodes(n=>n.props.accessibilityRole==='radio'&&text(n)==='Itens')[0];assert.equal(itens.props.accessibilityState.checked,true);
  assert.equal(calls.filter(c=>c.url.endsWith('/eventos/historico')&&c.params?.finalidade==='COMPRA').length,2);
  assert.equal(s.writes.length,0);

@@ -96,7 +96,8 @@ function DescobertasDetalhadas({
       itens: source.itens.filter(i => ['VALOR_FORA_FAIXA', 'VALOR_COMPARADO', 'VALOR_REGISTRADO', 'EVENTO_DECLARADO', 'RECORRENCIA_VINCULADA'].includes(i.codigo)).slice(0, compact ? 2 : undefined)
     } : null,
     card = a?.itens[selected],
-    max = card?.grafico ? Math.max(...card.grafico.pontos.map(p => p.valor)) : 0;
+    max = card?.grafico ? Math.max(...card.grafico.pontos.map(p => p.valor)) : 0,
+    cardLabel = card?.natureza === 'DECLARADO' ? 'Sua declaração' : card?.natureza === 'REFERENCIA_ATUAL' ? 'Comparação atual' : null;
   const usagePoints = (usageMode === 'dias' ? d?.monitoramento?.porDia : d?.monitoramento?.porAplicativo) || [];
   return <View style={styles.container}>
       <AnaliseAutomatica active={active} compraId={compraId} revisao={revisao} refreshKey={`${refreshKey}:${automaticRefresh}`} />
@@ -152,10 +153,10 @@ function DescobertasDetalhadas({
         gap: 6,
         borderRadius: 16
       }]}>
-          <Ionicons name={card.natureza === 'DECLARADO' ? 'chatbubble-outline' : 'analytics-outline'} size={21} color="#8660A1" />
-          <Text style={styles.caption}>
-            {card.natureza === 'DECLARADO' ? 'Sua declaração' : card.natureza === 'REFERENCIA_ATUAL' ? 'Comparação atual' : 'Nos seus registros'}
-          </Text>
+          {cardLabel && <>
+            <Ionicons name={card.natureza === 'DECLARADO' ? 'chatbubble-outline' : 'analytics-outline'} size={21} color="#8660A1" />
+            <Text style={styles.caption}>{cardLabel}</Text>
+          </>}
           <Text style={[styles.value, compact && {
           fontSize: 19
         }]}>
