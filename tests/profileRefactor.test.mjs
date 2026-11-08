@@ -9,7 +9,7 @@ test('Perfil usa cabeçalho compacto com dados reais e não oferece upload fict�
   const source = await read('src/components/ProfileComponents/ProfileHeader/index.js');
   assert.match(source, /export default function ProfileHeader\(\{ nome, email, rightAction \}\)/);
   assert.match(source, /displayName/);
-  assert.match(source, /displayEmail/);
+  assert.doesNotMatch(source, /displayEmail|styles\.email|styles\.muted/);
   assert.match(source, /getInitials/);
   assert.doesNotMatch(source, /<Image|require\([^)]*userIcon|editAvatarButton|onPress=\{\(\) => \{\}\}/);
 });

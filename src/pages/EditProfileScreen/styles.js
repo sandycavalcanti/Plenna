@@ -101,6 +101,38 @@ export default StyleSheet.create({
     color: COLORS.dadoUm,
     lineHeight: 17,
   },
+  metaManagementBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  metaSegments: {
+    flex: 1,
+    minWidth: 170,
+    flexDirection: 'row',
+    padding: 3,
+    borderRadius: 13,
+    backgroundColor: '#F0EAF5',
+  },
+  metaSegment: {
+    flex: 1,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+  },
+  metaSegmentSelected: {
+    backgroundColor: '#FFFFFF',
+  },
+  metaSegmentText: {
+    color: '#76658A',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  metaSegmentTextSelected: {
+    color: '#893467',
+  },
   metaScreenHeader: {
     paddingHorizontal: 0,
     paddingTop: 0,
@@ -155,7 +187,7 @@ export default StyleSheet.create({
     width: 'auto',
     flexGrow: 0,
     flexShrink: 0,
-    alignSelf: 'flex-end',
+    minWidth: 94,
     minHeight: 40,
     paddingVertical: 8,
     paddingHorizontal: 11,

@@ -231,10 +231,14 @@ for (const [estado, fragment] of [
         }),
       );
       await s.r.flush();
-      assert.ok(
-        s.r.nodes((n) => n.type === 'Text' && text(n).includes(fragment))
-          .length,
-      );
+      if (estado === 'SEM_SINAIS_RELEVANTES') {
+        assert.equal(s.r.nodes((n) => n.type === 'Text' && text(n).includes(fragment)).length, 0);
+      } else {
+        assert.ok(
+          s.r.nodes((n) => n.type === 'Text' && text(n).includes(fragment))
+            .length,
+        );
+      }
       assert.equal(
         s.r.nodes((n) => n.props.accessibilityRole === 'radio').length,
         0,
@@ -378,7 +382,7 @@ test('limite atual é observação separada e não gera sinal, pergunta reflexiv
   const s=screen(unavailable({referenciasFinanceiras:{limiteAtualCentavos:10000,limiteHistoricoCentavos:null,referenciaAtualParticipaDosSinais:false}}));
   await s.r.flush();
   const displayed=s.r.nodes(n=>n.type==='Text').map(text).join(' ');
-  assert.match(displayed,/Seu limite atual por compra é/);assert.match(displayed,/não é usado nesta comparação histórica/);
+  assert.match(displayed,/Limite atual por compra:/);assert.match(displayed,/não usada na comparação histórica/);
   assert.doesNotMatch(displayed,/Diferença observada|O que pode ter contribuído|Principais fatores considerados/);
   assert.match(displayed,/Ainda não há dados para comparar/);s.r.unmount();
 });

@@ -13,12 +13,10 @@ import CustomButton from '../../components/CustomButton';
 const screenStyles = {
   container: { flex: 1, backgroundColor: COLORS.fundoPrincipal, paddingHorizontal: 18 },
   screenHeader: { paddingHorizontal: 0, paddingTop: 12, paddingBottom: 12 },
-  subtitle: { color: '#655A70', lineHeight: 20, marginBottom: 18 },
   list: { paddingBottom: 28 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16, marginBottom: 12, gap: 14, borderWidth: 1, borderColor: 'rgba(131, 111, 226, 0.12)', shadowColor: '#4A3156', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 },
   cardContent: { flex: 1, gap: 7 },
   content: { color: '#594367', lineHeight: 21, fontSize: 15, fontWeight: '500' },
-  origin: { color: '#655A70', fontSize: 12 },
   deleteButton: { width: 44, minHeight: 44, borderRadius: 22, paddingHorizontal: 0, paddingVertical: 0 },
   state: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 28, gap: 14 },
   stateText: { color: '#655A70', textAlign: 'center', lineHeight: 20 },
@@ -54,12 +52,6 @@ function SecurityState({ access, navigation }) {
       />
     </SafeAreaView>
   );
-}
-
-function originLabel(origin) {
-  if (origin === 'DECLARADA') return 'Origem: informação declarada';
-  if (origin === 'INFERIDA') return 'Origem: inferida com evidência';
-  return 'Origem: não informada';
 }
 
 export default function MemoryListScreen() {
@@ -152,7 +144,6 @@ export default function MemoryListScreen() {
     <SafeAreaView style={screenStyles.container} edges={['top']}>
       <AppScreenHeader icon="brain" title="Minhas memórias" subtitle="Informações relevantes identificadas nas suas conversas." showBackButton onBackPress={() => navigation.goBack()} style={screenStyles.screenHeader} />
       <ScrollView contentContainerStyle={screenStyles.list}>
-        <Text style={screenStyles.subtitle}>Estas são informações relevantes que a Plenna identificou durante suas conversas autorizadas.</Text>
         {loading ? (
           <View style={screenStyles.state}><ActivityIndicator size="large" color={COLORS.dashboardIconeBotaoCanto} /><Text style={screenStyles.stateText}>Carregando memórias...</Text></View>
         ) : errorMessage && memories.length === 0 ? (
@@ -169,7 +160,6 @@ export default function MemoryListScreen() {
                 <View key={id} style={screenStyles.card}>
                   <View style={screenStyles.cardContent}>
                     <Text style={screenStyles.content}>{item.conteudo}</Text>
-                    <Text style={screenStyles.origin}>{originLabel(item.origem)}</Text>
                   </View>
                   <CustomButton
                     accessibilityLabel={`Excluir memória ${item.memoria_id}`}

@@ -150,6 +150,37 @@ export const styles = StyleSheet.create({
     color: COLORS.customButtonTexto,
     fontSize: 15,
     fontWeight: '600'
+  },
+  analysisFilterBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    marginHorizontal: 18,
+    marginBottom: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E3D7EE',
+    backgroundColor: '#F5F0F9'
+  },
+  analysisFilterTitle: {
+    flex: 1,
+    color: '#594367',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  analysisFilterAction: {
+    minHeight: 32,
+    justifyContent: 'center',
+    paddingHorizontal: 9,
+    borderRadius: 10,
+    backgroundColor: '#E9DDF2'
+  },
+  analysisFilterActionText: {
+    color: '#594367',
+    fontSize: 12,
+    fontWeight: '700'
   }
 });
 export const presentationStyles = StyleSheet.create({

@@ -134,11 +134,11 @@ export default function AnaliseAutomatica({
             Análise indisponível agora. Tentar novamente
           </Text>
         </Pressable> : d && <>
-            <Text style={{
+            {insuficiente ? <Text style={{
         color: '#594367'
-      }}>
-              {insuficiente ? 'Ainda não há dados para comparar.' : d.estado === 'SEM_SINAIS_RELEVANTES' ? 'As regras disponíveis não identificaram sinais relevantes.' : d.descobertas[0]?.titulo}
-            </Text>
+      }}>Ainda não há dados para comparar.</Text> : d.estado === 'SEM_SINAIS_RELEVANTES' ? null : <Text style={{
+        color: '#594367'
+      }}>{d.descobertas[0]?.titulo}</Text>}
             {insuficiente && <>
               <Text style={presentationStyles.inline4}>
                 As referências disponíveis ainda não permitem avaliar esta compra automaticamente.
@@ -161,26 +161,17 @@ export default function AnaliseAutomatica({
               </Text>}
             <ReadingDetails label="Entender esta análise">
               <Text style={presentationStyles.inline6}>
-                Esta observação não classifica sua compra.{' '}
-                {d.qualidadeDados.registrosElegiveis} registro(s) anterior(es)
-                elegível(is).
+                {insuficiente
+                  ? `Ainda não há registros suficientes para uma comparação segura. Há ${d.qualidadeDados.registrosElegiveis} registro(s) anterior(es) elegível(is).`
+                  : `Comparação baseada em ${d.qualidadeDados.registrosElegiveis} registro(s) anterior(es) elegível(is).`}
               </Text>
-              <Text style={presentationStyles.inline7}>
-                Registros anteriores a{' '}
-                {new Date(d.janela.fimExclusivo).toLocaleDateString('pt-BR', {
-            timeZone: 'America/Sao_Paulo'
-          })}
-                .
-              </Text>
-              {d.evidencias.map(e => <Text key={e.indicador} style={presentationStyles.inline8}>
-                  {labels[e.indicador] || 'Referência disponível'}:{' '}
-                  {format(e.observado, e.unidade)} · referência{' '}
-                  {format(e.referencia, e.unidade)} · {e.amostra} registro(s).
-                </Text>)}
-              {(insuficiente ? motivos.adicionais : [...motivos.principais, ...motivos.adicionais]).map(motivo =>
-                <Text key={motivo} style={presentationStyles.inline9}>{motivo}</Text>)}
+              {d.evidencias.slice(0, 3).map(e => <Text key={e.indicador} style={presentationStyles.inline8}>
+                • {labels[e.indicador] || 'Referência disponível'}
+              </Text>)}
+              {(insuficiente ? [...motivos.principais, ...motivos.adicionais] : [...motivos.principais, ...motivos.adicionais].slice(0, 2)).map(motivo =>
+                <Text key={motivo} style={presentationStyles.inline9}>• {motivo}</Text>)}
               {insuficiente && Number.isSafeInteger(limiteAtual) && limiteAtual > 0 && <Text style={presentationStyles.inline9}>
-                Seu limite atual por compra é {format(limiteAtual, 'CENTAVOS')}. Esse valor é uma referência atual e não é usado nesta comparação histórica.
+                Limite atual por compra: {format(limiteAtual, 'CENTAVOS')} (referência atual, não usada na comparação histórica).
               </Text>}
             </ReadingDetails>
           </>}

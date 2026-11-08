@@ -413,17 +413,16 @@ export default function PurchasesScreen({
         rightAction={<TouchableOpacity style={styles.headerAction} onPress={() => navigation.navigate('Recurrences')} accessibilityRole="button" accessibilityLabel="Abrir recorrências"><MaterialCommunityIcons name="autorenew" size={20} color={COLORS.cadTitulo} /></TouchableOpacity>}
       />
 
-      {filtroConsumo && <View style={presentationStyles.inline1}>
-        <Text style={{
-        color: '#655A70'
-      }}>Filtros de análise ativos.</Text>
-        <Pressable accessibilityRole="button" style={presentationStyles.inline2} onPress={() => {
+      {filtroConsumo && <View style={styles.analysisFilterBanner}>
+        <MaterialCommunityIcons name="filter-variant" size={18} color={COLORS.cadTitulo} />
+        <Text style={styles.analysisFilterTitle}>Filtros de análise ativos</Text>
+        <Pressable accessibilityRole="button" style={styles.analysisFilterAction} onPress={() => {
         navigation.setParams({
           filtroConsumo: undefined
         });
         setFiltros(filtrosTemporaisIniciais());
       }}>
-          <Text style={presentationStyles.inline3}>Ver todas as compras</Text>
+          <Text style={styles.analysisFilterActionText}>Ver todas</Text>
         </Pressable>
       </View>}
       <FlatList data={purchases} keyExtractor={item => String(item.compra_id)} renderItem={renderPurchaseCard} ListHeaderComponent={<>

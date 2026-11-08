@@ -146,6 +146,7 @@ export default function EditProfileScreen() {
   const [metaFormError, setMetaFormError] = useState(null);
   const [metaFormSaving, setMetaFormSaving] = useState(false);
   const [metaDeleting, setMetaDeleting] = useState(false);
+  const [metaSegment, setMetaSegment] = useState('ATIVAS');
   const [pendingMetaIds, setPendingMetaIds] = useState(() => new Set());
   const [pendingCheckError, setPendingCheckError] = useState(false);
 
@@ -363,6 +364,10 @@ export default function EditProfileScreen() {
     );
   }
 
+  const metasAtivas = metas.filter((meta) => meta.meta_completado !== true);
+  const metasFinalizadas = metas.filter((meta) => meta.meta_completado === true);
+  const metasExibidas = metaSegment === 'FINALIZADAS' ? metasFinalizadas : metasAtivas;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
@@ -416,10 +421,28 @@ export default function EditProfileScreen() {
                     <Text style={styles.metasIntroSubtitle}>Crie metas claras e acompanhe cada avanço no seu cofrinho.</Text>
                   </View>
                 </View>
-                <CustomButton title="Adicionar" accessibilityLabel="Adicionar meta" variant="primary" icon="plus" onPress={abrirNovaMeta} style={styles.addMetaAction} />
+                <View style={styles.metaManagementBar}>
+                  <View style={styles.metaSegments} accessibilityRole="tablist">
+                    {[
+                      ['ATIVAS', 'Ativas'],
+                      ['FINALIZADAS', 'Finalizadas'],
+                    ].map(([value, label]) => (
+                      <Pressable
+                        key={value}
+                        accessibilityRole="tab"
+                        accessibilityState={{ selected: metaSegment === value }}
+                        onPress={() => setMetaSegment(value)}
+                        style={[styles.metaSegment, metaSegment === value && styles.metaSegmentSelected]}
+                      >
+                        <Text style={[styles.metaSegmentText, metaSegment === value && styles.metaSegmentTextSelected]}>{label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <CustomButton title="Adicionar" accessibilityLabel="Adicionar meta" variant="primary" icon="plus" onPress={abrirNovaMeta} style={styles.addMetaAction} />
+                </View>
               </View>
 
-              {metas.map((m, idx) => (
+              {metasExibidas.map((m, idx) => (
                 <Pressable
                   key={m.meta_id || `meta-${idx}`}
                   accessibilityRole="button"
@@ -456,7 +479,9 @@ export default function EditProfileScreen() {
                   <Text style={styles.metaStatus}>{m.meta_completado ? 'Concluída' : 'Em acompanhamento'}</Text>
                 </Pressable>
               ))}
-              {metas.length === 0 ? <Text style={styles.metaEmptyState}>Você ainda não tem metas cadastradas. Crie a primeira para começar.</Text> : null}
+              {metasExibidas.length === 0 ? <Text style={styles.metaEmptyState}>
+                {metaSegment === 'FINALIZADAS' ? 'Nenhuma meta finalizada ainda.' : metas.length === 0 ? 'Você ainda não tem metas cadastradas. Crie a primeira para começar.' : 'Nenhuma meta ativa no momento.'}
+              </Text> : null}
             </View>
           )}
         </ScrollView>

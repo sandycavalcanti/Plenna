@@ -12,7 +12,6 @@ function getInitials(nome) {
 
 export default function ProfileHeader({ nome, email, rightAction }) {
   const displayName = String(nome ?? '').trim();
-  const displayEmail = String(email ?? '').trim();
   const initials = getInitials(displayName);
 
   return (
@@ -23,7 +22,6 @@ export default function ProfileHeader({ nome, email, rightAction }) {
         </View>
         <View style={styles.identityCopy}>
           <Text style={styles.name} numberOfLines={2}>{displayName || 'Nome não informado'}</Text>
-          {displayEmail ? <Text style={styles.email} numberOfLines={2}>{displayEmail}</Text> : <Text style={styles.muted}>E-mail não informado</Text>}
         </View>
         {rightAction ? <View style={styles.action}>{rightAction}</View> : null}
       </View>

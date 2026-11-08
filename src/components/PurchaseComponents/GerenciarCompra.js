@@ -1,9 +1,7 @@
 import { presentationStyles } from "./GerenciarCompra.styles";
 import { s } from "./GerenciarCompra.styles";
-import HistoricoEventos from './HistoricoEventos';
 import { purchaseStyles } from './presentationStyles';
 import { DASHBOARD_THEME } from '../../constants/dashboardTheme';
-import ReadingDetails from '../ReadingDetails';
 import CalendarioData from '../CalendarioData';
 import CustomButton from '../CustomButton';
 import { formatarValorMoedaParaTela, normalizarValorMoedaParaEntrada } from '../CustomTextInput/currency';
@@ -18,9 +16,6 @@ import { tokenStorage } from '../../api/tokenStorage';
 import { criarGravadorEvento, confirmarOperacoesRecuperadas, moedaParaCentavos, dataEfetiva, mensagemGestao } from '../../services/gestaoCompraService';
 const options = [['EXCLUSAO_REGISTRO', 'trash-outline', 'Excluir registro', 'Duplicado, incorreto ou criado por engano.'], ['CANCELAMENTO', 'close-circle-outline', 'Registrar cancelamento', 'Sem presumir reembolso.'], ['DEVOLUCAO', 'return-down-back-outline', 'Registrar devolução', 'Compra inteira ou quantidade deste item.'], ['REEMBOLSO', 'cash-outline', 'Registrar reembolso', 'Valor efetivamente devolvido.'], ['CLASSIFICACAO', 'chatbubble-outline', 'Como você considera esta compra?', 'Uma escolha sua, que pode ser revista.']];
 const reasons = [['DUPLICADO', 'Registro duplicado'], ['INCORRETO', 'Registro incorreto'], ['NAO_REALIZADA', 'Compra ou item não realizado'], ['OUTRO', 'Outro motivo']];
-const historicalEventLabels = {
-  OCULTACAO: 'Ocultação registrada'
-};
 export default function GerenciarCompra({
   compra,
   item: initialItem,
@@ -255,7 +250,6 @@ export default function GerenciarCompra({
                       </View>
                       <Ionicons name="chevron-forward" size={18} color={DASHBOARD_THEME.colors.navy} />
                     </Pressable>)}
-                <ReadingDetails label="Histórico de eventos"><HistoricoEventos itens={compra.tb_compra_item} compraId={compra.compra_id} itemId={item?.compra_item_id} refreshKey={state.data?.revisao} onCorrect={event => choose(event.tipo, event)} /></ReadingDetails>
               </>}
             {action && state.data?.disponivel && <>
                 {action !== 'CLASSIFICACAO' && <View style={purchaseStyles.card}>
