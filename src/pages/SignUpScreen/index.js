@@ -473,10 +473,10 @@ async function CadastrarUsuario() {
       const result = await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
       if (result?.type !== 'success') return;
       tokenStorage.assertSession(session.id);
-      await registrarConsentimento('EMAIL', true, {
-        usageMonitoringSessionId: session.id,
-        signal: session.signal,
-      });
+      // O callback do backend só conclui o redirecionamento após persistir a
+      // integração e conceder EMAIL=true. O listener de deep link também cobre
+      // esse avanço quando a página oauth-success.html abre o aplicativo.
+      setStep(2);
     } catch (error) {
       logApiErrors(error, 'Erro ao vincular e-mail ao Google');
       Alert.alert('E-mail não ativado', 'Não foi possível confirmar a captura via e-mail. Você poderá ativá-la depois em Permissões.');

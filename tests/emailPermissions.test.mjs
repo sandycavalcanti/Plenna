@@ -6,7 +6,7 @@ const settle = async renderer => {
   for (let index = 0; index < 8; index += 1) await renderer.flush();
 };
 
-async function mountEmailPermissions({ consent = false, connected = false, operational = connected, oauthResult = 'success' } = {}) {
+async function mountEmailPermissions({ consent = false, connected = false, operational = connected, authorizationStatus = '', oauthResult = 'success' } = {}) {
   const state = {
     consent,
     connected,
@@ -45,7 +45,12 @@ async function mountEmailPermissions({ consent = false, connected = false, opera
       },
     },
     '../../../api/email': {
-      consultarStatusEmail: async () => ({ connected: state.connected, operational: state.operational }),
+      consultarStatusEmail: async () => ({
+        connected: state.connected,
+        credentialsStored: state.connected,
+        authorizationStatus: state.authorizationStatus || (state.connected ? 'CREDENTIALS_STORED' : 'NOT_CONFIGURED'),
+        operational: state.operational,
+      }),
       iniciarConexaoEmail: async () => ({ url: 'https://accounts.google.com/oauth' }),
     },
     'expo-web-browser': {
@@ -53,6 +58,7 @@ async function mountEmailPermissions({ consent = false, connected = false, opera
         state.oauthCalls += 1;
         state.connected = true;
         state.operational = true;
+        if (oauthResult === 'success') state.consent = true;
         return { type: oauthResult };
       },
     },
@@ -65,6 +71,7 @@ async function mountEmailPermissions({ consent = false, connected = false, opera
     '../../../constants/colors': { COLORS: {} },
     '../../../utils/error': { logApiErrors: () => {} },
   });
+  state.authorizationStatus = authorizationStatus;
   renderer.mount(renderer.load('src/components/ProfileComponents/Permissions/index.js').default, {});
   await settle(renderer);
   const getSwitch = () => renderer.nodes(node => node.type === 'Switch' && node.props.accessibilityLabel === 'Captura via e-mail')[0];
@@ -82,12 +89,17 @@ test('captura via e-mail só aparece ativa com integração e consentimento', as
   assert.equal(getSwitch().props.value, true);
 });
 
+test('reconexão necessária não aparece como captura ativa', async () => {
+  const { getSwitch } = await mountEmailPermissions({ consent: true, connected: true, operational: false, authorizationStatus: 'RECONNECT_REQUIRED' });
+  assert.equal(getSwitch().props.value, false);
+});
+
 test('ativação conecta Gmail antes de registrar EMAIL=true', async () => {
   const { renderer, state, getSwitch } = await mountEmailPermissions();
   await getSwitch().props.onValueChange(true);
   await settle(renderer);
   assert.equal(state.oauthCalls, 1);
-  assert.deepEqual(state.registerCalls, [{ codigo: 'EMAIL', status: true }]);
+  assert.deepEqual(state.registerCalls, []);
   assert.equal(getSwitch().props.value, true);
 });
 

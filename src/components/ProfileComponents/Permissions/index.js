@@ -89,6 +89,7 @@ export default function Permissions({ data }) {
   const navigation = useNavigation();
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
+  const emailAuthorizationStatus = useRef('');
   const [emailStatusKnown, setEmailStatusKnown] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(true);
   const [emailActionLoading, setEmailActionLoading] = useState(false);
@@ -152,19 +153,23 @@ export default function Permissions({ data }) {
       const integrationKnown = integracao.status === 'fulfilled' && integracao.value && typeof integracao.value === 'object';
       if (!consentKnown || !integrationKnown) {
         setEmailEnabled(false);
-        setEmailConnected(integrationKnown && integracao.value?.connected === true);
+        setEmailConnected(integrationKnown && integracao.value?.connected === true && integracao.value?.credentialsStored === true);
+        emailAuthorizationStatus.current = integrationKnown ? integracao.value?.authorizationStatus ?? '' : '';
         setEmailStatusKnown(false);
         setEmailError('Não foi possível verificar a captura via e-mail.');
         return;
       }
-      const connected = emailIntegracaoOperacional(integracao.value);
+      const connected = integracao.value?.connected === true && integracao.value?.credentialsStored === true;
+      const operational = emailIntegracaoOperacional(integracao.value);
       setEmailConnected(connected);
-      setEmailEnabled(emailConsentimentoAtivo(consentimentos.value) && connected);
+      emailAuthorizationStatus.current = integracao.value?.authorizationStatus ?? '';
+      setEmailEnabled(emailConsentimentoAtivo(consentimentos.value) && operational);
       setEmailStatusKnown(true);
     } catch (error) {
       if (montado.current && numero === consultaEmail.current) {
         setEmailEnabled(false);
         setEmailConnected(false);
+        emailAuthorizationStatus.current = '';
         setEmailStatusKnown(false);
         setEmailError('Não foi possível verificar a captura via e-mail.');
         logErroPermissoes(error, 'GET', '/email/status', 'consultar_captura_email');
@@ -181,6 +186,7 @@ export default function Permissions({ data }) {
       validarSessao(sessao);
       setEmailActionLoading(true);
       setEmailError('');
+      let consentimentoRegistradoPeloOAuth = false;
       if (value) {
         let status = await consultarStatusEmail({ usageMonitoringSessionId: sessao.id, signal: sessao.signal });
         validarSessao(sessao);
@@ -197,11 +203,16 @@ export default function Permissions({ data }) {
           validarSessao(sessao);
           status = await consultarStatusEmail({ usageMonitoringSessionId: sessao.id, signal: sessao.signal });
           if (!emailIntegracaoOperacional(status)) throw new Error('Conexão Gmail não confirmada');
+          // O callback do backend só redireciona para sucesso depois de salvar a
+          // integração e registrar EMAIL=true. Evita uma segunda gravação aqui.
+          consentimentoRegistradoPeloOAuth = true;
         }
-        await registrarConsentimento('EMAIL', true, {
-          usageMonitoringSessionId: sessao.id,
-          signal: sessao.signal,
-        });
+        if (!consentimentoRegistradoPeloOAuth) {
+          await registrarConsentimento('EMAIL', true, {
+            usageMonitoringSessionId: sessao.id,
+            signal: sessao.signal,
+          });
+        }
       } else {
         await registrarConsentimento('EMAIL', false, {
           usageMonitoringSessionId: sessao.id,
@@ -343,6 +354,7 @@ export default function Permissions({ data }) {
       alterandoEmail.current = false;
       setEmailEnabled(false);
       setEmailConnected(false);
+      emailAuthorizationStatus.current = '';
       setEmailStatusKnown(false);
       setLoadingEmail(false);
       setMemoryEnabled(false);
@@ -579,6 +591,8 @@ export default function Permissions({ data }) {
       ? 'Temporariamente indisponível'
       : emailEnabled
         ? 'Ativado'
+        : emailAuthorizationStatus.current === 'RECONNECT_REQUIRED'
+          ? 'Reconexão do Gmail necessária'
         : emailConnected
           ? 'Gmail conectado; captura desativada'
           : 'Desativado';
