@@ -446,7 +446,7 @@ export default function MetaDetailsScreen() {
               <Text style={styles.modalTitle}>{movementForm?.tipo === 'RETIRADA' ? 'Retirar valor' : 'Adicionar valor'}</Text>
               <Text style={styles.modalHint}>Esta é uma reserva simbólica para acompanhar a meta e não representa uma movimentação bancária.</Text>
               <Text style={styles.inputLabel}>Valor</Text>
-              <TextInput accessibilityLabel="Valor da movimentação" value={movementForm?.valor ?? ''} onChangeText={(valor) => setMovementForm((current) => ({ ...current, valor }))} onBlur={() => setMovementForm((current) => current ? ({ ...current, valor: formatarValorMetaEmEdicao(current.valor) }) : current)} placeholder="Ex.: 150,00" keyboardType="decimal-pad" style={styles.input} editable={!submitting && !pendingOperation} autoFocus />
+              <TextInput accessibilityLabel="Valor da movimentação" value={movementForm?.valor ?? ''} onChangeText={(valor) => setMovementForm((current) => ({ ...current, valor }))} onBlur={() => setMovementForm((current) => current ? ({ ...current, valor: formatarValorMetaEmEdicao(current.valor) }) : current)} placeholder="Ex.: 150,00" placeholderTextColor={COLORS.dadoUm} keyboardType="decimal-pad" style={styles.input} editable={!submitting && !pendingOperation} autoFocus />
               {pendingOperation ? <Text style={styles.pendingHint}>Existe uma operação pendente. Se o resultado anterior ficou incerto, este envio reutilizará o mesmo identificador.</Text> : null}
               {formError ? <Text style={styles.formError}>{formError}</Text> : null}
               <View style={styles.modalActions}>

@@ -114,6 +114,7 @@ export default function QuestionarioScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
 
   const phoneVisual = formatarTelefoneParaTela(phone);
   const birthDateVisual = formatarDataParaTela(birthDate);
@@ -221,10 +222,12 @@ export default function QuestionarioScreen({ navigation }) {
             <TextInput
               value={phoneVisual}
               onChangeText={(texto) => setPhone(manterSomenteDigitos(texto).slice(0, 11))}
+              onFocus={() => setFocusedField('phone')}
+              onBlur={() => setFocusedField(null)}
               placeholder="(00) 00000-0000"
               placeholderTextColor={COLORS.questionarioPlaceholder}
               keyboardType="phone-pad"
-              style={styles.stepThreeInput}
+              style={[styles.stepThreeInput, focusedField === 'phone' && styles.stepThreeInputFocused]}
               maxLength={15}
             />
           </View>
@@ -234,10 +237,12 @@ export default function QuestionarioScreen({ navigation }) {
             <TextInput
               value={birthDateVisual}
               onChangeText={(texto) => setBirthDate(extrairDigitosDaData(texto))}
+              onFocus={() => setFocusedField('birthDate')}
+              onBlur={() => setFocusedField(null)}
               placeholder="DD/MM/AAAA"
               placeholderTextColor={COLORS.questionarioPlaceholder}
               keyboardType="numeric"
-              style={styles.stepThreeInput}
+              style={[styles.stepThreeInput, focusedField === 'birthDate' && styles.stepThreeInputFocused]}
               maxLength={10}
             />
           </View>

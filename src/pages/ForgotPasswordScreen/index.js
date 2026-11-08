@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Alert, Image, KeyboardAvoidingView, Pressable } from 'react-native';
+import { View, Text, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView } from 'react-native';
 import { styles } from './styles';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
@@ -116,8 +116,17 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
-        <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
           <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
           <Text style={styles.titulo}>Recuperar senha!</Text>
           <View style={styles.overlay}>
@@ -171,7 +180,7 @@ export default function ForgotPasswordScreen({ navigation }) {
               </>
             )}
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

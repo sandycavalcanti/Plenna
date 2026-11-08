@@ -136,8 +136,13 @@ export const styles = StyleSheet.create({
     height: 44,
     backgroundColor: COLORS.cadTextInputFundo,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.questionarioTextInputBorda,
     paddingHorizontal: 12,
     color: COLORS.cadTextInputTexto,
+  },
+  stepThreeInputFocused: {
+    borderColor: COLORS.cadCaixaPreferenciasBorda,
   },
   optionsWrap: {
     flexDirection: 'row',

@@ -275,7 +275,7 @@ export default function PreferencesForm({
               keyboardType="numeric"
               editable={!saving}
               maxLength={3}
-              placeholderTextColor={'rgba(0,0,0,0.4)'}
+              placeholderTextColor={COLORS.dadoUm}
             />
           </View>
 

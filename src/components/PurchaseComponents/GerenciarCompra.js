@@ -1,6 +1,7 @@
 import { presentationStyles } from "./GerenciarCompra.styles";
 import { s } from "./GerenciarCompra.styles";
 import { purchaseStyles } from './presentationStyles';
+import { COLORS } from '../../constants';
 import { DASHBOARD_THEME } from '../../constants/dashboardTheme';
 import CalendarioData from '../CalendarioData';
 import CustomButton from '../CustomButton';
@@ -282,7 +283,7 @@ export default function GerenciarCompra({
                     {action === 'REEMBOLSO' && <>
                       {refundBalance > 0 && <><Text style={s.label}>Tipo de reembolso</Text><View style={{flexDirection: 'row', gap: 8}}>{[['Parcial', false], ['Integral', true]].map(([label, full]) => <Pressable key={label} accessibilityRole="radio" accessibilityState={{checked: (moedaParaCentavos(valor) === refundBalance) === full}} style={[s.option, {flex: 1}, (moedaParaCentavos(valor) === refundBalance) === full && s.selected]} onPress={() => setValor(full ? formatarValorMoedaParaTela(String(refundBalance)) : '')}><Ionicons name={(moedaParaCentavos(valor) === refundBalance) === full ? 'radio-button-on' : 'radio-button-off'} size={20} color="#602B83" /><Text style={s.label}>{label}</Text></Pressable>)}</View></>}
                       <Text style={s.label}>Valor do reembolso</Text>
-                      <TextInput accessibilityLabel="Valor reembolsado" placeholder="R$ 0,00" keyboardType="number-pad" value={valor} onChangeText={text => setValor(formatarValorMoedaParaTela(normalizarValorMoedaParaEntrada(text)))} style={s.input} />
+                      <TextInput accessibilityLabel="Valor reembolsado" placeholder="R$ 0,00" placeholderTextColor={COLORS.dadoUm} keyboardType="number-pad" value={valor} onChangeText={text => setValor(formatarValorMoedaParaTela(normalizarValorMoedaParaEntrada(text)))} style={s.input} />
                       <Text style={s.note}>{refundBalance == null ? 'O limite será validado com os valores registrados na compra.' : `Disponível para reembolso: ${formatarValorMoedaParaTela(String(refundBalance)) || 'R$ 0,00'}`}</Text>
                       {moedaParaCentavos(valor) != null && refundBalance != null && <Text style={s.note}>{moedaParaCentavos(valor) > refundBalance ? 'O valor supera o saldo disponível.' : moedaParaCentavos(valor) === refundBalance ? 'Este valor completa o reembolso do escopo selecionado.' : 'Reembolso parcial do saldo disponível.'}</Text>}
                       </>}
@@ -294,7 +295,7 @@ export default function GerenciarCompra({
                           <Text style={s.label}>{quantityDraft}</Text>
                           <Pressable accessibilityRole="button" accessibilityLabel="Aumentar quantidade" disabled={quantityValue >= saldo} style={s.touch} onPress={() => setQuantidade(String(Math.min(saldo, quantityValue + 1)))}><Ionicons name="add-circle-outline" size={28} color="#594367" /></Pressable>
                         </View>}
-                        {saldo > 1 && Number.isInteger(saldo) && !correction ? null : saldo === 1 && !correction ? <Text style={s.label}>1 unidade</Text> : <TextInput accessibilityLabel="Quantidade do evento" placeholder="Quantidade (vazio: item inteiro)" keyboardType="decimal-pad" value={quantityDraft} onChangeText={setQuantidade} style={s.input} />}
+                        {saldo > 1 && Number.isInteger(saldo) && !correction ? null : saldo === 1 && !correction ? <Text style={s.label}>1 unidade</Text> : <TextInput accessibilityLabel="Quantidade do evento" placeholder="Quantidade (vazio: item inteiro)" placeholderTextColor={COLORS.dadoUm} keyboardType="decimal-pad" value={quantityDraft} onChangeText={setQuantidade} style={s.input} />}
                         {action === 'DEVOLUCAO' && <View style={s.amount}><Text style={s.label}>Valor dos itens devolvidos</Text><Text style={s.amountValue}>{returnValue == null ? 'Não disponível' : formatarValorMoedaParaTela(String(returnValue)) || 'R$ 0,00'}</Text></View>}
                         {action === 'DEVOLUCAO' && Number(compra.compra_desconto) > 0 && <Text style={s.note}>Valor antes do desconto da compra, sem rateio por item. Não representa reembolso.</Text>}
                         </>}

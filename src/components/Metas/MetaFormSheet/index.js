@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { formatarValorMetaEmEdicao, formatarValorMetaParaEntrada, normalizarValorMeta } from '../../../utils/metaMoney';
+import { COLORS } from '../../../constants';
 import CustomButton from '../../CustomButton';
 import styles from './styles';
 
@@ -64,10 +65,18 @@ export default function MetaFormSheet({
 
   return (
     <Modal transparent visible={Boolean(visible)} animationType="slide" onRequestClose={() => { if (!disabled) onClose?.(); }}>
-      <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <Pressable style={styles.overlay} onPress={() => { if (!disabled) onClose?.(); }}>
           <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
-            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.content}
+            >
               <View style={styles.header}>
                 <View style={styles.headerCopy}>
                   <Text style={styles.title}>{mode === 'edit' ? 'Ajuste seu objetivo' : 'Crie um objetivo para acompanhar'}</Text>
@@ -93,6 +102,7 @@ export default function MetaFormSheet({
                   onFocus={() => setFocusedField('titulo')}
                   onBlur={() => setFocusedField(null)}
                   placeholder="Ex.: Viagem dos sonhos"
+                  placeholderTextColor={COLORS.dadoUm}
                   style={[styles.input, focusedField === 'titulo' && styles.inputFocused]}
                   editable={!disabled}
                 />
@@ -107,6 +117,7 @@ export default function MetaFormSheet({
                   onFocus={() => setFocusedField('descricao')}
                   onBlur={() => setFocusedField(null)}
                   placeholder="O que você quer realizar?"
+                  placeholderTextColor={COLORS.dadoUm}
                   style={[styles.descriptionInput, focusedField === 'descricao' && styles.inputFocused]}
                   multiline
                   numberOfLines={3}
@@ -124,6 +135,7 @@ export default function MetaFormSheet({
                   onFocus={() => setFocusedField('valor')}
                   onBlur={() => { setFocusedField(null); setForm((current) => ({ ...current, valor: formatarValorMetaEmEdicao(current.valor) })); }}
                   placeholder="Ex.: 500,00"
+                  placeholderTextColor={COLORS.dadoUm}
                   keyboardType="decimal-pad"
                   style={[styles.input, styles.moneyInput, focusedField === 'valor' && styles.inputFocused]}
                   editable={!disabled}

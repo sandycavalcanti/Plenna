@@ -8,6 +8,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.cadFundo,
   },
+  scroll: {
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+  },
   logo: {
     width: 150,
     height: 150,
