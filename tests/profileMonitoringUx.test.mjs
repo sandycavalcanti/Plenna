@@ -91,10 +91,10 @@ test('permission recovery is contextual and refreshes after returning from Andro
 for (const detailed of [false,true]) test(`individual hours stay contextual, explicit choice: ${detailed}`, async () => {
   const h = await profile({detailed});
   assert.doesNotMatch(text(h.r),/Horários de uso/);
-  button(h.r,'Privacidade e dados').props.onPress();await settle(h.r);
+  button(h.r,'Como funciona o monitoramento?').props.onPress();await settle(h.r);
   assert.equal(h.r.nodes(n=>n.type==='Modal').length,1);
-  assert.match(text(h.r), /somente enquanto está aberto/);
-  assert.match(text(h.r), /preserva o histórico e não revoga a permissão Android/);
+  assert.match(text(h.r), /enquanto o aplicativo está aberto/);
+  assert.match(text(h.r), /histórico é preservado.*revogar também a permissão concedida pelo Android/);
   assert.match(text(h.r), detailed ? /Horários autorizados/ : /Horários não autorizados/);
   assert.deepEqual(h.state.writes,[]);
   await button(h.r,detailed?'Desativar horários de uso':'Permitir horários de uso').props.onPress();
@@ -109,7 +109,7 @@ for (const detailed of [false,true]) test(`individual hours stay contextual, exp
 });
 
 test('disabled monitoring keeps privacy accessible without granting individual hours', async () => {
-  const h=await profile({consent:false});button(h.r,'Privacidade e dados').props.onPress();await settle(h.r);
+  const h=await profile({consent:false});button(h.r,'Como funciona o monitoramento?').props.onPress();await settle(h.r);
   assert.match(text(h.r),/Ative Tempo em aplicativos/);
   assert.equal(button(h.r,'Permitir horários de uso'),undefined);
   assert.deepEqual(h.state.writes,[]);h.r.unmount();
@@ -143,7 +143,7 @@ test('a delayed status read cannot replace a newer service failure', async () =>
 });
 
 test('an old hours confirmation cannot authorize the next account', async () => {
-  const h=await profile();button(h.r,'Privacidade e dados').props.onPress();await settle(h.r);
+  const h=await profile();button(h.r,'Como funciona o monitoramento?').props.onPress();await settle(h.r);
   await button(h.r,'Permitir horários de uso').props.onPress();
   const confirmation=h.alerts.at(-1)[2].find(b=>b.text==='Autorizar acessos');
   h.controller.abort();h.state.session={id:2,signal:new AbortController().signal};

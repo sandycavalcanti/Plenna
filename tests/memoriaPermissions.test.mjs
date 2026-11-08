@@ -236,8 +236,8 @@ test('falha ao persistir consentimento mantém o switch desligado', async () => 
 
 test('aviso de permissões aparece após o bloco completo de permissões', async () => {
   const source = await readFile(new URL('../src/components/ProfileComponents/Permissions/index.js', import.meta.url), 'utf8');
-  const warning = source.indexOf('Desativar permissões pode reduzir funcionalidades do app');
+  const warning = source.indexOf('Você pode gerenciar suas permissões a qualquer momento.');
   assert.ok(warning > source.indexOf('Memória da IA'));
   assert.ok(warning > source.indexOf('Consultar minhas memórias'));
-  assert.equal(source.match(/Desativar permissões pode reduzir funcionalidades do app/g)?.length, 1);
+  assert.equal(source.match(/Você pode gerenciar suas permissões a qualquer momento\./g)?.length, 1);
 });

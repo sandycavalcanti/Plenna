@@ -23,25 +23,9 @@ import { logApiErrors } from '../../../utils/error';
 import { COLORS } from '../../../constants/colors';
 import * as WebBrowser from 'expo-web-browser';
 
-function PrivacyDetails({ label = 'Privacidade e dados', children }) {
-  const [expanded, setExpanded] = useState(false);
-  if (usageMonitoringEnabled) {
-    const ReadingDetails = require('../../ReadingDetails').default;
-    return <ReadingDetails label={label} presentation="sheet">{children}</ReadingDetails>;
-  }
-  return (
-    <View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ expanded }}
-        onPress={() => setExpanded((value) => !value)}
-        style={styles.monitoringAction}
-      >
-        <Text style={styles.monitoringLink}>{label}</Text>
-      </Pressable>
-      {expanded ? children : null}
-    </View>
-  );
+function PrivacyDetails({ label = 'Como funciona o monitoramento?', children }) {
+  const ReadingDetails = require('../../ReadingDetails').default;
+  return <ReadingDetails label={label} presentation="sheet">{children}</ReadingDetails>;
 }
 function logErroMonitoramento(error, texto) {
   if (!__DEV__) return;
@@ -640,10 +624,14 @@ export default function Permissions({ data }) {
           await openUsageAccessSettings();
         } catch {}
       }}><Text style={styles.monitoringLink}>Permitir no Android</Text></Pressable>}
-        {UsageMonitoringControls ? <UsageMonitoringControls consent={trackingStatusKnown && trackingEnabled} permission={usagePermissionKnown && usageAccessEnabled} statusRevision={monitoringRevision} onStatusChange={setMonitoringStatus} /> : <PrivacyDetails label="Privacidade e dados">
-            <Text style={styles.sub}>Opcional. O PLENNA consulta os aplicativos de compras monitorados somente enquanto está aberto. O Android pode fornecer dados incompletos e não identifica quem utilizou o aparelho.</Text>
-            <Text style={styles.sub}>Desativar interrompe novas coletas, preserva o histórico e não revoga a permissão Android. Você pode revogar essa permissão nas configurações de acesso aos dados de uso do Android.</Text>
-            <Text style={styles.sub}>Os dados descrevem hábitos de uso; não comprovam compra ou intenção.</Text>
+        {UsageMonitoringControls ? <UsageMonitoringControls consent={trackingStatusKnown && trackingEnabled} permission={usagePermissionKnown && usageAccessEnabled} statusRevision={monitoringRevision} onStatusChange={setMonitoringStatus} /> : <PrivacyDetails label="Como funciona o monitoramento?">
+            <Text style={styles.sub}>O Plenna acompanha o tempo de uso de aplicativos de compras para ajudar você a compreender seus hábitos digitais.</Text>
+            <Text accessibilityRole="header" style={styles.text}>Como funciona?</Text>
+            <Text style={styles.sub}>Com sua autorização, o Plenna consulta os dados de uso fornecidos pelo Android enquanto o aplicativo está aberto.</Text>
+            <Text style={styles.sub}>Esses dados podem ser incompletos e não confirmam compras realizadas ou quem utilizou o dispositivo.</Text>
+            <Text accessibilityRole="header" style={styles.text}>Você tem o controle.</Text>
+            <Text style={styles.sub}>O monitoramento é opcional e pode ser desativado a qualquer momento.</Text>
+            <Text style={styles.sub}>Ao desativá-lo, novas coletas são interrompidas, mas seu histórico é preservado. Para revogar também a permissão concedida pelo Android, acesse as configurações do dispositivo.</Text>
           </PrivacyDetails>}
       </View>
 
@@ -693,7 +681,7 @@ export default function Permissions({ data }) {
         {memorySuccess ? <Text style={styles.memorySuccess}>{memorySuccess}</Text> : null}
       </View>
       <Text style={styles.warning}>
-        Desativar permissões pode reduzir funcionalidades do app
+        Você pode gerenciar suas permissões a qualquer momento.
       </Text>
     </ProfileCard>;
 }

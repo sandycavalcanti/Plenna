@@ -175,10 +175,15 @@ export default function UsageMonitoringControls({
       }]);
     }}><Text style={styles.link}>{busy ? 'Ativando…' : 'Concluir ativação'}</Text></Pressable>}
     {!!message && <Text style={styles.status} accessibilityLiveRegion="polite">{message}</Text>}
-    <ReadingDetails label="Privacidade e dados" presentation="sheet">
-      <Text style={styles.status}>Opcional. Com sua autorização, o PLENNA consulta o uso dos aplicativos de compras monitorados somente enquanto está aberto. O Android pode fornecer dados incompletos e não identifica quem utilizou o aparelho.</Text>
-      <Text style={styles.status}>Desativar interrompe novas coletas, preserva o histórico e não revoga a permissão Android. Você pode revogar essa permissão nas configurações de acesso aos dados de uso do Android.</Text>
-      <Text style={styles.status}>Os dados descrevem hábitos de uso; não comprovam compra, intenção ou que um acesso causou uma compra. Os horários ficam disponíveis somente para processamento interno da análise comportamental, sem uma lista de acessos na interface.</Text>
+    <ReadingDetails label="Como funciona o monitoramento?" presentation="sheet">
+      <Text style={styles.status}>O Plenna acompanha o tempo de uso de aplicativos de compras para ajudar você a compreender seus hábitos digitais.</Text>
+      <Text accessibilityRole="header" style={styles.title}>Como funciona?</Text>
+      <Text style={styles.status}>Com sua autorização, o Plenna consulta os dados de uso fornecidos pelo Android enquanto o aplicativo está aberto.</Text>
+      <Text style={styles.status}>Esses dados podem ser incompletos e não confirmam compras realizadas ou quem utilizou o dispositivo.</Text>
+      <Text accessibilityRole="header" style={styles.title}>Você tem o controle.</Text>
+      <Text style={styles.status}>O monitoramento é opcional e pode ser desativado a qualquer momento.</Text>
+      <Text style={styles.status}>Ao desativá-lo, novas coletas são interrompidas, mas seu histórico é preservado. Para revogar também a permissão concedida pelo Android, acesse as configurações do dispositivo.</Text>
+      <Text style={styles.status}>Os horários de uso, quando autorizados separadamente, ficam disponíveis somente para processamento interno da análise comportamental, sem uma lista de acessos na interface.</Text>
       <Text accessibilityRole="header" style={styles.title}>Horários de uso (opcional)</Text>
       <Text style={styles.status}>Usar horários de início e término na análise comportamental exige uma autorização separada. Você pode mudar essa escolha a qualquer momento.</Text>
       {!consent ? <Text style={styles.status}>Ative Tempo em aplicativos para escolher se deseja incluir horários.</Text> : <>
