@@ -1,10 +1,11 @@
 import { AppState } from 'react-native';
 
-// A sessão de compras é deliberadamente mantida apenas em memória. Isso evita
+// A sessão protegida é deliberadamente mantida apenas em memória. Isso evita
 // que uma flag persistida em disco transforme um aparelho já desbloqueado em
-// acesso permanente aos dados financeiros. O valor guardado é somente o
-// identificador do usuário que passou pelo gate local nesta execução do app.
-let unlockedUserId = null;
+// acesso permanente aos dados protegidos. A sessão também é associada à área
+// que foi desbloqueada, impedindo que uma autorização de Compras libere
+// Notificações, Memórias ou outra área protegida.
+let unlockedSession = null;
 let appStateSubscription = null;
 
 function normalizeUserId(userId) {
@@ -12,23 +13,35 @@ function normalizeUserId(userId) {
   return String(userId);
 }
 
-export function unlockProtectedSession(userId) {
+function normalizeArea(area) {
+  if (area === null || area === undefined || area === '') return 'default';
+  return String(area);
+}
+
+export function unlockProtectedSession(userId, area = 'default') {
   const normalizedUserId = normalizeUserId(userId);
   if (!normalizedUserId) return false;
 
-  unlockedUserId = normalizedUserId;
+  unlockedSession = {
+    userId: normalizedUserId,
+    area: normalizeArea(area),
+  };
   return true;
 }
 
-export function isProtectedSessionUnlocked(userId) {
+export function isProtectedSessionUnlocked(userId, area = 'default') {
   const normalizedUserId = normalizeUserId(userId);
-  return Boolean(normalizedUserId && unlockedUserId === normalizedUserId);
+  return Boolean(
+    normalizedUserId
+    && unlockedSession?.userId === normalizedUserId
+    && unlockedSession.area === normalizeArea(area),
+  );
 }
 
 export function invalidateProtectedSession() {
   // O logout, a troca de usuário e o background precisam remover a sessão
   // imediatamente. Nenhum segredo ou estado de desbloqueio é persistido.
-  unlockedUserId = null;
+  unlockedSession = null;
 }
 
 export function subscribeToProtectedAppState() {

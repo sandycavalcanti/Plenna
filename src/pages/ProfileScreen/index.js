@@ -27,6 +27,7 @@ import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
 import { invalidateProtectedSession } from '../../services/security/protectedSession';
 import { useProtectedAccess } from '../../hooks/useProtectedAccess';
+import { PROTECTED_ACCESS_AREAS } from '../../services/security/protectedArea';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import { disableRegisteredDevice } from '../../services/notifications/notificationService';
 
@@ -59,7 +60,7 @@ export default function ProfileScreen() {
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
   const [changePinRequested, setChangePinRequested] = useState(false);
   const [changePinModalVisible, setChangePinModalVisible] = useState(false);
-  const protectedAccess = useProtectedAccess();
+  const protectedAccess = useProtectedAccess({ area: PROTECTED_ACCESS_AREAS.PROFILE_SECURITY });
 
   const goToLogin = useCallback(() => {
     const parentNavigation = navigation.getParent();

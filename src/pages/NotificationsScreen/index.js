@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
+import { PROTECTED_ACCESS_AREAS } from '../../services/security/protectedArea';
 import { COLORS } from '../../constants/colors';
 import CustomButton from '../../components/CustomButton';
 import { getNotifications, markNotificationAsRead } from '../../services/notifications/notificationApi';
@@ -55,7 +56,7 @@ export default function NotificationsScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const protectedAccess = useProtectedAccess();
+  const protectedAccess = useProtectedAccess({ area: PROTECTED_ACCESS_AREAS.NOTIFICATIONS });
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

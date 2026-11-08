@@ -24,6 +24,7 @@ import PinModal from '../../components/SecurityComponents/PinModal';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import CustomButton from '../../components/CustomButton';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
+import { PROTECTED_ACCESS_AREAS, shouldPreserveProtectedSession } from '../../services/security/protectedArea';
 import { styles } from './styles';
 
 const STATUS_LABELS = {
@@ -144,7 +145,7 @@ function toEditorState(recurrence) {
 export default function RecurrencesScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const protectedAccess = useProtectedAccess();
+  const protectedAccess = useProtectedAccess({ area: PROTECTED_ACCESS_AREAS.PURCHASES });
   const [recurrences, setRecurrences] = useState([]);
   const [detailsById, setDetailsById] = useState({});
   const [upcomingById, setUpcomingById] = useState({});
@@ -204,7 +205,9 @@ export default function RecurrencesScreen() {
     useCallback(() => {
       protectedAccess.beginAccess();
       return () => {
-        protectedAccess.cancelAccess();
+        protectedAccess.cancelAccess({
+          preserveSession: shouldPreserveProtectedSession(PROTECTED_ACCESS_AREAS.PURCHASES, navigation),
+        });
         setRecurrences([]);
         setDetailsById({});
         setUpcomingById({});

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
+import { PROTECTED_ACCESS_AREAS } from '../../services/security/protectedArea';
 import { excluirMemoria, listarMemorias } from '../../api/memoria';
 import { COLORS } from '../../constants/colors';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
@@ -57,7 +58,7 @@ function SecurityState({ access, navigation }) {
 export default function MemoryListScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const access = useProtectedAccess();
+  const access = useProtectedAccess({ area: PROTECTED_ACCESS_AREAS.MEMORIES });
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');

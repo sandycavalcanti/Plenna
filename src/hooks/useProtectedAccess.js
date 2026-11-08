@@ -23,7 +23,7 @@ export const PROTECTED_ACCESS_STATES = {
   ERROR: 'error',
 };
 
-export function useProtectedAccess() {
+export function useProtectedAccess({ area = 'default' } = {}) {
   const [status, setStatus] = useState(PROTECTED_ACCESS_STATES.LOCKED);
   const [userId, setUserId] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -67,12 +67,12 @@ export function useProtectedAccess() {
   }, []);
 
   const unlock = useCallback((currentUserId) => {
-    unlockProtectedSession(currentUserId);
+    unlockProtectedSession(currentUserId, area);
     setStatus(PROTECTED_ACCESS_STATES.UNLOCKED);
     setErrorMessage('');
     setPinAttempts(0);
     clearLockoutTimer();
-  }, [clearLockoutTimer]);
+  }, [area, clearLockoutTimer]);
 
   const beginAccess = useCallback(async ({ forceReauthentication = false } = {}) => {
     if (requestInProgress.current) return;
@@ -95,7 +95,7 @@ export function useProtectedAccess() {
       // A sessão curta evita repetir a biometria em pequenas trocas de tela.
       // A alteração de PIN é uma ação crítica e usa reautenticação forçada,
       // portanto não pode reutilizar um desbloqueio anterior em memória.
-      if (!forceReauthentication && isProtectedSessionUnlocked(currentUserId)) {
+      if (!forceReauthentication && isProtectedSessionUnlocked(currentUserId, area)) {
         setStatus(PROTECTED_ACCESS_STATES.UNLOCKED);
         return;
       }
@@ -128,7 +128,7 @@ export function useProtectedAccess() {
     } finally {
       if (accessAttempt.current === currentAttempt) requestInProgress.current = false;
     }
-  }, [unlock]);
+  }, [area, unlock]);
 
   const completeSetup = useCallback(async (pin, confirmation) => {
     if (pin !== confirmation) {
@@ -217,14 +217,14 @@ export function useProtectedAccess() {
     }
   }, [userId]);
 
-  const cancelAccess = useCallback(() => {
+  const cancelAccess = useCallback(({ preserveSession = false } = {}) => {
     // Cancelar ou sair da tela invalida a visita atual. Além de bloquear a UI,
     // o cancelamento nativo evita que um prompt biométrico antigo permaneça
-    // associado à próxima entrada em Minhas compras.
+    // associado à próxima entrada na área protegida.
     accessAttempt.current += 1;
     requestInProgress.current = false;
     cancelBiometricAuthentication();
-    invalidateProtectedSession();
+    if (!preserveSession) invalidateProtectedSession();
     clearLockoutTimer();
     setStatus(PROTECTED_ACCESS_STATES.LOCKED);
     setErrorMessage('');

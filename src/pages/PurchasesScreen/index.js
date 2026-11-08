@@ -14,6 +14,7 @@ import { styles } from './styles';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
+import { PROTECTED_ACCESS_AREAS, shouldPreserveProtectedSession } from '../../services/security/protectedArea';
 import { comprasPeriodo } from '../../utils/comprasPeriodo';
 import { consultarResumosCompras } from '../../services/resumosCompras';
 import GerenciarCompra from '../../components/PurchaseComponents/GerenciarCompra';
@@ -55,7 +56,7 @@ export default function PurchasesScreen({
   const [gerenciamento, setGerenciamento] = useState(null),
     [resumos, setResumos] = useState({});
   const isFocused = useIsFocused();
-  const protectedAccess = useProtectedAccess();
+  const protectedAccess = useProtectedAccess({ area: PROTECTED_ACCESS_AREAS.PURCHASES });
   const purchaseRequest = useRef(0);
   const purchaseAbort = useRef(null);
   const purchaseSessionDetach = useRef(() => {});
@@ -282,7 +283,9 @@ export default function PurchasesScreen({
       // impedir que valores financeiros permaneçam renderizáveis durante a
       // próxima entrada. Isso não é um re-render: é o encerramento real da
       // visita causado pela perda de foco da tela.
-      protectedAccess.cancelAccess();
+      protectedAccess.cancelAccess({
+        preserveSession: shouldPreserveProtectedSession(PROTECTED_ACCESS_AREAS.PURCHASES, navigation),
+      });
       purchaseRequest.current++;
       purchaseAbort.current?.abort();
       purchaseSessionDetach.current();
