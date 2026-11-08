@@ -73,13 +73,6 @@ export const s = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: c.navy
   },
-  history: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: c.ink,
-    paddingHorizontal: 8,
-    paddingVertical: 6
-  },
   error: {
     color: '#B32646',
     fontSize: 13,

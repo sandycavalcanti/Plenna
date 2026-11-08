@@ -45,12 +45,6 @@ export const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 2,
   },
-  headerAction: {
-    width: 38,
-    minHeight: 38,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-  },
   listContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: 32,
@@ -166,10 +160,21 @@ export const styles = StyleSheet.create({
   },
   cardActions: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     flexWrap: 'wrap',
     gap: spacing.sm,
     marginTop: spacing.md,
+  },
+  cardAction: {
+    flexGrow: 1,
+    flexBasis: '46%',
+    minWidth: 128,
+    minHeight: 42,
+    width: 'auto',
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   secondaryAction: {
     minHeight: 38,

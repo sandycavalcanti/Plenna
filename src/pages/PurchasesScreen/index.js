@@ -410,10 +410,7 @@ export default function PurchasesScreen({
         icon="shopping-outline"
         title="Minhas compras"
         subtitle="Acompanhe e organize suas compras"
-        rightAction={<View style={{ flexDirection: 'row', gap: 4 }}>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Atualizar compras" style={styles.headerAction} onPress={() => loadPurchases(true)}><MaterialCommunityIcons name="refresh" size={21} color={COLORS.cadTitulo} /></TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction} onPress={() => navigation.navigate('Recurrences')} accessibilityRole="button" accessibilityLabel="Abrir recorrências"><MaterialCommunityIcons name="autorenew" size={20} color={COLORS.cadTitulo} /></TouchableOpacity>
-        </View>}
+        rightAction={<TouchableOpacity style={styles.headerAction} onPress={() => navigation.navigate('Recurrences')} accessibilityRole="button" accessibilityLabel="Abrir recorrências"><MaterialCommunityIcons name="autorenew" size={20} color={COLORS.cadTitulo} /></TouchableOpacity>}
       />
 
       {filtroConsumo && <View style={presentationStyles.inline1}>

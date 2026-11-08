@@ -104,9 +104,6 @@ export default function FiltroTemporalCompras({
       <Pressable accessibilityRole="button" onPress={() => apply(draft)} style={s.apply}><Text style={s.selectedText}>Aplicar período</Text></Pressable>
     </View>}
     {error && draft.modo !== 'INTERVALO' && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
-    {draft.modo === 'TODOS' && <Text style={s.history}>
-      {`Conta criada em ${format(inicioHistorico)}. Histórico até ${format(today)}, incluindo compras importadas anteriores à conta.`}
-    </Text>}
   </View>;
 }
 const c = DASHBOARD_THEME.colors;

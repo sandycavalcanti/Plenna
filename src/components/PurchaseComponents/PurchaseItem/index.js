@@ -1,4 +1,3 @@
-import { presentationStyles } from "./styles";
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -135,6 +134,7 @@ export default function PurchaseItem({
   const movements = [[resumo?.cancelamentos, 'Cancelamento registrado'], [resumo?.devolucoes, 'Devolu\u00e7\u00e3o registrada'], [resumo?.reembolsadoCentavos, 'Reembolso registrado']].filter(([count]) => Number.isSafeInteger(count) && count > 0).map(([, label]) => label);
   const itemsCount = visibleItems.length;
   const establishment = purchase.compra_fonte || 'Origem não informada';
+  const primaryItemName = visibleItems.map(item => String(item.compra_item_nome || '').trim()).find(Boolean) || null;
   // Os helpers são usados somente na apresentação; o objeto recebido não é alterado.
   const statusLabel = getStatusLabel(purchase.compra_status);
   const voluntaryClassification = resumo?.classificacao === 'PREFIRO_NAO_CLASSIFICAR' ? 'PENDENTE' : resumo?.classificacao ?? purchase.compra_classificacao;
@@ -264,7 +264,8 @@ export default function PurchaseItem({
       <View style={styles.headerRow}>
         <View style={purchaseStyles.icon}><MaterialCommunityIcons name="shopping-outline" size={22} color={COLORS.cadTitulo} /></View>
         <View style={styles.headerInfo}>
-          <Text style={styles.establishment} numberOfLines={1}>{establishment}</Text>
+          <Text style={primaryItemName ? styles.primaryItemName : styles.establishment} numberOfLines={1}>{primaryItemName || establishment}</Text>
+          {primaryItemName ? <Text style={styles.purchaseSource} numberOfLines={1}>{establishment}</Text> : null}
           <Text style={styles.date}>{formatDate(purchase.compra_horario)}</Text>
         </View>
         <View style={styles.headerValueGroup}>
@@ -274,7 +275,7 @@ export default function PurchaseItem({
             </TouchableOpacity> : null}
         </View>
       </View>
-      {onContext && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Abrir análise e contexto da compra" onPress={() => onContext(purchase.compra_id)} style={[purchaseStyles.action, purchaseStyles.row]}>
+      {onContext && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Abrir análise e contexto da compra" onPress={() => onContext(purchase.compra_id)} style={[purchaseStyles.action, purchaseStyles.row, styles.contextAction]}>
         <MaterialCommunityIcons name="chart-box-outline" size={18} color={COLORS.cadTitulo} />
         <Text style={[purchaseStyles.copy, purchaseStyles.actionText]}>Sobre sua compra</Text>
         <MaterialCommunityIcons name="chevron-right" size={18} color={COLORS.cadTitulo} />
@@ -294,7 +295,6 @@ export default function PurchaseItem({
              */}
             <Text style={[styles.classificationBadgeText, voluntaryClassification === 'IMPULSIVA' ? styles.impulsiveBadgeText : null]} accessibilityRole="button" accessibilityLabel="Entender classificação registrada" onPress={() => Alert.alert('Sobre esta classificação', voluntaryClassification === 'PENDENTE' ? resumo?.classificacao === 'PREFIRO_NAO_CLASSIFICAR' ? 'Você preferiu não classificar esta compra.' : 'Classificação voluntária opcional. A análise automática utiliza os dados disponíveis, independentemente dessa escolha.' : 'Esta é uma classificação registrada, que você pode rever no gerenciamento da compra. Não é uma conclusão automática da análise.')}>{voluntaryClassification === 'PENDENTE' ? classificationLabel : 'Sua classificação: ' + classificationLabel}</Text>
           </View> : null}
-        <Text style={styles.itemsSummary}>{itemsCount} {itemsCount === 1 ? 'item' : 'itens'}</Text>
       </View>
       {!!movements.length && <Text style={[purchaseStyles.caption, {
       marginTop: 4
@@ -306,7 +306,7 @@ export default function PurchaseItem({
        */}
       {itemsCount > 0 && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ver itens da compra" accessibilityState={{
       expanded: itemsExpanded
-    }} onPress={() => setItemsExpanded(value => !value)} style={presentationStyles.inline1}>
+    }} onPress={() => setItemsExpanded(value => !value)} style={styles.itemsToggle}>
         <Text style={styles.itemSecondary}>{itemsExpanded ? 'Recolher itens' : `Ver itens (${itemsCount})`}</Text><MaterialCommunityIcons name={itemsExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={COLORS.cadTitulo} />
       </TouchableOpacity>}
       {itemsExpanded && <View style={styles.itemsSection}>

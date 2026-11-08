@@ -43,6 +43,16 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700'
   },
+  primaryItemName: {
+    color: COLORS.histChatItemTitulo,
+    fontSize: 16,
+    fontWeight: '800'
+  },
+  purchaseSource: {
+    color: COLORS.dadoUm,
+    fontSize: 12,
+    fontWeight: '600'
+  },
   date: {
     color: COLORS.histChatItemMensagem,
     fontSize: 13,
@@ -141,17 +151,25 @@ export const styles = StyleSheet.create({
     // Texto claro aumenta a legibilidade sobre o fundo rosado de alerta.
     color: COLORS.cadTitulo
   },
-  itemsSummary: {
-    color: COLORS.dadoUm,
-    fontSize: 12,
-    marginLeft: 'auto'
+  contextAction: {
+    minHeight: 38,
+    marginTop: 3,
+    paddingVertical: 4
+  },
+  itemsToggle: {
+    minHeight: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 3,
+    paddingVertical: 4
   },
   itemsSection: {
-    marginTop: 16,
-    paddingTop: 13,
+    marginTop: 6,
+    paddingTop: 9,
     borderTopWidth: 1,
     borderTopColor: '#F0EDF7',
-    gap: 8
+    gap: 6
   },
   itemsTitle: {
     color: COLORS.histChatItemTitulo,
@@ -272,13 +290,5 @@ export const styles = StyleSheet.create({
   },
   disabledAction: {
     opacity: 0.6
-  }
-});
-export const presentationStyles = StyleSheet.create({
-  inline1: {
-    minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
   }
 });

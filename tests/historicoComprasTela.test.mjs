@@ -32,13 +32,12 @@ test('histórico não oferece controle de ocultas e mantém compras ocultas fora
   const press=label=>{const button=h.nodes(node=>node.type==='Pressable'&&text(node)===label)[0];assert.ok(button,label);button.props.onPress();};
   press('Todo o histórico');await h.flush();await h.flush();
   assert.deepEqual(requests.filter(r=>r.url==='/compras/historico').at(-1).params,parametrosTemporaisCompras(filtrosIniciais));
-  assert.ok(h.nodes(node=>node.type==='Text'&&text(node).startsWith('Conta criada em 01/09/2026.')).length);
-  assert.ok(h.nodes(node=>node.type==='Text'&&text(node).includes('incluindo compras importadas anteriores à conta')).length);
+  assert.equal(h.nodes(node=>node.type==='Text'&&text(node).startsWith('Conta criada')).length,0);
   assert.equal(h.nodes(node=>node.props.accessibilityLabel==='Mostrar compras ocultas').length,0);
   assert.ok(!shown.includes(2));
   press('Mês');await h.flush();await h.flush();
   assert.ok(!shown.includes(2));
-  h.nodes(node=>node.props.accessibilityLabel==='Atualizar compras')[0].props.onPress();await h.flush();await h.flush();
+  assert.equal(h.nodes(node=>node.props.accessibilityLabel==='Atualizar compras').length,0);
   assert.ok(!shown.includes(2));
   session.abort();await h.flush();assert.equal(h.nodes(node=>node.type==='Text'&&text(node)==='Compra 1').length,0);
   h.unmount();
@@ -60,7 +59,7 @@ test('card compacto expande somente itens visíveis e preserva o gerenciamento e
  h.mount(Card,{purchase:{compra_id:4,compra_status:'CONFIRMADA',compra_classificacao:'PENDENTE',compra_valor:20,
    compra_horario:'2026-10-01T02:30:00Z',tb_compra_item:[1,2].map(compra_item_id=>({compra_item_id,compra_item_nome:compra_item_id===1?'Visível':'Oculto',compra_item_ativo:1,compra_item_valor:10}))},
    resumo:{itensOcultos:[2]},onManage:(_purchase,item)=>calls.push(item?.compra_item_id)});
- assert.equal(h.nodes(node=>node.type==='Text'&&text(node)==='Visível').length,0);
+ assert.equal(h.nodes(node=>node.type==='Text'&&text(node)==='Visível').length,1);
  assert.ok(h.nodes(node=>node.type==='Text'&&text(node)==='30/09/2026').length);
  h.nodes(node=>node.props.accessibilityLabel==='Ver itens da compra')[0].props.onPress();await h.flush();
  assert.ok(h.nodes(node=>node.type==='Text'&&text(node)==='Visível').length);

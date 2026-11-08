@@ -608,39 +608,6 @@ export default function RecurrencesScreen() {
           <Text style={styles.totalValue}>{formatMoney(getTotal(detail))}</Text>
         </View>
 
-        <View style={styles.cardActions}>
-          <CustomButton title={expandedId === id ? 'Ocultar detalhes' : 'Detalhes'} variant="secondary" onPress={() => loadDetails(item)} style={styles.secondaryAction} />
-          {canEdit ? (
-            <CustomButton title="Editar" variant="outline" onPress={() => openEditor(item)} disabled={editorLoading} style={styles.secondaryAction} />
-          ) : null}
-          {canPause ? (
-            <CustomButton
-              title="Pausar"
-              variant="secondary"
-              onPress={() => runAction(item, 'pausar', 'pausar', 'Recorrência pausada.')}
-              disabled={Boolean(actionId)}
-              loading={actionRunning}
-              style={styles.secondaryAction} />
-          ) : null}
-          {canResume ? (
-            <CustomButton
-              title="Retomar"
-              variant="primary"
-              onPress={() => runAction(item, 'retomar', 'retomar', 'Recorrência retomada.')}
-              disabled={Boolean(actionId)}
-              loading={actionRunning}
-              style={styles.secondaryAction} />
-          ) : null}
-          {canCancel ? (
-            <CustomButton
-              title="Cancelar"
-              variant="danger"
-              onPress={() => confirmCancel(item)}
-              disabled={Boolean(actionId)}
-              style={styles.secondaryAction} />
-          ) : null}
-        </View>
-
         {expandedId === id ? (
           <View style={styles.expandedContent}>
             {detailLoadingId === id ? <ActivityIndicator size="small" color={COLORS.dadoDois} /> : (
@@ -652,12 +619,44 @@ export default function RecurrencesScreen() {
                     <Text style={styles.itemRowValue}>{formatMoney(recurrenceItem.valor)}</Text>
                   </View>
                 ))}
-                <CustomButton title="Atualizar próximas datas" variant="outline" onPress={() => loadUpcoming(item)} disabled={upcomingLoadingId === id} loading={upcomingLoadingId === id} style={styles.secondaryAction} />
                 {renderUpcoming(item)}
               </>
             )}
           </View>
         ) : null}
+
+        <View style={styles.cardActions}>
+          <CustomButton title={expandedId === id ? 'Ocultar detalhes' : 'Detalhes'} variant="secondary" onPress={() => loadDetails(item)} style={styles.cardAction} />
+          {canEdit ? (
+            <CustomButton title="Editar" variant="outline" onPress={() => openEditor(item)} disabled={editorLoading} style={styles.cardAction} />
+          ) : null}
+          {canPause ? (
+            <CustomButton
+              title="Pausar"
+              variant="secondary"
+              onPress={() => runAction(item, 'pausar', 'pausar', 'Recorrência pausada.')}
+              disabled={Boolean(actionId)}
+              loading={actionRunning}
+              style={styles.cardAction} />
+          ) : null}
+          {canResume ? (
+            <CustomButton
+              title="Retomar"
+              variant="primary"
+              onPress={() => runAction(item, 'retomar', 'retomar', 'Recorrência retomada.')}
+              disabled={Boolean(actionId)}
+              loading={actionRunning}
+              style={styles.cardAction} />
+          ) : null}
+          {canCancel ? (
+            <CustomButton
+              title="Cancelar"
+              variant="danger"
+              onPress={() => confirmCancel(item)}
+              disabled={Boolean(actionId)}
+              style={styles.cardAction} />
+          ) : null}
+        </View>
       </View>
     );
   }
@@ -912,9 +911,6 @@ export default function RecurrencesScreen() {
         showBackButton
         onBackPress={() => navigation.goBack()}
         style={styles.screenHeader}
-        rightAction={(
-          <CustomButton accessibilityLabel="Atualizar recorrências" variant="ghost" icon="refresh" iconOnly onPress={() => loadRecurrences(true)} disabled={refreshing} loading={refreshing} style={styles.headerAction} />
-        )}
       />
       <FlatList
         data={recurrences}
