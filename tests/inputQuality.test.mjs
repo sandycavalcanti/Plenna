@@ -75,3 +75,14 @@ test('MetaFormSheet reduz a área do modal no Android e mantém ações dentro d
   assert.match(source, /keyboardDismissMode="on-drag"/);
   assert.ok(source.indexOf('<View style={styles.actions}>') < source.indexOf('</ScrollView>'));
 });
+
+test('cadastro de compra reduz a area no Android e mantem pagamento e salvar dentro da rolagem', () => {
+  const source = read('src/pages/CreateCompraScreen/index.js');
+  assert.match(source, /behavior=\{Platform\.OS === 'ios' \? 'padding' : 'height'\}/);
+  assert.match(source, /<ScrollView[\s\S]*keyboardShouldPersistTaps="handled"/);
+  assert.match(source, /keyboardDismissMode="on-drag"/);
+  assert.match(source, /Detalhes do pagamento/);
+  assert.match(source, /Salvar compra/);
+  assert.ok(source.indexOf('Detalhes do pagamento') < source.indexOf('</ScrollView>'));
+  assert.ok(source.indexOf('Salvar compra') < source.indexOf('</ScrollView>'));
+});
