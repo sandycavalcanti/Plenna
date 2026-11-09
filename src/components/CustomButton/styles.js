@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { COLORS } from '../../constants';
+import { TYPOGRAPHY } from '../../constants/typography';
 
 export const styles = StyleSheet.create({
   button: {
@@ -96,9 +97,7 @@ export const styles = StyleSheet.create({
     color: COLORS.buttonDisabledText,
   },
   buttonText: {
-    fontSize: 15,
-    lineHeight: 20,
-    fontWeight: '700',
+    ...TYPOGRAPHY.button,
     textAlign: 'center',
   },
 });

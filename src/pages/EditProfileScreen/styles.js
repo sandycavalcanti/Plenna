@@ -23,9 +23,9 @@ export default StyleSheet.create({
   metasIntroCard: {
     alignItems: 'stretch',
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#E9E1F2',
+    borderColor: COLORS.borderSubtle,
     borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -41,7 +41,7 @@ export default StyleSheet.create({
     borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3EEF9',
+    backgroundColor: COLORS.surfaceAccent,
   },
   metasIntroCopy: {
     flex: 1,
@@ -63,7 +63,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     padding: 3,
     borderRadius: 13,
-    backgroundColor: '#F0EAF5',
+    backgroundColor: COLORS.surfaceSegment,
   },
   metaSegment: {
     flex: 1,
@@ -74,7 +74,7 @@ export default StyleSheet.create({
     paddingHorizontal: 8,
   },
   metaSegmentSelected: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
   },
   metaSegmentText: {
     color: '#76658A',
@@ -82,7 +82,7 @@ export default StyleSheet.create({
     fontWeight: '700',
   },
   metaSegmentTextSelected: {
-    color: '#893467',
+    color: COLORS.metaProgressFill,
   },
   metaScreenHeader: {
     paddingHorizontal: 0,
@@ -114,8 +114,8 @@ export default StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#E6DCEB',
-    backgroundColor: '#FCFAFD',
+    borderColor: COLORS.borderSoft,
+    backgroundColor: COLORS.surfaceSubtle,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
@@ -130,7 +130,7 @@ export default StyleSheet.create({
     fontWeight: '600',
   },
   optionTextSelected: {
-    color: '#FFFFFF',
+    color: COLORS.buttonPrimaryText,
   },
   inputWrapper: {
     marginBottom: 0,
@@ -155,8 +155,8 @@ export default StyleSheet.create({
     padding: 15,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#E9E1F2',
-    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.borderSubtle,
+    backgroundColor: COLORS.surface,
     gap: 14,
   },
   metaEditorHeader: {
@@ -169,7 +169,7 @@ export default StyleSheet.create({
     gap: 2,
   },
   metaEditorEyebrow: {
-    color: '#893467',
+    color: COLORS.metaProgressFill,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.8,
@@ -221,16 +221,16 @@ export default StyleSheet.create({
     height: 8,
     borderRadius: 999,
     overflow: 'hidden',
-    backgroundColor: '#F0EAF5',
+    backgroundColor: COLORS.surfaceSegment,
   },
   metaProgressFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#893467',
+    backgroundColor: COLORS.metaProgressFill,
   },
   metaProgressPercent: {
     minWidth: 44,
-    color: '#893467',
+    color: COLORS.metaProgressFill,
     fontSize: 12,
     fontWeight: '800',
     textAlign: 'right',

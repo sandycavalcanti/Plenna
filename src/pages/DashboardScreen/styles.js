@@ -375,7 +375,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    backgroundColor: '#FFF0F4',
+    backgroundColor: COLORS.buttonDangerBackground,
   },
 
   stateTitle: {
@@ -664,7 +664,7 @@ export const styles = StyleSheet.create({
   },
 
   comparisonDifferenceDecrease: {
-    color: '#4F8D7A',
+    color: T.positive,
   },
 
   comparisonDifferenceNeutral: {
@@ -680,11 +680,11 @@ export const styles = StyleSheet.create({
   },
 
   percentPillIncrease: {
-    backgroundColor: '#FFF0F4',
+    backgroundColor: COLORS.buttonDangerBackground,
   },
 
   percentPillDecrease: {
-    backgroundColor: '#EAF6F1',
+    backgroundColor: COLORS.buttonPositiveBackground,
   },
 
   percentPillNeutral: {
@@ -719,7 +719,7 @@ export const styles = StyleSheet.create({
   legendInlineText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#777B96',
+    color: T.body,
   },
 
   categoryComparisonRow: {
@@ -779,7 +779,7 @@ export const styles = StyleSheet.create({
     height: 10,
     overflow: 'hidden',
     borderRadius: 999,
-    backgroundColor: '#F0EDF7',
+    backgroundColor: T.track,
   },
 
   categoryBarFill: {
@@ -810,7 +810,7 @@ export const styles = StyleSheet.create({
   },
 
   modeButtonActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     shadowColor: '#6B6F98',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -926,7 +926,7 @@ export const styles = StyleSheet.create({
   },
 
   segmentButtonTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.buttonPrimaryText,
   },
 
   comparePickerRow: {
@@ -990,7 +990,7 @@ export const styles = StyleSheet.create({
     height: 4,
     marginBottom: 13,
     borderRadius: R.pill,
-    backgroundColor: '#D8D5E3',
+    backgroundColor: COLORS.dashboardSheetHandle,
   },
 
   modalHeader: {
@@ -1105,7 +1105,7 @@ export const styles = StyleSheet.create({
   },
 
   monthChipTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.buttonPrimaryText,
   },
 
   monthChipTextDisabled: {
@@ -1143,6 +1143,6 @@ export const styles = StyleSheet.create({
   modalDoneText: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.buttonPrimaryText,
   },
 });

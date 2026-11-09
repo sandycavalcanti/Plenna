@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { TYPOGRAPHY } from '../../../constants/typography';
 
 export default StyleSheet.create({
   container: {
@@ -15,8 +16,7 @@ export default StyleSheet.create({
   message: {
     flex: 1,
     marginLeft: 9,
-    fontSize: 14,
-    lineHeight: 20,
+    ...TYPOGRAPHY.body,
     fontWeight: '600',
   },
   action: {
@@ -26,8 +26,7 @@ export default StyleSheet.create({
     marginLeft: 4,
   },
   actionText: {
-    fontSize: 13,
-    fontWeight: '800',
+    ...TYPOGRAPHY.action,
     textDecorationLine: 'underline',
   },
   dismiss: {

@@ -148,7 +148,7 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 2,
     borderColor: COLORS.cadCheckboxFundo,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -158,7 +158,7 @@ export const styles = StyleSheet.create({
     borderColor: COLORS.cadCheckboxFundo,
   },
   checkboxMark: {
-    color: '#FFFFFF',
+    color: COLORS.buttonPrimaryText,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -188,7 +188,7 @@ export const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#F7F2FA',
     borderWidth: 1,
-    borderColor: '#E9E1F2',
+    borderColor: COLORS.borderSubtle,
   },
   monitoringSummary: {
     color: '#655A70',
@@ -216,7 +216,7 @@ export const styles = StyleSheet.create({
   },
   monitoringModalCard: {
     maxHeight: '82%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,

@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants/colors';
+import { TYPOGRAPHY } from '../../../constants/typography';
 
 export default StyleSheet.create({
   container: {
@@ -36,15 +37,11 @@ export default StyleSheet.create({
   },
   title: {
     color: COLORS.cadTitulo,
-    fontFamily: 'SugoDisplay',
-    fontSize: 25,
-    lineHeight: 30,
-    fontWeight: '500',
+    ...TYPOGRAPHY.screenTitle,
   },
   subtitle: {
     color: COLORS.dadoUm,
-    fontSize: 13,
-    lineHeight: 18,
+    ...TYPOGRAPHY.screenSubtitle,
   },
   rightAction: {
     alignItems: 'center',

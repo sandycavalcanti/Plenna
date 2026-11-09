@@ -15,14 +15,14 @@ const screenStyles = {
   container: { flex: 1, backgroundColor: COLORS.fundoPrincipal, paddingHorizontal: 18 },
   screenHeader: { paddingHorizontal: 0, paddingTop: 12, paddingBottom: 12 },
   list: { paddingBottom: 28 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16, marginBottom: 12, gap: 14, borderWidth: 1, borderColor: 'rgba(131, 111, 226, 0.12)', shadowColor: '#4A3156', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: 18, padding: 16, marginBottom: 12, gap: 14, borderWidth: 1, borderColor: 'rgba(131, 111, 226, 0.12)', shadowColor: '#4A3156', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 },
   cardContent: { flex: 1, gap: 7 },
   content: { color: '#594367', lineHeight: 21, fontSize: 15, fontWeight: '500' },
   deleteButton: { width: 44, minHeight: 44, borderRadius: 22, paddingHorizontal: 0, paddingVertical: 0 },
   state: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 28, gap: 14 },
   stateText: { color: '#655A70', textAlign: 'center', lineHeight: 20 },
   action: { width: 'auto', minWidth: 170 },
-  inlineError: { color: '#A31414', backgroundColor: '#FFF4F4', borderRadius: 10, padding: 12, marginBottom: 12, lineHeight: 18 },
+  inlineError: { color: COLORS.loginEsqueciSenha, backgroundColor: '#FFF4F4', borderRadius: 10, padding: 12, marginBottom: 12, lineHeight: 18 },
 };
 
 function SecurityState({ access, navigation }) {

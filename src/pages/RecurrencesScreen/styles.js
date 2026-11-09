@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { DASHBOARD_THEME } from '../../constants/dashboardTheme';
+import { COLORS } from '../../constants/colors';
 
 const { colors, spacing, radius, shadows } = DASHBOARD_THEME;
 
@@ -557,7 +558,7 @@ export const styles = StyleSheet.create({
     fontSize: 13,
   },
   calendarDayTextSelected: {
-    color: '#FFFFFF',
+    color: COLORS.buttonPrimaryText,
     fontWeight: '800',
   },
   calendarDayTextDisabled: {

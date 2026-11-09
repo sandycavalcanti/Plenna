@@ -77,7 +77,7 @@ function CustomTabBar({
         bottom: 0,
         paddingTop: 0,
         paddingBottom: bottomInset,
-        backgroundColor: '#595D7C',
+        backgroundColor: COLORS.customButtonFundo,
         borderTopWidth: 0,
         shadowColor: '#000',
         shadowOffset: {
