@@ -99,5 +99,8 @@ export const styles = StyleSheet.create({
   buttonText: {
     ...TYPOGRAPHY.button,
     textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+    flexShrink: 1,
   },
 });

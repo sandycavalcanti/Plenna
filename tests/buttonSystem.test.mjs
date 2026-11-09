@@ -23,6 +23,25 @@ test('CustomButton centraliza variantes, estados, ícones e acessibilidade', asy
   assert.match(styles, /dangerButton/);
   assert.match(styles, /ghostButton/);
   assert.match(styles, /disabledButton/);
+  assert.match(styles, /alignItems: 'center'/);
+  assert.match(styles, /justifyContent: 'center'/);
+  assert.match(styles, /textAlign: 'center'/);
+  assert.match(styles, /textAlignVertical: 'center'/);
+  assert.match(styles, /includeFontPadding: false/);
+  assert.match(styles, /flexShrink: 1/);
+});
+
+test('os botoes destacados nas telas de conversas, metas e questionario usam containers centralizados', async () => {
+  const history = await read('src/pages/HistoricalChatScreen/styles.js');
+  const metas = await read('src/components/HomeComponents/MetasHome.js');
+  const questionnaire = await read('src/pages/QuestionarioScreen/styles.js');
+
+  assert.match(history, /emptyState:\s*\{[\s\S]*?alignItems: 'center'/);
+  assert.match(history, /emptyButton:\s*\{[\s\S]*?minWidth: 180/);
+  assert.match(metas, /emptyState:\s*\{[\s\S]*?alignItems: 'center'/);
+  assert.match(metas, /createAction:\s*\{[\s\S]*?alignSelf: 'center'/);
+  assert.match(questionnaire, /actionsArea:\s*\{[\s\S]*?alignItems: 'center'/);
+  assert.match(questionnaire, /secondaryAction:\s*\{[\s\S]*?minWidth: 170/);
 });
 
 test('MetaDetails preserva o resumo, remove duplicidades e agrupa o histórico', async () => {

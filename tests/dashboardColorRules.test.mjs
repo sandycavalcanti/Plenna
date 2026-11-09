@@ -81,4 +81,16 @@ test('componentes usam o helper de proporção e as cores fixas das classificaç
   const limitTree = Component({ data: { acima_limite: 2, dentro_limite: 4 }, title: 'Compras acima do limite', centerValueMode: 'quantity', totalKey: 'acima_limite' });
   const limitStroke = nodes(limitTree).find((node) => node.type === 'Circle' && node.props.stroke !== '#EAE3F7')?.props.stroke;
   assert.equal(limitStroke, '#926500');
+
+  const zeroAboveTree = Component({ data: { acima_limite: 0, dentro_limite: 3 }, observedPurchaseCount: 3, title: 'Compras acima do limite', centerValueMode: 'quantity', totalKey: 'acima_limite' });
+  assert.equal(nodes(zeroAboveTree).some((node) => node.type === 'AppEmptyState'), false);
+  assert.equal(nodes(zeroAboveTree).some((node) => node.type === 'Text' && node.children?.includes(0)), true);
+
+  const insufficientTree = Component({ data: { acima_limite: 0, dentro_limite: 0 }, observedPurchaseCount: 2, title: 'Compras acima do limite', centerValueMode: 'quantity', totalKey: 'acima_limite' });
+  const insufficientState = nodes(insufficientTree).find((node) => node.type === 'AppEmptyState');
+  assert.equal(insufficientState.props.title, 'Dados insuficientes para calcular este indicador.');
+
+  const emptyTree = Component({ data: { acima_limite: 0, dentro_limite: 0 }, observedPurchaseCount: 0, emptyMessage: 'Nenhuma compra registrada neste período', title: 'Compras acima do limite', centerValueMode: 'quantity', totalKey: 'acima_limite' });
+  const emptyState = nodes(emptyTree).find((node) => node.type === 'AppEmptyState');
+  assert.equal(emptyState.props.title, 'Nenhuma compra registrada neste período');
 });

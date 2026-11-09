@@ -164,9 +164,9 @@ async function createHarness({ permission = { status: 'granted', granted: true }
   return { state, service: service.namespace, navigation };
 }
 
-async function createRegistrationHookHarness({ expoGoConfig = null, throwOnExpoNotifications = false } = {}) {
+async function createRegistrationHookHarness({ expoGoConfig = null, throwOnExpoNotifications = false, registrationResults = [{ status: 'registered' }] } = {}) {
   const root = new URL('../', import.meta.url);
-  const state = { registerCalls: [], listener: null, removed: false, cleanup: null };
+  const state = { registerCalls: [], listener: null, appStateListener: null, removed: false, appStateRemoved: false, cleanup: null };
   const mocks = new Map([
     ['react', {
       useRef(value) {
@@ -174,6 +174,15 @@ async function createRegistrationHookHarness({ expoGoConfig = null, throwOnExpoN
       },
       useEffect(effect) {
         state.cleanup = effect();
+      },
+    }],
+    ['react-native', {
+      Platform: { OS: 'android' },
+      AppState: {
+        addEventListener(_event, listener) {
+          state.appStateListener = listener;
+          return { remove() { state.appStateRemoved = true; } };
+        },
       },
     }],
     ['expo-notifications', {
@@ -189,12 +198,13 @@ async function createRegistrationHookHarness({ expoGoConfig = null, throwOnExpoN
       },
       async registerAuthenticatedDevice(options) {
         state.registerCalls.push(options);
-        return { status: 'registered' };
+        return registrationResults[Math.min(state.registerCalls.length - 1, registrationResults.length - 1)];
       },
     }],
   ]);
   const context = vm.createContext({
     console,
+    URL,
     require(specifier) {
       if (specifier === 'expo-notifications' && throwOnExpoNotifications) {
         throw new Error('expo-notifications SHOULD NOT LOAD IN EXPO GO');
@@ -591,6 +601,24 @@ test('listener de token nativo valida o evento e reobtém ExpoPushToken', async 
   assert.equal(state.registerCalls[1].requestPermission, false);
   state.cleanup();
   assert.equal(state.removed, true);
+});
+
+test('falha inicial de registro é repetida quando o app volta ao foreground', async () => {
+  const { state } = await createRegistrationHookHarness({
+    registrationResults: [{ status: 'registration-failed', httpStatus: null, errorCode: 'ERR_NETWORK' }, { status: 'registered' }],
+  });
+
+  assert.equal(state.registerCalls.length, 1);
+  state.appStateListener('background');
+  assert.equal(state.registerCalls.length, 1);
+  state.appStateListener('active');
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(state.registerCalls.length, 2);
+  assert.equal(state.registerCalls[1].requestPermission, false);
+  assert.equal(state.appStateRemoved, false);
+  state.cleanup();
+  assert.equal(state.appStateRemoved, true);
 });
 
 test('Expo Go monta o hook sem registrar token nem listener remoto', async () => {

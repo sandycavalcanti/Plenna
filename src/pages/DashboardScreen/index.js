@@ -1266,10 +1266,11 @@ export default function DashboardScreen({ route, navigation }) {
         <Impulsividade
           data={limitData}
           title="Compras acima do limite"
-          emptyMessage="Nenhuma compra disponível para análise"
+          emptyMessage="Nenhuma compra registrada neste período"
           centerLabel="acima do limite"
           centerValueMode="quantity"
           totalKey="acima_limite"
+          observedPurchaseCount={period?.quantidade_compras ?? null}
         />
         <View ref={node => { overviewSectionNodesRef.current.tempo = node; }} collapsable={false} onLayout={mark('tempo')}>
           {usageMonitoringReadsEnabled ? <UsageTimePanel month={selectedMonth} onSettings={() => navigation.navigate('Profile')} /> : <TempoApp tempoUso={tempoUso} mes={selectedMonth} />}

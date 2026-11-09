@@ -137,8 +137,12 @@ export async function registerAuthenticatedDevice({
     }
 
     return await obtainAndRegisterToken({ notifications: runtimeNotifications, constants, api, storage, platform });
-  } catch {
-    return { status: 'registration-failed' };
+  } catch (error) {
+    return {
+      status: 'registration-failed',
+      httpStatus: error?.response?.status ?? null,
+      errorCode: error?.code ?? null,
+    };
   }
 }
 

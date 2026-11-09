@@ -24,6 +24,7 @@ export default function Impulsividade({
   totalKey = null,
   centerLabel = 'marcadas como impulsivas',
   centerValueMode = 'percentage',
+  observedPurchaseCount = null,
 } = {}) {
   const sourceData = data ?? impulsividade;
   const isArrayData = Array.isArray(sourceData);
@@ -130,10 +131,15 @@ export default function Impulsividade({
     const total = valid ? above + within : 0;
 
     if (!valid || total === 0) {
+      const hasObservedPurchases = Number.isSafeInteger(observedPurchaseCount) && observedPurchaseCount > 0;
       return (
         <View style={styles.section}>
           <ProfileCard title={title} variant="dashboard">
-            <AppEmptyState icon="clipboard-text-outline" title="Nenhuma comparação disponível neste período." compact />
+            <AppEmptyState
+              icon="clipboard-text-outline"
+              title={hasObservedPurchases || !valid ? 'Dados insuficientes para calcular este indicador.' : emptyMessage}
+              compact
+            />
           </ProfileCard>
         </View>
       );
