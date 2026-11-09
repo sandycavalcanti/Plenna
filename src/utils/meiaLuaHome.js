@@ -77,12 +77,11 @@ export function apresentarMeiaLua(dados, orcamentoFixoCentavos = null) {
     ? percentFromPeriod
     : null;
 
-  // Cobertura parcial continua conservadora abaixo do limite. Se o total
-  // conhecido já excede o orçamento, o excesso é comprovado mesmo sem a
-  // cobertura completa dos registros.
-  const comparisonExceedsBudget = configuredBudget !== null && ((knownTotal !== null && knownTotal > configuredBudget) || (typeof percentFromPeriod === 'number' && percentFromPeriod > 100));
-  const partialReference = !comparisonExceedsBudget && (f?.qualidade === 'PARCIAL' || f?.cobertura !== 'COMPLETA');
-  const state = percent === null || partialReference ? 'NEUTRO' : faixaPorPercentual(percent, 'ORCAMENTO');
+  // A cor representa o percentual conhecido do orçamento.
+  const state =
+  percent === null
+    ? 'NEUTRO'
+    : faixaPorPercentual(percent, 'ORCAMENTO');
   const messages = {
     VERDE: 'Faixa inicial do orçamento registrado',
     AMARELO: 'Acompanhe o orçamento utilizado',
