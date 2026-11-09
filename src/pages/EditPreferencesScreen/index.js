@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PreferencesForm from '../../components/PreferencesForm';
 import CustomButton from '../../components/CustomButton';
+import AppFeedback from '../../components/Common/AppFeedback';
 import { calcularOrcamento } from '../../utils/orcamento';
 import { apiClient } from '../../api/client';
 import { distribuirSobraEmOutros, obterIdCategoriaOutros, validarCatalogoCategorias } from '../../utils/categorias';
@@ -30,6 +31,7 @@ export default function EditPreferencesScreen() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState(false);
+  const [feedback, setFeedback] = useState(null);
   const loadingRequest = useRef(false);
   useEffect(() => {
     carregarDados();
@@ -211,6 +213,7 @@ export default function EditPreferencesScreen() {
 
   async function salvarPreferencias(metaBloqueada = false) {
     let etapaSalvamento = 'VALIDACAO';
+    setFeedback(null);
     try {
       if (loading || loadingError) throw Object.assign(new Error('Carregamento incompleto.'), { code: 'CATALOGO_INVALIDO' });
       validarCatalogoCategorias(categories, selectedCategories);
@@ -293,20 +296,11 @@ export default function EditPreferencesScreen() {
       registrarFalhaPreferencias(error, etapaSalvamento, 'EDICAO');
 
       if (etapaSalvamento === 'PREFERENCIAS') {
-        Alert.alert(
-          'Salvamento incompleto',
-          'As metas podem ter sido atualizadas, mas não foi possível confirmar o salvamento das categorias. Confira os dados antes de tentar novamente.'
-        );
+        setFeedback({ type: 'error', message: 'As metas podem ter sido atualizadas, mas não foi possível confirmar as categorias. Confira os dados e tente novamente.' });
       } else if (etapaSalvamento === 'USUARIO') {
-        Alert.alert(
-          'Não foi possível concluir',
-          'Não foi possível confirmar a atualização das metas. Confira os dados antes de tentar novamente.'
-        );
+        setFeedback({ type: 'error', message: 'Não foi possível confirmar a atualização das metas. Confira os dados e tente novamente.' });
       } else {
-        Alert.alert(
-          'Confira suas preferências',
-          mensagemValidacaoPreferencias(error)
-        );
+        setFeedback({ type: 'warning', message: mensagemValidacaoPreferencias(error) });
       }
     }
   }
@@ -332,6 +326,14 @@ export default function EditPreferencesScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView style={styles.container} behavior={'padding'}>
         <ScrollView style={styles.containerScroll} contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
+          {feedback ? (
+            <AppFeedback
+              message={feedback.message}
+              type={feedback.type}
+              onDismiss={() => setFeedback(null)}
+              testID="preferences-feedback"
+            />
+          ) : null}
           <PreferencesForm
             categories={categories}
             quantidadeComprasMes={quantidadeComprasMes}

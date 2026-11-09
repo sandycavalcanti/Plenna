@@ -22,6 +22,7 @@ import CustomTextInput from '../../components/CustomTextInput';
 import { valorMoedaParaNumero } from '../../components/CustomTextInput/currency';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
+import AppFeedback from '../../components/Common/AppFeedback';
 import CustomButton from '../../components/CustomButton';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
 import { PROTECTED_ACCESS_AREAS, shouldPreserveProtectedSession } from '../../services/security/protectedArea';
@@ -108,8 +109,6 @@ function normalizeList(data) {
 }
 
 function getApiMessage(error, fallback) {
-  const message = error?.response?.data?.message || error?.response?.data?.error;
-  if (typeof message === 'string' && message.trim()) return message;
   if (error?.response?.status === 409) return 'Esta recorrência não pode ser alterada neste estado.';
   if (error?.response?.status === 401) return 'Sua sessão expirou. Entre novamente para continuar.';
   return fallback;
@@ -153,6 +152,7 @@ export default function RecurrencesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [operationFeedback, setOperationFeedback] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [detailLoadingId, setDetailLoadingId] = useState(null);
   const [upcomingLoadingId, setUpcomingLoadingId] = useState(null);
@@ -184,6 +184,7 @@ export default function RecurrencesScreen() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     setErrorMessage(null);
+    setOperationFeedback(null);
     try {
       const response = await apiClient.get('/recorrencias');
       const records = normalizeList(response.data);
@@ -218,6 +219,7 @@ export default function RecurrencesScreen() {
         setFormasPagamento([]);
         setLoading(true);
         setErrorMessage(null);
+        setOperationFeedback(null);
       };
     }, [protectedAccess.beginAccess, protectedAccess.cancelAccess]),
   );
@@ -262,7 +264,7 @@ export default function RecurrencesScreen() {
       }
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar detalhes da recorrência');
-      Alert.alert('Não foi possível carregar', getApiMessage(error, 'Tente novamente em alguns instantes.'));
+      setOperationFeedback({ type: 'error', message: getApiMessage(error, 'Não foi possível carregar os detalhes. Tente novamente em alguns instantes.') });
     } finally {
       setDetailLoadingId(null);
       setUpcomingLoadingId(null);
@@ -321,10 +323,10 @@ export default function RecurrencesScreen() {
       } else {
         upsertRecurrence(response.data);
       }
-      Alert.alert(successMessage);
+      setOperationFeedback({ type: 'success', message: successMessage });
     } catch (error) {
       logApiErrors(error, `Erro ao ${action} recorrência`);
-      Alert.alert('Não foi possível concluir', getApiMessage(error, 'Tente novamente.'));
+      setOperationFeedback({ type: 'error', message: getApiMessage(error, 'Não foi possível concluir a operação. Tente novamente.') });
     } finally {
       setActionId(null);
     }
@@ -363,7 +365,7 @@ export default function RecurrencesScreen() {
       setEditor(toEditorState(detail));
     } catch (error) {
       logApiErrors(error, 'Erro ao preparar edição da recorrência');
-      Alert.alert('Não foi possível editar', getApiMessage(error, 'Tente novamente.'));
+      setOperationFeedback({ type: 'error', message: getApiMessage(error, 'Não foi possível preparar a edição. Tente novamente.') });
     } finally {
       setEditorLoading(false);
     }
@@ -486,10 +488,10 @@ export default function RecurrencesScreen() {
       });
       upsertRecurrence(response.data);
       setEditor(null);
-      Alert.alert('Recorrência atualizada', 'As próximas ocorrências usarão a configuração atualizada.');
+      setOperationFeedback({ type: 'success', message: 'Recorrência atualizada. As próximas ocorrências usarão a configuração atualizada.' });
     } catch (error) {
       logApiErrors(error, 'Erro ao editar recorrência');
-      Alert.alert('Não foi possível salvar', getApiMessage(error, 'Confira os dados e tente novamente.'));
+      setOperationFeedback({ type: 'error', message: getApiMessage(error, 'Não foi possível salvar. Confira os dados e tente novamente.') });
     } finally {
       setEditorSaving(false);
     }
@@ -915,6 +917,14 @@ export default function RecurrencesScreen() {
         onBackPress={() => navigation.goBack()}
         style={styles.screenHeader}
       />
+      {operationFeedback ? (
+        <AppFeedback
+          message={operationFeedback.message}
+          type={operationFeedback.type}
+          onDismiss={() => setOperationFeedback(null)}
+          testID="recurrences-feedback"
+        />
+      ) : null}
       <FlatList
         data={recurrences}
         keyExtractor={(item) => String(item.id)}

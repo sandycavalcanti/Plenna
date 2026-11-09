@@ -16,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getChatErrorMessage, getHistory, sendFirstMessage, sendMessage, CHAT_MAX_MESSAGE_CHARS } from '../../api/chat';
 import { COLORS } from '../../constants/colors';
 import CustomButton from '../../components/CustomButton';
+import AppFeedback from '../../components/Common/AppFeedback';
 import MarkdownMessage from './markdown';
 import {
   canComposeChat,
@@ -372,21 +373,14 @@ export default function ChatScreen({ navigation }) {
         )}
 
         {errorMessage && (history || messages.length > 0) ? (
-          <View style={styles.errorBanner}>
-            <MaterialIcons name="info-outline" size={18} color={COLORS.loginEsqueciSenha} />
-            <Text style={styles.errorText}>{errorMessage}</Text>
-            {composerBlockedByError ? (
-              <TouchableOpacity
-                accessibilityLabel="Recarregar histórico"
-                accessibilityRole="button"
-                style={styles.errorRetryButton}
-                onPress={loadHistory}
-                disabled={loadingMessages}
-              >
-                <Text style={styles.errorRetryText}>Recarregar</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
+          <AppFeedback
+            message={errorMessage}
+            type="error"
+            actionLabel={composerBlockedByError ? 'Recarregar histórico' : undefined}
+            onAction={composerBlockedByError ? loadHistory : undefined}
+            onDismiss={() => setErrorMessage(null)}
+            testID="chat-feedback"
+          />
         ) : null}
 
         <View style={[styles.composerShell, { paddingBottom: Math.max(5, insets.bottom) }]}>

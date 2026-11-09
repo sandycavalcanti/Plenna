@@ -57,7 +57,7 @@ function criarTela(nome, metaInicial = 500) {
     const setCategories = (v) => { categories = v; };
     const setQuantidadeComprasMes = (v) => { quantidadeComprasMes = v; };
     const setValorMaximoCompra = (v) => { valorMaximoCompra = v; };
-    const setStepTwoTouched = () => {}, setStepTwoAttempted = () => {}, setLoading = () => {};
+    const setStepTwoTouched = () => {}, setStepTwoAttempted = () => {}, setLoading = () => {}, setFeedback = () => {};
     const fecharTelinhaCategorias = () => {};
     const Alert = { alert: (...args) => { if (args[0] !== 'Sucesso') erros.push(args); } };
     const navigation = { goBack() {}, navigate() {} };

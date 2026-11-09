@@ -1,6 +1,6 @@
 import { presentationStyles } from "./styles";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, FlatList, Pressable, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, AppState, FlatList, Pressable, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import ContextoCompra from '../../components/PurchaseComponents/ContextoCompra';
 import { COLORS } from '../../constants/colors';
 import { styles } from './styles';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
+import AppFeedback from '../../components/Common/AppFeedback';
 import PinModal from '../../components/SecurityComponents/PinModal';
 import { PROTECTED_ACCESS_STATES, useProtectedAccess } from '../../hooks/useProtectedAccess';
 import { PROTECTED_ACCESS_AREAS, shouldPreserveProtectedSession } from '../../services/security/protectedArea';
@@ -77,6 +78,7 @@ export default function PurchasesScreen({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [operationFeedback, setOperationFeedback] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   // Um único item pode ser excluído por vez para evitar requests concorrentes
   // e manter o total da compra previsível durante a atualização.
@@ -139,6 +141,7 @@ export default function PurchasesScreen({
       setResumos({});
     }
     setErrorMessage(null);
+    setOperationFeedback(null);
     try {
       // GET /compras já usa o usuário do JWT no back-end.
       session = await tokenStorage.captureSession();
@@ -223,10 +226,10 @@ export default function PurchasesScreen({
       } : item)));
       // O sucesso usa uma mensagem única e curta; a mudança visual da lista
       // continua sendo a confirmação principal da operação concluída.
-      Alert.alert('Compra confirmada com sucesso!');
+      setOperationFeedback({ type: 'success', message: 'Compra confirmada com sucesso.' });
     } catch (error) {
       logApiErrors(error, 'Erro ao confirmar compra');
-      Alert.alert('Erro', 'Não foi possível confirmar a compra. Tente novamente.');
+      setOperationFeedback({ type: 'error', message: 'Não foi possível confirmar a compra. Tente novamente.' });
     } finally {
       setStatusActions(current => {
         const next = {
@@ -251,10 +254,10 @@ export default function PurchasesScreen({
       // Ignorada permanece no banco, mas sai imediatamente da única lista
       // visual porque esse status final não é uma página recuperável.
       setPurchases(currentPurchases => currentPurchases.filter(item => item.compra_id !== purchase.compra_id));
-      Alert.alert('Compra ignorada', 'Ela continua registrada, mas não aparece nas listas de compras pendentes ou confirmadas.');
+      setOperationFeedback({ type: 'info', message: 'Compra ignorada. Ela continua registrada, mas não aparece nas listas pendentes ou confirmadas.' });
     } catch (error) {
       logApiErrors(error, 'Erro ao ignorar compra');
-      Alert.alert('Erro', 'Não foi possível ignorar a compra. Tente novamente.');
+      setOperationFeedback({ type: 'error', message: 'Não foi possível ignorar a compra. Tente novamente.' });
     } finally {
       setStatusActions(current => {
         const next = {
@@ -292,6 +295,7 @@ export default function PurchasesScreen({
       setPurchases([]);
       setLoading(true);
       setErrorMessage(null);
+      setOperationFeedback(null);
       setStatusActions({});
       cursorRef.current = null;
       setNextCursor(null);
@@ -342,10 +346,10 @@ export default function PurchasesScreen({
 
       // Atualização otimista é evitada: só filtramos após o sucesso da API.
       setPurchases(currentPurchases => currentPurchases.filter(item => item.compra_id !== purchaseId));
-      Alert.alert('Compra excluída', 'Ela saiu do histórico e não participa mais dos totais financeiros.');
+      setOperationFeedback({ type: 'success', message: 'Compra excluída. Ela saiu do histórico e dos totais financeiros.' });
     } catch (error) {
       logApiErrors(error, 'Erro ao excluir compra');
-      Alert.alert('Erro', 'Não foi possível excluir a compra. Tente novamente.');
+      setOperationFeedback({ type: 'error', message: 'Não foi possível excluir a compra. Tente novamente.' });
     } finally {
       setDeletingId(null);
     }
@@ -367,10 +371,10 @@ export default function PurchasesScreen({
 
       // Substituímos somente a compra afetada para preservar a ordem da lista.
       setPurchases(currentPurchases => currentPurchases.map(currentPurchase => currentPurchase.compra_id === purchaseId ? response.data : currentPurchase));
-      Alert.alert('Item excluído com sucesso!');
+      setOperationFeedback({ type: 'success', message: 'Item excluído com sucesso.' });
     } catch (error) {
       logApiErrors(error, 'Erro ao excluir item da compra');
-      Alert.alert('Erro', 'Não foi possível excluir o item. Tente novamente.');
+      setOperationFeedback({ type: 'error', message: 'Não foi possível excluir o item. Tente novamente.' });
     } finally {
       setDeletingItemId(null);
     }
@@ -415,6 +419,15 @@ export default function PurchasesScreen({
         subtitle="Acompanhe e organize suas compras"
         rightAction={<TouchableOpacity style={styles.headerAction} onPress={() => navigation.navigate('Recurrences')} accessibilityRole="button" accessibilityLabel="Abrir recorrências"><MaterialCommunityIcons name="autorenew" size={20} color={COLORS.cadTitulo} /></TouchableOpacity>}
       />
+
+      {operationFeedback ? (
+        <AppFeedback
+          message={operationFeedback.message}
+          type={operationFeedback.type}
+          onDismiss={() => setOperationFeedback(null)}
+          testID="purchases-feedback"
+        />
+      ) : null}
 
       {filtroConsumo && <View style={styles.analysisFilterBanner}>
         <MaterialCommunityIcons name="filter-variant" size={18} color={COLORS.cadTitulo} />

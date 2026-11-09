@@ -3,9 +3,11 @@ import { View, Text, Alert, Image, KeyboardAvoidingView, Platform, Pressable, Sc
 import { styles } from './styles';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
+import AppFeedback from '../../components/Common/AppFeedback';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiClient } from '../../api/client';
 import { logApiErrors } from '../../utils/error';
+import { getRecoveryErrorMessage } from '../../utils/authMessages';
 
 // Tela de recuperação de senha — fluxo em 3 passos:
 // 1) informar e-mail e receber um código de 6 dígitos
@@ -15,6 +17,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [segundosParaReenvio, setSegundosParaReenvio] = useState(0);
+  const [feedback, setFeedback] = useState(null);
 
   const email = useRef('');
   const codigo = useRef('');
@@ -31,10 +34,6 @@ export default function ForgotPasswordScreen({ navigation }) {
     return () => clearTimeout(timer);
   }, [segundosParaReenvio]);
 
-  function getApiMessage(error, fallback) {
-    return error.response?.data?.message || fallback;
-  }
-
   function handleLogin() {
     navigation.navigate('Login');
   }
@@ -43,12 +42,12 @@ export default function ForgotPasswordScreen({ navigation }) {
     const emailNormalizado = email.current.trim().toLowerCase();
 
     if (!emailNormalizado) {
-      Alert.alert('Atenção', 'Digite seu e-mail.');
+      setFeedback({ type: 'warning', message: 'Digite seu e-mail.' });
       return;
     }
 
     email.current = emailNormalizado;
-
+    setFeedback(null);
     setLoading(true);
     try {
       await apiClient.post('/auth/forgot-password', { email: email.current });
@@ -57,7 +56,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       Alert.alert('Código enviado', 'Se o e-mail estiver cadastrado, você receberá um código válido por 15 minutos.');
     } catch (error) {
       logApiErrors(error, 'Erro ao solicitar código de redefinição');
-      Alert.alert('Erro', getApiMessage(error, 'Não foi possível enviar o código. Tente novamente.'));
+      setFeedback({ type: 'error', message: getRecoveryErrorMessage(error, 'request') });
     } finally {
       setLoading(false);
     }
@@ -65,10 +64,11 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   async function verificarCodigo() {
     if (!/^\d{6}$/.test(codigo.current)) {
-      Alert.alert('Atenção', 'Digite o código de 6 dígitos enviado por e-mail.');
+      setFeedback({ type: 'warning', message: 'Digite o código de 6 dígitos enviado por e-mail.' });
       return;
     }
 
+    setFeedback(null);
     setLoading(true);
     try {
       await apiClient.post('/auth/verify-reset-code', {
@@ -78,7 +78,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       setStep(3);
     } catch (error) {
       logApiErrors(error, 'Erro ao verificar código');
-      Alert.alert('Código inválido', getApiMessage(error, 'Confira o código enviado por e-mail e tente novamente.'));
+      setFeedback({ type: 'error', message: getRecoveryErrorMessage(error, 'verify') });
     } finally {
       setLoading(false);
     }
@@ -88,15 +88,16 @@ export default function ForgotPasswordScreen({ navigation }) {
     const senhaValida = novaSenha.current.length >= 6 && (/[0-9]/.test(novaSenha.current) || /[^A-Za-z0-9\s]/.test(novaSenha.current));
 
     if (!senhaValida) {
-      Alert.alert('Atenção', 'A nova senha deve ter pelo menos 6 caracteres e 1 número ou caractere especial.');
+      setFeedback({ type: 'warning', message: 'A nova senha deve ter pelo menos 6 caracteres e 1 número ou caractere especial.' });
       return;
     }
 
     if (novaSenha.current !== confirmarSenha.current) {
-      Alert.alert('Atenção', 'As senhas não coincidem.');
+      setFeedback({ type: 'warning', message: 'As senhas não coincidem.' });
       return;
     }
 
+    setFeedback(null);
     setLoading(true);
     try {
       await apiClient.post('/auth/reset-password', {
@@ -108,10 +109,15 @@ export default function ForgotPasswordScreen({ navigation }) {
       handleLogin();
     } catch (error) {
       logApiErrors(error, 'Erro ao redefinir senha');
-      Alert.alert('Erro', getApiMessage(error, 'Não foi possível redefinir a senha. Tente novamente.'));
+      setFeedback({ type: 'error', message: getRecoveryErrorMessage(error, 'reset') });
     } finally {
       setLoading(false);
     }
+  }
+
+  function alterarEmail() {
+    setFeedback(null);
+    setStep(1);
   }
 
   return (
@@ -130,11 +136,12 @@ export default function ForgotPasswordScreen({ navigation }) {
           <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
           <Text style={styles.titulo}>Recuperar senha!</Text>
           <View style={styles.overlay}>
+            {feedback ? <AppFeedback message={feedback.message} type={feedback.type} onDismiss={() => setFeedback(null)} testID="recovery-feedback" /> : null}
             {/* PASSO 1 - EMAIL */}
             {step === 1 && (
               <>
                 <Text style={styles.texto}>Digite seu e-mail</Text>
-                <CustomTextInput placeholder="Email" textValue={email} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} />
+                <CustomTextInput placeholder="Email" textValue={email} autoCapitalize="none" keyboardType="email-address" autoCorrect={false} onChangeText={() => setFeedback(null)} />
                 <CustomButton title="Enviar código" onPress={enviarCodigo} disabled={loading} loading={loading} />
               </>
             )}
@@ -143,7 +150,7 @@ export default function ForgotPasswordScreen({ navigation }) {
             {step === 2 && (
               <>
                 <Text style={styles.texto}>Digite o código enviado</Text>
-                <CustomTextInput placeholder="Código" textValue={codigo} keyboardType="number-pad" maxLength={6} />
+                <CustomTextInput placeholder="Código" textValue={codigo} keyboardType="number-pad" maxLength={6} onChangeText={() => setFeedback(null)} />
                 <CustomButton title="Verificar" onPress={verificarCodigo} disabled={loading} loading={loading} />
                 <Pressable
                   accessibilityRole="button"
@@ -161,7 +168,7 @@ export default function ForgotPasswordScreen({ navigation }) {
                   accessibilityRole="button"
                   accessibilityLabel="Alterar e-mail"
                   accessibilityState={{ disabled: loading }}
-                  onPress={() => setStep(1)}
+                  onPress={alterarEmail}
                   disabled={loading}
                   style={({ pressed }) => [styles.textAction, pressed && styles.textActionPressed]}
                 >
@@ -174,8 +181,8 @@ export default function ForgotPasswordScreen({ navigation }) {
             {step === 3 && (
               <>
                 <Text style={styles.texto}>Crie uma nova senha</Text>
-                <CustomTextInput placeholder="Nova senha" secureTextEntry textValue={novaSenha} />
-                <CustomTextInput placeholder="Confirmar senha" secureTextEntry textValue={confirmarSenha} />
+                <CustomTextInput placeholder="Nova senha" secureTextEntry textValue={novaSenha} onChangeText={() => setFeedback(null)} />
+                <CustomTextInput placeholder="Confirmar senha" secureTextEntry textValue={confirmarSenha} onChangeText={() => setFeedback(null)} />
                 <CustomButton title="Alterar senha" onPress={alterarSenha} disabled={loading} loading={loading} />
               </>
             )}

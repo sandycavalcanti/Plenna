@@ -169,9 +169,8 @@ test('guards impedem resposta tardia após troca de conversa ou invalidação da
 });
 
 test('erro impeditivo expõe ação explícita para recarregar o histórico', () => {
-  assert.match(screenSource, /accessibilityLabel="Recarregar histórico"/);
-  assert.match(screenSource, /onPress=\{loadHistory\}/);
-  assert.match(screenSource, /composerBlockedByError \? \(/);
+  assert.match(screenSource, /actionLabel=\{composerBlockedByError \? 'Recarregar histórico' : undefined\}/);
+  assert.match(screenSource, /onAction=\{composerBlockedByError \? loadHistory : undefined\}/);
 });
 
 test('mensagem otimista é criada e reconciliada pelo ID persistido sem duplicação', () => {

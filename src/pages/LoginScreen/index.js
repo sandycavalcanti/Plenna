@@ -1,11 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { styles } from './styles';
-import { Alert, Text, Image, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Text, Image, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
+import AppFeedback from '../../components/Common/AppFeedback';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
 import { logApiErrors } from '../../utils/error';
+import { getLoginErrorMessage } from '../../utils/authMessages';
 import { COLORS } from '../../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { invalidateProtectedSession } from '../../services/security/protectedSession';
@@ -14,8 +16,9 @@ import { invalidateProtectedSession } from '../../services/security/protectedSes
 // Após clicar em "Login", o usuário é direcionado para a área principal (Tabs)
 export default function LoginScreen({ navigation }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
-  // Função chamada ao clicar no botão
   function handleLogin(onboardingCompleto = true) {
     // replace impede voltar para a tela de login
     navigation.replace(onboardingCompleto ? 'App' : 'SignUp', {
@@ -33,28 +36,38 @@ export default function LoginScreen({ navigation }) {
   const senha = useRef('');
 
   async function Login() {
-     if (!email.current || !senha.current) {
-    Alert.alert('Atenção', 'Preencha o e-mail e a senha.');
-    return;
-  }
+    const emailNormalizado = email.current.trim().toLowerCase();
 
-    apiClient
-      .post('/auth/login', {
-        email: email.current.trim().toLowerCase(),
+    setFeedback(null);
+    if (!emailNormalizado || !senha.current) {
+      setFeedback({ type: 'warning', message: 'Preencha o e-mail e a senha.' });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado)) {
+      setFeedback({ type: 'warning', message: 'Informe um e-mail válido e tente novamente.' });
+      return;
+    }
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      const response = await apiClient.post('/auth/login', {
+        email: emailNormalizado,
         senha: senha.current,
-      })
-      .then(async (response) => {
-        const dados = response.data;
-        const token = dados.token;
-        await tokenStorage.setToken(token);
-        // Um novo login começa sempre sem herdar o desbloqueio local de outra
-        // conta, mesmo que o SecureStore mantenha PINs de usuários anteriores.
-        invalidateProtectedSession();
-        handleLogin();
-      })
-      // Usa o helper existente para registrar erros sem referenciar um
-      // identificador inexistente no escopo da tela de login.
-      .catch((error) => logApiErrors(error, 'Erro ao realizar login'));
+      });
+      const dados = response.data;
+      const token = dados.token;
+      await tokenStorage.setToken(token);
+      // Um novo login começa sempre sem herdar o desbloqueio local de outra
+      // conta, mesmo que o SecureStore mantenha PINs de usuários anteriores.
+      invalidateProtectedSession();
+      handleLogin();
+    } catch (error) {
+      logApiErrors(error, 'Erro ao realizar login');
+      setFeedback({ type: 'error', message: getLoginErrorMessage(error) });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -72,9 +85,10 @@ export default function LoginScreen({ navigation }) {
         <Image source={require('../../../assets/img/logoPlennaIcon.png')} style={styles.logo} />
         <Text style={styles.titulo}> Bem-vindo! </Text>
         <View style={styles.overlay}>
-          <CustomTextInput placeholder="Email" textValue={email} autoCapitalize="none" />
+          {feedback ? <AppFeedback message={feedback.message} type={feedback.type} onDismiss={() => setFeedback(null)} testID="login-feedback" /> : null}
+          <CustomTextInput placeholder="Email" textValue={email} autoCapitalize="none" onChangeText={() => setFeedback(null)} />
           <View style={{ width: '100%' }}>
-            <CustomTextInput placeholder="Senha" secureTextEntry={!mostrarSenha} textValue={senha} autoCapitalize="none" />
+            <CustomTextInput placeholder="Senha" secureTextEntry={!mostrarSenha} textValue={senha} autoCapitalize="none" onChangeText={() => setFeedback(null)} />
             <TouchableOpacity style={{ position: 'absolute', right: 10, top: 8 }} onPress={() => setMostrarSenha(!mostrarSenha)}>
               <Ionicons name={mostrarSenha ? 'eye-off-outline' : 'eye-outline'} size={24} color={COLORS.loginLinks} />
             </TouchableOpacity>
@@ -82,7 +96,7 @@ export default function LoginScreen({ navigation }) {
           <Text style={[styles.texto, { color: COLORS.loginEsqueciSenha, alignSelf: 'flex-end', marginBottom: 30, paddingRight: 10, marginTop: -10 }]} onPress={handleForgotPassword}>
             Esqueci minha senha
           </Text>
-          <CustomButton title="Entrar" onPress={Login} />
+          <CustomButton title="Entrar" onPress={Login} disabled={loading} loading={loading} />
 
           <Text style={[styles.texto, styles.signupLink, { color: COLORS.loginLinks }]} onPress={handleSignUp}>
             Criar conta

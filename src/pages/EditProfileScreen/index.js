@@ -11,6 +11,7 @@ import CustomButton from '../../components/CustomButton';
 import CustomTextInput from '../../components/CustomTextInput';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import AppScreenHeader from '../../components/Common/AppScreenHeader';
+import AppFeedback from '../../components/Common/AppFeedback';
 import MetaFormSheet from '../../components/Metas/MetaFormSheet';
 import { formatarPercentualMeta, formatarValorMeta } from '../../utils/metaMoney';
 import { normalizarRespostaMetas } from '../../utils/metaContract';
@@ -129,6 +130,7 @@ export default function EditProfileScreen() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   const [user, setUser] = useState({
     nome: '',
@@ -174,6 +176,7 @@ export default function EditProfileScreen() {
       await carregarMetas();
     } catch (error) {
       logApiErrors(error, 'Erro ao carregar dados do perfil');
+      setFeedback({ type: 'error', message: 'Não foi possível carregar seus dados. Tente novamente.' });
     } finally {
       setLoading(false);
     }
@@ -210,6 +213,7 @@ export default function EditProfileScreen() {
   }
 
   async function salvarInfo() {
+    setFeedback(null);
     setSaving(true);
     try {
       // prepara payload com conversão de números quando informados
@@ -238,6 +242,7 @@ export default function EditProfileScreen() {
       navigation.goBack();
     } catch (error) {
       logApiErrors(error, 'Erro ao salvar informações do perfil');
+      setFeedback({ type: 'error', message: 'Não foi possível salvar suas informações. Tente novamente.' });
     } finally {
       setSaving(false);
     }
@@ -387,6 +392,15 @@ export default function EditProfileScreen() {
               style={styles.infoScreenHeader}
             />
           )}
+
+          {feedback ? (
+            <AppFeedback
+              message={feedback.message}
+              type={feedback.type}
+              onDismiss={() => setFeedback(null)}
+              testID="profile-feedback"
+            />
+          ) : null}
 
           {mode === 'info' ? (
             <View style={styles.sectionsWrap}>
