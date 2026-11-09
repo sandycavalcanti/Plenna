@@ -5,7 +5,6 @@ import UsageTimePanel from '../../components/UsageTimePanel';
 import { usageMonitoringReadsEnabled } from '../../api/usageMonitoringPolicy';
 import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
 import DescobertasDashboard from '../../components/DashboardComponents/DescobertasDashboard';
-import MovimentacoesCompra from '../../components/DashboardComponents/MovimentacoesCompra';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -1262,7 +1261,6 @@ export default function DashboardScreen({ route, navigation }) {
         <FormaPagamento gastosFormaPagamento={period?.formas_pagamento || []} />
         <Impulsividade data={period?.impulsividade || []} />
         <DescobertasDashboard dados={descobertasResumo.dados} onOpen={() => navigation.navigate('Purchases', { filtroConsumo: { periodo: selectedMonth, timezone: 'America/Sao_Paulo' } })} />
-        <MovimentacoesCompra eventos={descobertasResumo.dados?.eventos} />
         <Impulsividade
           data={limitData}
           title="Compras acima do limite"
