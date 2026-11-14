@@ -73,6 +73,14 @@ export const s = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: c.navy
   },
+  applyDisabled: {
+    backgroundColor: c.surfaceMuted,
+    borderWidth: 1,
+    borderColor: c.border
+  },
+  applyDisabledText: {
+    color: c.muted
+  },
   error: {
     color: '#B32646',
     fontSize: 13,

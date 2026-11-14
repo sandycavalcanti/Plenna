@@ -70,6 +70,6 @@ export default function FiltrosHistorico({
         }}><Text style={presentationStyles.inline1}>Aplicar filtros</Text></Pressable>
       <Pressable accessibilityRole="button" style={styles.option} onPress={onClose}><Text>Cancelar</Text></Pressable>
     </ScrollView>
-    {picker === 'mes' && <SeletorMes visible value={month} minMonth="1000-01" maxMonth={periodoMensalSaoPaulo()} title="Mês das compras" onChange={setMonth} onClose={() => setPicker(null)} />}
+    {picker === 'mes' && <SeletorMes visible value={month} minMonth="1000-01" maxMonth={periodoMensalSaoPaulo()} onChange={setMonth} onClose={() => setPicker(null)} />}
   </SafeAreaView></Modal>;
 }

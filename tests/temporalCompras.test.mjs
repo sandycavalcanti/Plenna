@@ -61,15 +61,74 @@ test('seletor temporal navega anos inline e valida intervalo antes de atualizar 
   const press=textValue=>{const button=h.nodes(node=>['Pressable','TouchableOpacity'].includes(node.type)&&text(node)===textValue)[0];assert.ok(button,textValue);button.props.onPress();};
   pressLabel('Mês anterior');await h.flush();assert.equal(calls[0].mes,'2025-12');
   pressLabel('Escolher mês e ano');await h.flush();
-  assert.equal(h.nodes(node=>node.type==='Modal').length,0);
-  pressLabel('Ano anterior');await h.flush();press('Concluir');await h.flush();
+  assert.equal(h.nodes(node=>node.type==='Modal').length,1);
+  pressLabel('Ano anterior');await h.flush();press('janeiro');await h.flush();
   assert.equal(calls.at(-1).mes,'2025-01');
-  press('Período');await h.flush();press('Aplicar período');await h.flush();
-  assert.ok(h.nodes(node=>node.props.accessibilityRole==='alert').length);
+  press('Período');await h.flush();
+  const applyButton=()=>h.nodes(node=>node.type==='Pressable'&&text(node)==='Aplicar período')[0];
+  assert.equal(applyButton().props.disabled,true);
   const before=calls.length;
-  pressLabel('Data final');await h.flush();pressLabel('04/10/2026');await h.flush();
+  pressLabel('Data final');await h.flush();
+  assert.equal(h.nodes(node=>node.props.accessibilityLabel==='02/10/2026')[0].props.disabled,true);
+  pressLabel('04/10/2026');await h.flush();
   assert.equal(calls.length,before);
-  press('Aplicar período');await h.flush();
+  assert.equal(applyButton().props.disabled,false);press('Aplicar período');await h.flush();
   assert.equal(calls.at(-1).inicio,'03/10/2026');assert.equal(calls.at(-1).fim,'04/10/2026');
+  h.unmount();
+});
+
+test('seletor de mês navega anos sem aplicar rascunho e seleciona imediatamente', async () => {
+  const h = createRenderer();
+  const changes = [];
+  let closes = 0;
+  const Component = h.load('src/components/SeletorMes/index.js').default;
+  h.mount(Component, {
+    visible: true,
+    value: '2025-12',
+    minMonth: '2024-08',
+    maxMonth: '2026-11',
+    onChange: value => changes.push(value),
+    onClose: () => { closes += 1; }
+  });
+  await h.flush();
+
+  const byLabel = label => h.nodes(node => node.props.accessibilityLabel === label)[0];
+  assert.equal(Boolean(byLabel('Ano anterior')), true);
+  assert.equal(Boolean(byLabel('Próximo ano')), true);
+  byLabel('Próximo ano').props.onPress();
+  await h.flush();
+  assert.equal(h.nodes(node => String(node.props.children) === '2026').length > 0, true);
+  assert.equal(changes.length, 0);
+  assert.equal(byLabel('dezembro de 2026')?.props.disabled, true);
+
+  byLabel('janeiro de 2026').props.onPress();
+  await h.flush();
+  assert.deepEqual(changes, ['2026-01']);
+  assert.equal(closes, 1);
+  h.unmount();
+});
+
+test('calendário de período abre sobreposto e fecha após selecionar uma data', () => {
+  const h = createRenderer();
+  const changes = [];
+  let closes = 0;
+  const Component = h.load('src/components/CalendarioData/index.js').default;
+  h.mount(Component, {
+    modal: true,
+    visible: true,
+    title: 'Data inicial',
+    value: new Date(2026, 9, 3, 12),
+    min: new Date(2026, 9, 1, 12),
+    max: new Date(2026, 9, 31, 12),
+    onChange: value => changes.push(value),
+    onClose: () => { closes += 1; }
+  });
+
+  assert.equal(h.nodes(node => node.type === 'Modal').length, 1);
+  const dateButton = h.nodes(node => node.props.accessibilityLabel === '04/10/2026')[0];
+  assert.ok(dateButton);
+  dateButton.props.onPress();
+  assert.equal(changes[0].getDate(), 4);
+  assert.equal(closes, 1);
   h.unmount();
 });

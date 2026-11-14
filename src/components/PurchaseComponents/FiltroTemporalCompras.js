@@ -66,6 +66,15 @@ export default function FiltroTemporalCompras({
     setDraft(next);
     if (value !== 'INTERVALO') apply(next);
   };
+  const canApplyInterval = (() => {
+    if (draft.modo !== 'INTERVALO') return false;
+    try {
+      parametrosTemporaisCompras(draft, new Date(), inicioHistorico);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
   if (!inicioHistorico) return <View style={s.container}><Text accessibilityRole="alert">Aguardando os limites da conta para liberar os filtros.</Text><Pressable accessibilityRole="button" onPress={onRetry}><Text>Tentar novamente</Text></Pressable></View>;
   return <View style={s.container}>
     <View style={s.modes} accessibilityRole="radiogroup" accessibilityLabel="Período das compras">
@@ -82,7 +91,7 @@ export default function FiltroTemporalCompras({
         modo: 'MES',
         mes
       })} onChoose={() => setExpanded(value => !value)} />
-      {expanded && <SeletorMes inline visible value={filtros.mes || currentMonth} minMonth={inicioHistorico.slice(0, 7)} maxMonth={currentMonth} title="Mês das compras" onChange={mes => apply({
+      {expanded && <SeletorMes visible value={filtros.mes || currentMonth} minMonth={inicioHistorico.slice(0, 7)} maxMonth={currentMonth} onChange={mes => apply({
         ...filtros,
         modo: 'MES',
         mes
@@ -92,7 +101,7 @@ export default function FiltroTemporalCompras({
       <View style={s.dates}>{[['inicio', 'Data inicial'], ['fim', 'Data final']].map(([key, label]) => <Pressable key={key} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{
           expanded: picker === key
         }} onPress={() => setPicker(picker === key ? null : key)} style={s.date}><Text style={s.caption}>{label}</Text><Text style={s.value}>{draft[key] || 'Escolher data'}</Text></Pressable>)}</View>
-      {picker && <CalendarioData key={picker} value={date(draft[picker])} min={date(format(inicioHistorico))} max={date(format(today))} onChange={value => {
+      {picker && <CalendarioData modal visible key={picker} title={picker === 'inicio' ? 'Data inicial' : 'Data final'} value={date(draft[picker])} min={picker === 'fim' ? [date(format(inicioHistorico)), date(draft.inicio)].filter(Boolean).sort((a, b) => b.getTime() - a.getTime())[0] : date(format(inicioHistorico))} max={date(format(today))} onClose={() => setPicker(null)} onChange={value => {
         setDraft(previous => ({
           ...previous,
           [picker]: civil(value)
@@ -101,7 +110,7 @@ export default function FiltroTemporalCompras({
         setError(null);
       }} />}
       {error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
-      <Pressable accessibilityRole="button" onPress={() => apply(draft)} style={s.apply}><Text style={s.selectedText}>Aplicar período</Text></Pressable>
+      <Pressable accessibilityRole="button" disabled={!canApplyInterval} accessibilityState={{ disabled: !canApplyInterval }} onPress={() => apply(draft)} style={[s.apply, !canApplyInterval && s.applyDisabled]}><Text style={[s.selectedText, !canApplyInterval && s.applyDisabledText]}>Aplicar período</Text></Pressable>
     </View>}
     {error && draft.modo !== 'INTERVALO' && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
   </View>;

@@ -6,7 +6,7 @@ import { usageMonitoringReadsEnabled } from '../../api/usageMonitoringPolicy';
 import { useDescobertasResumo } from '../../hooks/useDescobertasResumo';
 import DescobertasDashboard from '../../components/DashboardComponents/DescobertasDashboard';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Circle, Defs, LinearGradient, Line, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -24,6 +24,7 @@ import { useDataRefresh } from '../../hooks/useDataRefresh';
 import { useAnaliseComportamento } from '../../hooks/useAnaliseComportamento';
 import { logApiErrors } from '../../utils/error';
 import CustomButton from '../../components/CustomButton';
+import SeletorMes from '../../components/SeletorMes';
 import AppEmptyState from '../../components/Common/AppEmptyState';
 import { observarAtualizacaoTempoUso } from '../../utils/tempoUsoAtualizacao';
 import { apresentarMeiaLua, corPorProporcao } from '../../utils/meiaLuaHome';
@@ -112,16 +113,6 @@ function ComparisonPeriodTag({ month, color, compact = false }) {
       </Text>
     </View>
   );
-}
-
-function monthName(monthNumber) {
-  const value = new Date(Date.UTC(2020, monthNumber - 1, 15, 12));
-  return new Intl.DateTimeFormat('pt-BR', {
-    timeZone: ANALYTICS_TIMEZONE,
-    month: 'long',
-  })
-    .format(value)
-    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function formatCents(cents) {
@@ -213,122 +204,6 @@ function PeriodSelector({ value, onPress, onPurchasesPress, label = 'Período' }
         <MaterialCommunityIcons name="cart-outline" size={21} color={COLORS.dadoUm} />
       </TouchableOpacity>
     </View>
-  );
-}
-
-function MonthPickerModal({ visible, value, maxMonth, minMonth, title, onChange, onClose }) {
-  const [draftValue, setDraftValue] = useState(value);
-
-  useEffect(() => {
-    if (!visible) return;
-    const boundedValue = minMonth && compareMonths(value, minMonth) < 0 ? minMonth : value;
-    setDraftValue(boundedValue);
-  }, [minMonth, value, visible]);
-
-  const { year: selectedYear, month: selectedMonthNumber } = parseMonth(draftValue);
-  const { year: maxYear } = parseMonth(maxMonth);
-  const firstYear = minMonth ? parseMonth(minMonth).year : Math.max(maxYear - 7, 2000);
-  const years = Array.from({ length: maxYear - firstYear + 1 }, (_, index) => firstYear + index);
-  const months = Array.from({ length: 12 }, (_, index) => index + 1);
-
-  const boundedMonthForYear = (year, desiredMonth) => {
-    let candidate = `${year}-${String(desiredMonth).padStart(2, '0')}`;
-    if (compareMonths(candidate, maxMonth) > 0) candidate = maxMonth;
-    if (minMonth && compareMonths(candidate, minMonth) < 0) candidate = minMonth;
-    return candidate;
-  };
-
-  const chooseMonth = (monthNumber) => {
-    const candidate = `${selectedYear}-${String(monthNumber).padStart(2, '0')}`;
-    const isBeforeAccount = minMonth && compareMonths(candidate, minMonth) < 0;
-    if (compareMonths(candidate, maxMonth) <= 0 && !isBeforeAccount) setDraftValue(candidate);
-  };
-
-  const changeYear = (amount) => {
-    const currentIndex = years.indexOf(selectedYear);
-    const nextIndex = Math.min(Math.max(currentIndex + amount, 0), years.length - 1);
-    if (nextIndex !== currentIndex) {
-      setDraftValue(boundedMonthForYear(years[nextIndex], selectedMonthNumber));
-    }
-  };
-
-  const applySelection = () => {
-    onChange(draftValue);
-    onClose();
-  };
-
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.modalBackdrop} onPress={onClose}>
-        <View style={styles.monthModal}>
-          <View style={styles.sheetHandle} />
-          <View style={styles.modalHeader}>
-            <View>
-              <Text style={styles.modalEyebrow}>Período</Text>
-              <Text style={styles.modalTitle}>{title}</Text>
-            </View>
-            <TouchableOpacity style={styles.modalCloseButton} onPress={onClose} accessibilityLabel="Fechar seletor de período">
-              <MaterialCommunityIcons name="close" size={21} color={COLORS.dadoUm} />
-            </TouchableOpacity>
-          </View>
-
-          {years.length > 1 ? (
-            <>
-              <Text style={styles.pickerLabel}>Ano</Text>
-              <View style={styles.yearControl}>
-                <TouchableOpacity
-                  style={[styles.yearControlButton, years.indexOf(selectedYear) === 0 && styles.yearControlButtonDisabled]}
-                  onPress={() => changeYear(-1)}
-                  disabled={years.indexOf(selectedYear) === 0}
-                  accessibilityLabel="Ano anterior">
-                  <MaterialCommunityIcons name="chevron-left" size={20} color={COLORS.dadoUm} />
-                </TouchableOpacity>
-                <Text style={styles.yearControlValue}>{selectedYear}</Text>
-                <TouchableOpacity
-                  style={[styles.yearControlButton, years.indexOf(selectedYear) === years.length - 1 && styles.yearControlButtonDisabled]}
-                  onPress={() => changeYear(1)}
-                  disabled={years.indexOf(selectedYear) === years.length - 1}
-                  accessibilityLabel="Próximo ano">
-                  <MaterialCommunityIcons name="chevron-right" size={20} color={COLORS.dadoUm} />
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <View style={styles.singleYearRow}>
-              <Text style={styles.pickerLabel}>Ano</Text>
-              <Text style={styles.singleYearValue}>{selectedYear}</Text>
-            </View>
-          )}
-
-          <Text style={styles.pickerLabel}>Mês</Text>
-          <View style={styles.monthGrid}>
-            {months.map((monthNumber) => {
-              const candidate = `${selectedYear}-${String(monthNumber).padStart(2, '0')}`;
-              const disabled = compareMonths(candidate, maxMonth) > 0 || (minMonth && compareMonths(candidate, minMonth) < 0);
-              const selected = selectedMonthNumber === monthNumber;
-              return (
-                <TouchableOpacity
-                  key={candidate}
-                  style={[styles.monthChip, selected && styles.monthChipActive, disabled && styles.monthChipDisabled]}
-                  onPress={() => chooseMonth(monthNumber)}
-                  disabled={disabled}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected, disabled }}>
-                  <Text style={[styles.monthChipText, selected && styles.monthChipTextActive, disabled && styles.monthChipTextDisabled]}>{monthName(monthNumber)}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <View style={styles.selectedMonthBlock}>
-            <Text style={styles.selectedMonthText}>{monthLabel(draftValue)}</Text>
-            <Text style={styles.selectedMonthHint}>Meses futuros e anteriores à conta ficam bloqueados.</Text>
-          </View>
-
-          <CustomButton title="Concluir" variant="primary" onPress={applySelection} style={styles.modalDoneButton} />
-        </View>
-      </Pressable>
-    </Modal>
   );
 }
 
@@ -1339,22 +1214,20 @@ export default function DashboardScreen({ route, navigation }) {
         <View style={{ width }}>{renderComparison()}</View>
       </ScrollView>
 
-      <MonthPickerModal
+      <SeletorMes
         visible={monthPickerOpen}
         value={selectedMonth}
         maxMonth={maxMonth}
         minMonth={accountStartMonth}
-        title="Mês da visão geral"
         onChange={handleOverviewMonthChange}
         onClose={() => setMonthPickerOpen(false)}
       />
 
-      <MonthPickerModal
+      <SeletorMes
         visible={Boolean(pickerTarget)}
         value={pickerValue}
         maxMonth={maxMonth}
         minMonth={accountStartMonth}
-        title={pickerTarget === 'evolutionEnd' ? 'Fim da evolução' : 'Selecionar período'}
         onChange={handlePickerChange}
         onClose={closePicker}
       />
