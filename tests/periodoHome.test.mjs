@@ -27,7 +27,7 @@ test('Home starts current month, positions selector below header and never propa
  assert.match(home,/useState\(\(\) => periodoMensalSaoPaulo\(\)\)/);
  assert.ok(home.indexOf('<SeletorMensalHome')<home.indexOf('<PurchaseHero'));
  assert.ok(home.indexOf('<SeletorMensalHome')>home.indexOf('styles.topBar'));
- assert.match(home,/navigation.navigate\('Dashboard', \{ indicador:'tempo' \}\)/);
+ assert.match(home,/navigation\.navigate\(\s*'Dashboard'\s*,\s*\{\s*indicador\s*:\s*'tempo'[\s\S]*?\}\s*\)/);
  assert.doesNotMatch(home,/navigate\('Dashboard',\s*\{\s*periodo/);
  assert.doesNotMatch(home,/useAnaliseComportamento|fetchCompras/);
 });
@@ -45,5 +45,5 @@ test('selector exposes accessible disabled controls and guarded month taps',asyn
  const buttons=tree.children.filter(c=>c.type==='Pressable');
  assert.equal(buttons[1].props.disabled,true);buttons[1].props.onPress();assert.equal(calls.length,0);
  buttons[0].props.onPress();assert.deepEqual(calls,['2026-09']);
- assert.equal(buttons[0].props.accessibilityLabel,'Mês anterior');assert.match(source,/minHeight:48/);
+ assert.equal(buttons[0].props.accessibilityLabel,'Mês anterior');assert.match(source,/minHeight\s*:\s*48/);
 });

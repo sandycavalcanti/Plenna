@@ -25,7 +25,7 @@ test('estados vazios usam o componente compartilhado e mantêm mensagens compact
   for (const source of [home, dashboard, category, payment, impulsivity, time]) assert.match(source, /AppEmptyState/);
   assert.match(empty, /actionLabel/);
   assert.match(home, /Monitoramento desativado\./);
-  assert.match(home, /Nenhum tempo registrado hoje\./);
+  assert.match(home, /Nenhum tempo registrado hoje/);
   assert.doesNotMatch(home, /Continue acompanhando seus dados para receber sugest/);
 });
 

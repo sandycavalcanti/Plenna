@@ -211,7 +211,14 @@ for (const editing of [false, true]) {
           fluxo: editing ? 'EDICAO' : 'CADASTRO', etapa: stage, metodo: 'PUT', rota: failingUrl,
           ...(!network ? { status: 500 } : {}), codigo: network ? 'ERR_NETWORK' : 'ERRO_HTTP',
         });
-        assert.equal(h.r.alerts.at(-1)[0], stage === 'USUARIO' ? 'Não foi possível concluir' : 'Salvamento incompleto');
+        const expectedTitle = stage === 'USUARIO' ? 'Não foi possível concluir' : 'Salvamento incompleto';
+        if (editing) {
+          assert.equal(h.r.nodes((n) => n.props.testID === 'preferences-feedback')[0]?.props.accessibilityLabel, stage === 'USUARIO'
+            ? 'Não foi possível confirmar a atualização das metas. Confira os dados e tente novamente.'
+            : 'As metas podem ter sido atualizadas, mas não foi possível confirmar as categorias. Confira os dados e tente novamente.');
+        } else {
+          assert.equal(h.r.alerts.at(-1)[0], expectedTitle);
+        }
         assert.equal(h.button().disabled, false);
       });
     }

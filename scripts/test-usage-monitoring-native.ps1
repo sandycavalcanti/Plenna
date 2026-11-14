@@ -12,7 +12,11 @@ $compilerParts = @(
 )
 $jars = foreach ($part in $compilerParts) {
   $path = Join-Path $cacheRoot $part
-  if (Test-Path -LiteralPath $path) { Get-ChildItem -LiteralPath $path -Recurse -Filter '*.jar' | Select-Object -First 1 -ExpandProperty FullName }
+  if (Test-Path -LiteralPath $path) {
+    Get-ChildItem -LiteralPath $path -Recurse -Filter '*.jar' |
+      Where-Object { $_.Name -notmatch '(-sources|-javadoc)\.jar$' } |
+      Select-Object -First 1 -ExpandProperty FullName
+  }
 }
 if ($jars.Count -lt 5) { throw 'Kotlin compiler dependencies are not cached; no network download is attempted.' }
 $classpath = $jars -join [IO.Path]::PathSeparator

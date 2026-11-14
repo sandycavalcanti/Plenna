@@ -411,7 +411,6 @@ export default function CreateCompraScreen() {
             <View style={styles.sectionHeader}>
               <View>
                 <Text style={styles.sectionTitle}>Itens da compra</Text>
-                <Text style={styles.sectionHint}>Nome, valor e categoria</Text>
               </View>
               <View style={styles.sectionCountBadge}><Text style={styles.sectionCountText}>{items.length}</Text></View>
             </View>
@@ -492,7 +491,6 @@ export default function CreateCompraScreen() {
             <View style={styles.sectionHeader}>
               <View>
                 <Text style={styles.sectionTitle}>Detalhes do pagamento</Text>
-                <Text style={styles.sectionHint}>Como e onde a compra aconteceu</Text>
               </View>
               <MaterialCommunityIcons name="credit-card-outline" size={21} color={COLORS.dadoTres} />
             </View>
@@ -584,7 +582,6 @@ export default function CreateCompraScreen() {
               loading={saving}
               style={styles.saveButton}
             />
-            {purchaseMode === 'RECORRENTE' ? <Text style={styles.disabledSaveHint}>O cadastro salva apenas a programação. A compra será criada pelo backend na data prevista.</Text> : null}
           </View>
 
           <Modal transparent visible={categoryModalVisible} animationType="fade" onRequestClose={() => setCategoryModalVisible(false)}>

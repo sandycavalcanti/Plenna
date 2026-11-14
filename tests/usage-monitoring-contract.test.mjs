@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 test('Monitoramento de tempo em aplicativos Mobile/API contracts are identical and have no runtime dependencies', async () => {
   const mobile = await readFile(new URL('../src/contracts/usage-monitoring.ts', import.meta.url), 'utf8');
-  const api = await readFile(process.env.PLENNA_API_ROOT ? `${process.env.PLENNA_API_ROOT}/src/modules/tempo-uso-v2/contracts.ts` : new URL('../../../API/Plenna-API/src/modules/tempo-uso-v2/contracts.ts', import.meta.url), 'utf8');
+  const api = await readFile(process.env.PLENNA_API_ROOT ? `${process.env.PLENNA_API_ROOT}/src/modules/tempo-uso-v2/contracts.ts` : new URL('../../Plenna-API/src/modules/tempo-uso-v2/contracts.ts', import.meta.url), 'utf8');
   assert.equal(mobile.replaceAll('\r\n', '\n'), api.replaceAll('\r\n', '\n'));
   const output = ts.transpileModule(mobile, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020, removeComments: true } }).outputText;
   assert.equal(output.trim(), 'export const USAGE_MONITORING_VERSION = 2;');

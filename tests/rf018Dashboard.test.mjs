@@ -20,7 +20,7 @@ const Component=new Function('React','View','Text','ActivityIndicator','Pressabl
 const text=tree=>tree==null||tree===false?'':Array.isArray(tree)?tree.map(text).join(' '):typeof tree==='object'?text(tree.children):String(tree);
 test('hook calls authenticated client contract with selected period and accepts response',async()=>{
  const calls=[];const h=hook(async(...args)=>{calls.push(args);return{data:data()};});
- assert.equal(h.result.loading,true);await h.result.refresh();assert.equal(h.state().error,false);assert.equal(h.state().dados.versaoContrato,1);assert.equal(calls[0][0],'/analises/comportamento');assert.equal(calls[0][1].params.periodo,'2026-10');assert.equal(calls[0][1].rf017SessionId,1);assert.ok(calls[0][1].signal);
+ assert.equal(h.result.loading,true);await h.result.refresh();assert.equal(h.state().error,false);assert.equal(h.state().dados.versaoContrato,1);assert.equal(calls[0][0],'/analises/comportamento');assert.equal(calls[0][1].params.periodo,'2026-10');assert.equal(calls[0][1].usageMonitoringSessionId,1);assert.ok(calls[0][1].signal);
 });
 test('HTTP failure or wrong contract/period is error never empty success',async()=>{
  for(const get of [async()=>{throw new Error('offline');},async()=>({data:{}}),async()=>({data:{...data(),analise:{...data().analise,periodo:'2026-09'}}})]) {

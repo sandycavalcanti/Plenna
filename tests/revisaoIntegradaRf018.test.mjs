@@ -22,6 +22,7 @@ const row = (revisao, planejamento) => ({
   respostas: { planejamento },
   itens: [{ itemId: 10, planejamento }],
   eventosPosteriores: [],
+  atualidade: revisao === 2 ? 'VIGENTE' : 'DESATUALIZADA',
 });
 function history({ fail = false, malformed = false } = {}) {
   const c = new AbortController();
@@ -63,23 +64,27 @@ test('history presents current and older answers separately, paginates and clear
   const { r, c, calls } = history();
   await r.flush();
   assert.ok(
-    r.nodes((n) => n.type === 'Text' && text(n) === 'Revisão 2 · atual').length,
+    r.nodes((n) => n.type === 'Text' && text(n) === 'Atual').length,
   );
   r.nodes(
     (n) => n.type === 'Pressable' && text(n) === 'Ver revisões anteriores',
   )[0].props.onPress();
   await r.flush();
   assert.ok(
-    r.nodes((n) => n.type === 'Text' && text(n) === 'Revisão 1 · histórica')
+    r.nodes((n) => n.type === 'Text' && text(n) === 'Anterior')
       .length,
   );
+  r.nodes(
+    (n) => n.type === 'Pressable' && n.props.accessibilityLabel?.includes('Anterior'),
+  )[0].props.onPress();
+  await r.flush();
   assert.ok(
     r.nodes(
-      (n) => n.type === 'Text' && text(n) === 'Planejamento da compra: Não',
+      (n) => n.type === 'Text' && text(n).includes('Não planejada'),
     ).length,
   );
   assert.equal(calls[1].config.params.antes, 2);
-  assert.equal(calls[0].config.rf017SessionId, 4);
+  assert.equal(calls[0].config.usageMonitoringSessionId, 4);
   c.abort();
   await r.flush();
   assert.equal(
@@ -160,7 +165,7 @@ test('purchase list has no clear-filter rendering while preserving the period fi
     'utf8',
   );
   assert.doesNotMatch(source, /Limpar filtro/);
-  assert.match(source, /comprasPeriodo\(eligiblePurchases,filtroConsumo\)/);
+   assert.match(source, /comprasPeriodo\(\s*eligiblePurchases\s*,\s*filtroConsumo\s*\)/);
   assert.doesNotMatch(source, /mostrarOcultas|Compras ocultas|Voltar às compras visíveis/);
   assert.doesNotMatch(source, /oculto|itensOcultos/);
   assert.match(itemSource, /purchase\.tb_compra_item\.map/);

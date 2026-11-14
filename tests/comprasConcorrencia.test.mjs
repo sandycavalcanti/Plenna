@@ -13,9 +13,9 @@ function harness() {
   const cursorRef={current:null};
   const setter=key=>value=>{state[key]=typeof value==='function'?value(state[key]??(key==='rows'?[]:{})):value;};
   const load=periodo=>new Function('useCallback','isFocused','protectedAccess','PROTECTED_ACCESS_STATES','purchaseRequest','purchaseAbort','purchaseSessionDetach',
-    'setRefreshing','setLoading','setErrorMessage','tokenStorage','apiClient','setPurchases','setResumos','setContextoCompraId','setGerenciamento',
+    'setRefreshing','setLoading','setErrorMessage','setOperationFeedback','tokenStorage','apiClient','setPurchases','setResumos','setContextoCompraId','setGerenciamento',
     'cursorRef','setNextCursor','parametrosTemporaisCompras','filtros','consultarResumosCompras','filtroConsumo','comprasPeriodo','sortPurchases','logApiErrors','setPanoramaRevision',code+';return loadPurchases;')(
-    fn=>fn,true,{status:'UNLOCKED'},{UNLOCKED:'UNLOCKED'},...refs,setter('refreshing'),setter('loading'),setter('error'),storage,client,
+    fn=>fn,true,{status:'UNLOCKED'},{UNLOCKED:'UNLOCKED'},...refs,setter('refreshing'),setter('loading'),setter('error'),setter('operationFeedback'),storage,client,
     setter('rows'),setter('summaries'),setter('context'),setter('management'),cursorRef,setter('next'),parametrosTemporaisCompras,{...filtrosIniciais,...(periodo?{modo:'MES',mes:periodo}:{})},async()=>({}),periodo?{periodo}:null,comprasPeriodo,rows=>rows,()=>{},setter('panoramaRevision'));
   return {load,pending,state,session};
 }

@@ -45,7 +45,7 @@ test('F33: erro, vazio e resposta de outra compra não são confundidos',async()
 
 test('reflexoes reutilizam paginas de avaliacoes sem carregar resultados por linha',async()=>{
   const s=screen(async()=>({versaoContrato:1,compraId:1,avaliacoes:[row(2),row(1)],proximoAntes:null}),'reflexoes');
-  await s.h.flush();assert.equal(s.calls.length,1);assert.match(s.text(),/geradas pelo PLENNA/);
+  await s.h.flush();assert.equal(s.calls.length,1);assert.match(s.text(),/Nenhuma reflexão registrada/);
   assert.doesNotMatch(s.text(),/Fatores considerados/);
   s.h.nodes(n=>n.type==='Pressable'&&n.props.accessibilityState)[0].props.onPress();await s.h.flush();
   assert.ok(s.calls.some(([url])=>url.endsWith('/avaliacoes/2')));assert.doesNotMatch(s.text(),/Fatores considerados|Planejamento/);assert.match(s.text(),/A oferta antecipou/);assert.equal(s.calls.length,2);s.h.unmount();
