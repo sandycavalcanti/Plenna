@@ -6,7 +6,7 @@ const settle = async renderer => {
   for (let index = 0; index < 8; index += 1) await renderer.flush();
 };
 
-async function mountEmailPermissions({ consent = false, connected = false, operational = connected, authorizationStatus = '', oauthResult = 'success' } = {}) {
+async function mountEmailPermissions({ consent = false, connected = false, operational = connected, authorizationStatus = '', oauthResult = 'success', notificationPermission = { status: 'unavailable' }, notificationToken = null, notificationResult = { status: 'unavailable' } } = {}) {
   const state = {
     consent,
     connected,
@@ -14,12 +14,24 @@ async function mountEmailPermissions({ consent = false, connected = false, opera
     oauthCalls: 0,
     registerCalls: [],
     failRegister: false,
+    notificationPermission,
+    notificationToken,
+    notificationResult,
+    notificationSettingsOpens: 0,
+    notificationListeners: new Set(),
   };
   const session = { id: 1, signal: new AbortController().signal };
   const renderer = createRenderer({
     'react-native': {
       View: 'View', Text: 'Text', Switch: 'Switch', Pressable: 'Pressable',
-      AppState: { addEventListener: () => ({ remove() {} }) },
+      ActivityIndicator: 'ActivityIndicator',
+      Linking: { openSettings: async () => { state.notificationSettingsOpens += 1; } },
+      AppState: {
+        addEventListener: (_, listener) => {
+          state.notificationListeners.add(listener);
+          return { remove: () => state.notificationListeners.delete(listener) };
+        },
+      },
       Alert: { alert: (...args) => renderer?.alerts.push(args) },
       StyleSheet: { create: value => value },
     },
@@ -70,12 +82,31 @@ async function mountEmailPermissions({ consent = false, connected = false, opera
     },
     '../../../constants/colors': { COLORS: {} },
     '../../../utils/error': { logApiErrors: () => {} },
+    '../../../services/notifications/notificationStorage': {
+      notificationStorage: { getExpoPushToken: async () => state.notificationToken },
+    },
+    '../../../services/notifications/notificationService': {
+      getNotificationPermissionStatus: async () => state.notificationPermission,
+      requestNotificationPermissionAndRegister: async () => {
+        if (state.notificationResult.status === 'registered') {
+          state.notificationPermission = { status: 'granted', canAskAgain: true };
+          state.notificationToken = 'ExponentPushToken[test]';
+        }
+        return state.notificationResult;
+      },
+    },
+    '@react-navigation/native': {
+      useNavigation: () => ({ navigate() {} }),
+      createNavigationContainerRef: () => ({ isReady: () => false }),
+    },
+    '@expo/vector-icons': { Ionicons: 'Ionicons' },
   });
   state.authorizationStatus = authorizationStatus;
   renderer.mount(renderer.load('src/components/ProfileComponents/Permissions/index.js').default, {});
   await settle(renderer);
   const getSwitch = () => renderer.nodes(node => node.type === 'Switch' && node.props.accessibilityLabel === 'Captura via e-mail')[0];
-  return { renderer, state, getSwitch };
+  const getNotificationSwitch = () => renderer.nodes(node => node.type === 'Switch' && node.props.accessibilityLabel === 'Permitir notificações')[0];
+  return { renderer, state, getSwitch, getNotificationSwitch };
 }
 
 test('captura via e-mail começa desativada sem Gmail operacional', async () => {
@@ -140,4 +171,53 @@ test('falha ao revogar consentimento preserva o estado ativo', async () => {
   alert[2].find(option => option.text === 'Desativar').onPress();
   await settle(renderer);
   assert.equal(getSwitch().props.value, true);
+});
+
+test('notificações refletem permissão nativa e token registrado', async () => {
+  const { renderer, getNotificationSwitch } = await mountEmailPermissions({
+    notificationPermission: { status: 'granted', canAskAgain: true },
+    notificationToken: 'ExponentPushToken[test]',
+  });
+  const texts = renderer.nodes(node => node.type === 'Text').flatMap(node => node.props.children.filter(child => typeof child === 'string'));
+  assert.ok(texts.includes('Ativadas'));
+  assert.equal(getNotificationSwitch().props.value, true);
+});
+
+test('notificações negadas permanentemente encaminham para as configurações', async () => {
+  const { renderer, state, getNotificationSwitch } = await mountEmailPermissions({
+    notificationPermission: { status: 'denied', canAskAgain: false },
+  });
+  const control = getNotificationSwitch();
+  assert.equal(control.props.value, false);
+  await control.props.onValueChange(true);
+  assert.equal(state.notificationSettingsOpens, 1);
+});
+
+test('permissão concedida sem token mantém o switch ligado e abre configurações ao desativar', async () => {
+  const { renderer, state, getNotificationSwitch } = await mountEmailPermissions({
+    notificationPermission: { status: 'granted', canAskAgain: true },
+    notificationResult: { status: 'registration-failed' },
+  });
+  const control = getNotificationSwitch();
+  assert.equal(control.props.value, true);
+  await control.props.onValueChange(false);
+  await settle(renderer);
+  const texts = renderer.nodes(node => node.type === 'Text').flatMap(node => node.props.children.filter(child => typeof child === 'string'));
+  assert.equal(state.notificationToken, null);
+  assert.ok(texts.includes('Permissão ativa; registro pendente'));
+  assert.equal(state.notificationSettingsOpens, 1);
+  assert.equal(getNotificationSwitch().props.value, true);
+});
+
+test('retorno das configurações atualiza o estado nativo sem nova solicitação', async () => {
+  const { renderer, state, getNotificationSwitch } = await mountEmailPermissions({
+    notificationPermission: { status: 'denied', canAskAgain: false },
+  });
+  state.notificationPermission = { status: 'granted', canAskAgain: true };
+  state.notificationToken = 'ExponentPushToken[test]';
+  for (const listener of state.notificationListeners) listener('active');
+  await settle(renderer);
+  const texts = renderer.nodes(node => node.type === 'Text').flatMap(node => node.props.children.filter(child => typeof child === 'string'));
+  assert.ok(texts.includes('Ativadas'));
+  assert.equal(getNotificationSwitch().props.value, true);
 });

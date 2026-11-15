@@ -20,3 +20,14 @@ export function getExpoNotifications(constants = Constants) {
   // bundle, but evaluated only when this function is called in a native build.
   return require('expo-notifications');
 }
+
+// A consulta da autorização local continua sendo válida no Expo Go em
+// ambientes que disponibilizam o módulo. O bloqueio do Expo Go se aplica ao
+// push remoto, não à leitura da permissão do sistema.
+export function getExpoNotificationsForPermissionCheck() {
+  try {
+    return require('expo-notifications');
+  } catch {
+    return null;
+  }
+}

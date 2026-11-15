@@ -4,7 +4,11 @@ import { apiClient } from '../../api/client';
 import { notificationStorage } from './notificationStorage';
 import { deliverNotificationIntent, extractNotificationIntent, notificationNavigationRef } from './notificationNavigation';
 import { NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME } from './notificationConstants';
-import { getExpoNotifications, isExpoGo } from './expoNotificationsRuntime';
+import {
+  getExpoNotifications,
+  getExpoNotificationsForPermissionCheck,
+  isExpoGo,
+} from './expoNotificationsRuntime';
 
 export { isExpoGo } from './expoNotificationsRuntime';
 
@@ -64,6 +68,16 @@ function permissionDenied(permission) {
   return permission?.status === 'denied';
 }
 
+function permissionStatus(permission) {
+  if (permissionGranted(permission)) return 'granted';
+  if (permissionDenied(permission)) return 'denied';
+  return 'undetermined';
+}
+
+function permissionCanAskAgain(permission) {
+  return permission?.canAskAgain !== false;
+}
+
 function showPermissionExplanation(alert = Alert) {
   return new Promise((resolve) => {
     let resolved = false;
@@ -100,6 +114,91 @@ async function obtainAndRegisterToken({ notifications, constants, api, storage, 
   await storage.setExpoPushToken(pushToken);
 
   return { status: 'registered' };
+}
+
+export async function getNotificationPermissionStatus({
+  notifications,
+  constants = Constants,
+  platform = Platform.OS,
+} = {}) {
+  if (!['android', 'ios'].includes(platform)) return { status: 'unavailable', reason: 'unsupported-platform' };
+
+  try {
+    const expoGo = isExpoGo(constants);
+    const runtimeNotifications = notifications ?? (expoGo
+      ? getExpoNotificationsForPermissionCheck()
+      : getExpoNotifications(constants));
+    if (!runtimeNotifications) return { status: 'unavailable', reason: expoGo ? 'permission-api-unavailable' : 'runtime-unavailable' };
+
+    await ensureAndroidNotificationChannel({ notifications: runtimeNotifications, platform });
+    const permission = await runtimeNotifications.getPermissionsAsync();
+    return {
+      status: permissionStatus(permission),
+      canAskAgain: permissionCanAskAgain(permission),
+      registrationAvailable: platform === 'android' && !expoGo,
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      errorCode: error?.code ?? null,
+    };
+  }
+}
+
+export async function requestNotificationPermissionAndRegister({
+  notifications,
+  constants = Constants,
+  api = apiClient,
+  storage = notificationStorage,
+  platform = Platform.OS,
+} = {}) {
+  if (!['android', 'ios'].includes(platform)) return { status: 'unsupported-platform' };
+
+  try {
+    const expoGo = isExpoGo(constants);
+    const runtimeNotifications = notifications ?? (expoGo
+      ? getExpoNotificationsForPermissionCheck()
+      : getExpoNotifications(constants));
+    if (!runtimeNotifications) return { status: 'unavailable', reason: expoGo ? 'permission-api-unavailable' : 'runtime-unavailable' };
+
+    await ensureAndroidNotificationChannel({ notifications: runtimeNotifications, platform });
+    let permission = await runtimeNotifications.getPermissionsAsync();
+
+    if (!permissionGranted(permission)) {
+      if (permissionDenied(permission) && !permissionCanAskAgain(permission)) {
+        return { status: 'permission-settings-required', canAskAgain: false };
+      }
+
+      await storage.markPermissionPrompted?.();
+      permission = await runtimeNotifications.requestPermissionsAsync();
+      if (!permissionGranted(permission)) {
+        return {
+          status: permissionDenied(permission) && !permissionCanAskAgain(permission)
+            ? 'permission-settings-required'
+            : 'permission-denied',
+          canAskAgain: permissionCanAskAgain(permission),
+        };
+      }
+    }
+
+    if (expoGo || platform !== 'android') {
+      return { status: 'permission-granted-registration-unavailable', reason: expoGo ? 'expo-go' : 'unsupported-platform' };
+    }
+
+    return await obtainAndRegisterToken({
+      notifications: runtimeNotifications,
+      constants,
+      api,
+      storage,
+      platform,
+    });
+  } catch (error) {
+    return {
+      status: 'registration-failed',
+      httpStatus: error?.response?.status ?? null,
+      errorCode: error?.code ?? null,
+    };
+  }
 }
 
 export async function registerAuthenticatedDevice({

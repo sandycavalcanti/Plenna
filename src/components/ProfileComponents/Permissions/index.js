@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Switch, Alert, AppState, Pressable } from 'react-native';
+import { View, Text, Switch, Alert, AppState, Pressable, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ProfileCard from '../ProfileCard';
 import { usageMonitoringEnabled } from '../../../api/usageMonitoringPolicy';
@@ -22,6 +22,11 @@ import { tokenStorage } from '../../../api/tokenStorage';
 import { logApiErrors } from '../../../utils/error';
 import { COLORS } from '../../../constants/colors';
 import * as WebBrowser from 'expo-web-browser';
+import { notificationStorage } from '../../../services/notifications/notificationStorage';
+import {
+  getNotificationPermissionStatus,
+  requestNotificationPermissionAndRegister,
+} from '../../../services/notifications/notificationService';
 
 function PrivacyDetails({ label = 'Como funciona o monitoramento?', children }) {
   const ReadingDetails = require('../../ReadingDetails').default;
@@ -78,6 +83,13 @@ export default function Permissions({ data }) {
   const [loadingEmail, setLoadingEmail] = useState(true);
   const [emailActionLoading, setEmailActionLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [notificationPermission, setNotificationPermission] = useState('unknown');
+  const [notificationCanAskAgain, setNotificationCanAskAgain] = useState(true);
+  const [notificationRegistration, setNotificationRegistration] = useState('unknown');
+  const [notificationAvailabilityReason, setNotificationAvailabilityReason] = useState('');
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [notificationActionLoading, setNotificationActionLoading] = useState(false);
+  const [notificationError, setNotificationError] = useState('');
   const [trackingEnabled, setTrackingEnabled] = useState(false);
   const [usageAccessEnabled, setUsageAccessEnabled] = useState(false);
   const [loadingTracking, setLoadingTracking] = useState(true);
@@ -105,6 +117,8 @@ export default function Permissions({ data }) {
   const consultaMemoria = useRef(0);
   const consultaEmail = useRef(0);
   const alterandoEmail = useRef(false);
+  const consultaNotificacoes = useRef(0);
+  const alterandoNotificacoes = useRef(false);
   function validarSessao(sessao) {
     tokenStorage.assertSession(sessao.id);
     if (!montado.current || sessao.signal.aborted) throw new Error('Operação cancelada');
@@ -117,6 +131,53 @@ export default function Permissions({ data }) {
   }
   function emailIntegracaoOperacional(status) {
     return status?.connected === true && status?.operational === true;
+  }
+  async function carregarEstadoNotificacoes() {
+    if (alterandoNotificacoes.current) return;
+    const numero = ++consultaNotificacoes.current;
+    try {
+      setLoadingNotifications(true);
+      setNotificationError('');
+      const permission = await getNotificationPermissionStatus();
+      if (!montado.current || numero !== consultaNotificacoes.current) return;
+
+      setNotificationPermission(permission.status);
+      setNotificationCanAskAgain(permission.canAskAgain !== false);
+      setNotificationAvailabilityReason(permission.reason ?? '');
+      if (permission.status !== 'granted') {
+        setNotificationRegistration('not-applicable');
+        if (permission.status === 'error') {
+          setNotificationError('Não foi possível verificar as notificações deste dispositivo.');
+        }
+        return;
+      }
+
+      if (permission.registrationAvailable === false) {
+        setNotificationRegistration('unavailable');
+        return;
+      }
+
+      try {
+        const token = await notificationStorage.getExpoPushToken();
+        if (!montado.current || numero !== consultaNotificacoes.current) return;
+        setNotificationRegistration(token ? 'registered' : 'pending');
+      } catch (error) {
+        if (montado.current && numero === consultaNotificacoes.current) {
+          setNotificationRegistration('error');
+          setNotificationError('Permissão ativa, mas não foi possível verificar o registro do dispositivo.');
+          logErroPermissoes(error, 'GET', 'local:notification-token', 'consultar_registro_notificacoes');
+        }
+      }
+    } catch (error) {
+      if (montado.current && numero === consultaNotificacoes.current) {
+        setNotificationPermission('error');
+        setNotificationRegistration('unknown');
+        setNotificationError('Não foi possível verificar as notificações deste dispositivo.');
+        logErroPermissoes(error, 'GET', 'native:notifications', 'consultar_permissao_notificacoes');
+      }
+    } finally {
+      if (montado.current && numero === consultaNotificacoes.current) setLoadingNotifications(false);
+    }
   }
   async function carregarEstadoEmail() {
     if (alterandoEmail.current) return;
@@ -301,6 +362,8 @@ export default function Permissions({ data }) {
         consulta.current++;
         consultaMemoria.current++;
         consultaEmail.current++;
+        consultaNotificacoes.current++;
+        alterandoNotificacoes.current = false;
         setTrackingEnabled(false);
         setTrackingStatusKnown(false);
         setUsageAccessEnabled(false);
@@ -314,6 +377,11 @@ export default function Permissions({ data }) {
         setEmailConnected(false);
         setEmailStatusKnown(false);
         setLoadingEmail(false);
+        setNotificationPermission('unknown');
+        setNotificationCanAskAgain(true);
+        setNotificationRegistration('unknown');
+        setNotificationAvailabilityReason('');
+        setLoadingNotifications(false);
       };
       if (sessao.signal.aborted) limpar();else {
         sessao.signal.addEventListener('abort', limpar);
@@ -323,11 +391,13 @@ export default function Permissions({ data }) {
     carregarEstadoMonitoramento();
     carregarEstadoMemoria();
     carregarEstadoEmail();
+    carregarEstadoNotificacoes();
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
         carregarEstadoMonitoramento();
         carregarEstadoMemoria();
         carregarEstadoEmail();
+        carregarEstadoNotificacoes();
       }
     });
     return () => {
@@ -335,12 +405,17 @@ export default function Permissions({ data }) {
       consulta.current++;
       consultaMemoria.current++;
       consultaEmail.current++;
+      consultaNotificacoes.current++;
+      alterandoNotificacoes.current = false;
       alterandoEmail.current = false;
       setEmailEnabled(false);
       setEmailConnected(false);
       emailAuthorizationStatus.current = '';
       setEmailStatusKnown(false);
       setLoadingEmail(false);
+      setNotificationPermission('unknown');
+      setNotificationRegistration('unknown');
+      setLoadingNotifications(false);
       setMemoryEnabled(false);
       setPersonalizationEnabled(false);
       setProactivityEnabled(false);
@@ -369,6 +444,107 @@ export default function Permissions({ data }) {
       await alterarEmail(true, sessao);
     } catch {
       // A sessão inválida não deve alterar o estado local do controle.
+    }
+  }
+
+  async function abrirConfiguracoesNotificacoes() {
+    try {
+      await Linking.openSettings();
+    } catch {
+      Alert.alert('Configurações não abertas', 'Não foi possível abrir as configurações do dispositivo.');
+    }
+  }
+
+  async function handleNotificationToggle(value) {
+    if (loadingNotifications || notificationActionLoading || notificationPermission === 'unavailable') return;
+    if (!value && notificationPermission === 'granted') {
+      await abrirConfiguracoesNotificacoes();
+      return;
+    }
+    if (value) await handleNotificationAction();
+  }
+
+  async function handleNotificationAction() {
+    if (loadingNotifications || notificationActionLoading || alterandoNotificacoes.current) return;
+
+    if (notificationPermission === 'denied' && !notificationCanAskAgain) {
+      try {
+        await Linking.openSettings();
+      } catch {
+        Alert.alert('Configurações não abertas', 'Não foi possível abrir as configurações do dispositivo.');
+      }
+      return;
+    }
+
+    if (notificationPermission === 'unavailable') return;
+
+    let sessao;
+    let result;
+    alterandoNotificacoes.current = true;
+    try {
+      sessao = await tokenStorage.captureSession();
+      if (!sessao) return;
+      validarSessao(sessao);
+      setNotificationActionLoading(true);
+      setNotificationError('');
+
+      result = await requestNotificationPermissionAndRegister();
+      validarSessao(sessao);
+      if (result?.status === 'registered') {
+        setNotificationPermission('granted');
+        setNotificationCanAskAgain(true);
+        setNotificationAvailabilityReason('');
+        setNotificationRegistration('registered');
+        return;
+      }
+
+      if (result?.status === 'permission-granted-registration-unavailable') {
+        setNotificationPermission('granted');
+        setNotificationCanAskAgain(true);
+        setNotificationAvailabilityReason(result.reason ?? '');
+        setNotificationRegistration('unavailable');
+        setNotificationError('A permissão está ativa; o registro de push remoto não está disponível neste ambiente.');
+        return;
+      }
+
+      if (result?.status === 'permission-settings-required') {
+        setNotificationPermission('denied');
+        setNotificationCanAskAgain(false);
+        setNotificationRegistration('not-applicable');
+        setNotificationError('As notificações estão desativadas nas configurações do dispositivo.');
+        return;
+      }
+
+      if (result?.status === 'permission-denied') {
+        setNotificationPermission('denied');
+        setNotificationCanAskAgain(result.canAskAgain !== false);
+        setNotificationRegistration('not-applicable');
+        setNotificationError('As notificações continuam desativadas.');
+        return;
+      }
+
+      if (result?.status === 'unsupported-platform' || result?.status === 'unavailable') {
+        setNotificationPermission('unavailable');
+        setNotificationRegistration('not-applicable');
+        setNotificationError('As notificações não estão disponíveis neste ambiente.');
+        return;
+      }
+
+      setNotificationPermission('granted');
+      setNotificationRegistration('error');
+      setNotificationError('A permissão foi concedida, mas não foi possível registrar este dispositivo para receber alertas.');
+    } catch (error) {
+      if (montado.current && !sessao?.signal?.aborted) {
+        setNotificationRegistration('error');
+        setNotificationError('Não foi possível concluir a configuração das notificações.');
+        logErroPermissoes(error, 'POST', '/devices/push', 'registrar_notificacoes');
+      }
+    } finally {
+      alterandoNotificacoes.current = false;
+      setNotificationActionLoading(false);
+      if (montado.current && !sessao?.signal?.aborted && result?.status === 'registered') {
+        await carregarEstadoNotificacoes();
+      }
     }
   }
 
@@ -580,6 +756,25 @@ export default function Permissions({ data }) {
         : emailConnected
           ? 'Gmail conectado; captura desativada'
           : 'Desativado';
+  const statusNotificacoes = loadingNotifications
+    ? 'Verificando...'
+    : notificationActionLoading
+      ? 'Configurando...'
+      : notificationPermission === 'granted' && notificationRegistration === 'registered'
+        ? 'Ativadas'
+        : notificationPermission === 'granted' && notificationRegistration === 'unavailable'
+          ? 'Permissão ativa; push remoto indisponível neste ambiente'
+        : notificationPermission === 'granted'
+          ? 'Permissão ativa; registro pendente'
+          : notificationPermission === 'denied' && !notificationCanAskAgain
+            ? 'Desativadas nas configurações do dispositivo'
+            : notificationPermission === 'denied' || notificationPermission === 'undetermined'
+              ? 'Desativadas'
+              : notificationPermission === 'unavailable'
+                ? notificationAvailabilityReason === 'permission-api-unavailable'
+                  ? 'Consulta da permissão indisponível neste ambiente'
+                  : 'Consulta da permissão indisponível'
+                : 'Temporariamente indisponíveis';
   const aguardandoAtualizacao = statusMonitoramento === 'Ativado' && usageMonitoringEnabled && ['PENDING', 'SYNCING'].includes(monitoringStatus);
     return <ProfileCard title="Permissões e integrações" variant="profile">
       <View style={styles.row}>
@@ -602,6 +797,24 @@ export default function Permissions({ data }) {
         false: 'rgba(131, 111, 226, 0.25)',
         true: '#A9A2F1'
       }} thumbColor={emailEnabled ? '#4652A4' : '#F4F3F4'} ios_backgroundColor="rgba(131, 111, 226, 0.25)" />
+      </View>
+
+      <View style={styles.row}>
+        <View style={styles.textContainer}>
+          <Text style={styles.text}>Permitir notificações</Text>
+          <Text style={styles.sub}>Receba alertas sobre seus gastos e informações importantes.</Text>
+          <Text style={styles.status} accessibilityLiveRegion="polite">{statusNotificacoes}</Text>
+          {notificationError ? <Text style={styles.notificationError}>{notificationError}</Text> : null}
+        </View>
+        <Switch
+          accessibilityLabel="Permitir notificações"
+          value={notificationPermission === 'granted'}
+          onValueChange={handleNotificationToggle}
+          disabled={loadingNotifications || notificationActionLoading || notificationPermission === 'unavailable'}
+          trackColor={{ false: 'rgba(131, 111, 226, 0.25)', true: '#A9A2F1' }}
+          thumbColor={notificationPermission === 'granted' ? '#4652A4' : '#F4F3F4'}
+          ios_backgroundColor="rgba(131, 111, 226, 0.25)"
+        />
       </View>
 
       <View style={styles.monitoringSection}>

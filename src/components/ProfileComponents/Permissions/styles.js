@@ -33,6 +33,12 @@ export default StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  notificationError: {
+    marginTop: 4,
+    color: COLORS.buttonDangerText,
+    fontSize: 11,
+    lineHeight: 15,
+  },
   lastRow: { borderBottomWidth: 0, marginBottom: 2 },
   textContainer: { flex: 1, paddingRight: 12 },
   text: { fontSize: 14, fontWeight: '600', color: COLORS.cadTitulo },

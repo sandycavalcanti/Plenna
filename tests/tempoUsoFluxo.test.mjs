@@ -91,6 +91,7 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
     LONG: 1,
     show() {},
   },
+  Linking: { openSettings: async () => {} },
 },
     '@react-native-async-storage/async-storage': { default: {
       getItem: async key => state.storage.get(key) ?? null,
@@ -121,8 +122,18 @@ async function ambiente({ consentimento = true, permission = true, dev = false }
     'src/components/ProfileComponents/ProfileCard.js': { default: 'ProfileCard' },
     'src/components/ProfileComponents/Permissions/styles.js': { default: {} },
     'src/components/CustomButton.js': { default: 'Pressable' },
-    '@react-navigation/native': { useNavigation: () => ({ navigate() {} }) },
-    '@expo/vector-icons': { MaterialCommunityIcons: 'MaterialCommunityIcons' },
+    '@react-navigation/native': {
+      useNavigation: () => ({ navigate() {} }),
+      createNavigationContainerRef: () => ({ isReady: () => false }),
+    },
+    '@expo/vector-icons': { MaterialCommunityIcons: 'MaterialCommunityIcons', Ionicons: 'Ionicons' },
+    'src/services/notifications/notificationStorage.js': {
+      notificationStorage: { getExpoPushToken: async () => null },
+    },
+    'src/services/notifications/notificationService.js': {
+      getNotificationPermissionStatus: async () => ({ status: 'unavailable', reason: 'test' }),
+      requestNotificationPermissionAndRegister: async () => ({ status: 'unavailable', reason: 'test' }),
+    },
   };
   const base = new URL('../', import.meta.url);
   const cache = new Map();
@@ -390,16 +401,16 @@ test('Permissions mantém diagnóstico sem coleta e atualiza permissão ao retor
   permissions.default({});
   const cleanup = state.effects[0]();
   await settle();
-  assert.equal(state.states[6], false);
-  assert.equal(state.states[7], false);
+  assert.equal(state.states[13], false);
+  assert.equal(state.states[14], false);
   state.permission = true;
   state.foreground();
   await settle();
-  assert.equal(state.states[7], true);
+  assert.equal(state.states[14], true);
   assert.equal(state.coletas.length, 0);
   await token.clearToken();
-  assert.equal(state.states[6], false);
-  assert.equal(state.states[7], false);
+  assert.equal(state.states[13], false);
+  assert.equal(state.states[14], false);
   cleanup();
 });
 

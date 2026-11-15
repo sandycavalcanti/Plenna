@@ -281,6 +281,81 @@ test('permission granted não mostra prompt nem solicita novamente', async () =>
   assert.equal(state.calls.filter((call) => call.name === 'requestPermissions').length, 0);
 });
 
+test('consulta o estado real da permissão sem abrir o prompt', async () => {
+  const { state, service } = await createHarness({ permission: granted() });
+
+  const result = await service.getNotificationPermissionStatus();
+
+  assert.equal(result.status, 'granted');
+  assert.equal(state.calls.filter((call) => call.name === 'requestPermissions').length, 0);
+  assert.equal(state.alertCalls.length, 0);
+});
+
+test('Expo Go consulta a autorização local sem prometer push remoto', async () => {
+  const { state, service } = await createHarness({
+    expoGoConfig: { name: 'Expo Go' },
+    permission: { status: 'granted', granted: true },
+  });
+
+  const result = await service.getNotificationPermissionStatus();
+
+  assert.equal(result.status, 'granted');
+  assert.equal(result.registrationAvailable, false);
+  assert.equal(state.calls.filter(call => call.name === 'getPermissions').length, 1);
+  assert.equal(state.calls.filter(call => call.name === 'getToken').length, 0);
+});
+
+test('Expo Go pode solicitar a autorização local sem registrar token remoto', async () => {
+  const { state, service } = await createHarness({
+    expoGoConfig: { name: 'Expo Go' },
+    permission: { status: 'undetermined', granted: false, canAskAgain: true },
+  });
+  state.permissionAfterRequest = { status: 'granted', granted: true };
+
+  const result = await service.requestNotificationPermissionAndRegister();
+
+  assert.equal(result.status, 'permission-granted-registration-unavailable');
+  assert.equal(state.calls.filter(call => call.name === 'requestPermissions').length, 1);
+  assert.equal(state.calls.filter(call => call.name === 'getToken').length, 0);
+  assert.equal(state.apiCalls.length, 0);
+});
+
+test('ação explícita solicita a permissão nativa e registra o dispositivo', async () => {
+  const { state, service } = await createHarness({ permission: undetermined() });
+  state.permissionAfterRequest = granted();
+
+  const result = await service.requestNotificationPermissionAndRegister();
+
+  assert.equal(result.status, 'registered');
+  assert.equal(state.alertCalls.length, 0);
+  assert.equal(state.calls.filter((call) => call.name === 'requestPermissions').length, 1);
+  assert.equal(state.apiCalls[0].url, '/devices/push');
+  assert.equal([...state.storage.values()].includes('true'), true);
+});
+
+test('permissão negada permanentemente encaminha para as configurações sem pedir novamente', async () => {
+  const { state, service } = await createHarness({
+    permission: { status: 'denied', granted: false, canAskAgain: false },
+  });
+
+  const result = await service.requestNotificationPermissionAndRegister();
+
+  assert.equal(result.status, 'permission-settings-required');
+  assert.equal(state.calls.filter((call) => call.name === 'requestPermissions').length, 0);
+  assert.equal(state.calls.filter((call) => call.name === 'getToken').length, 0);
+  assert.equal(state.apiCalls.length, 0);
+});
+
+test('permissão concedida não esconde falha no registro do push', async () => {
+  const { state, service } = await createHarness({ permission: granted() });
+  const api = { async post() { throw new Error('offline'); } };
+
+  const result = await service.requestNotificationPermissionAndRegister({ api });
+
+  assert.equal(result.status, 'registration-failed');
+  assert.equal(state.calls.filter((call) => call.name === 'getToken').length, 1);
+});
+
 test('permissão indeterminada exibe contexto e opção Ativar chama prompt do sistema', async () => {
   const { state, service } = await createHarness({ permission: undetermined() });
   state.permissionAfterRequest = granted();
@@ -665,6 +740,7 @@ test('configuração preserva OAuth e usa navigation ref separado', async () => 
   const serviceSource = await readFile(new URL('../src/services/notifications/notificationService.js', import.meta.url), 'utf8');
   const runtimeSource = await readFile(new URL('../src/services/notifications/expoNotificationsRuntime.js', import.meta.url), 'utf8');
   const hookSource = await readFile(new URL('../src/hooks/useNotificationRegistration.js', import.meta.url), 'utf8');
+  const permissionsSource = await readFile(new URL('../src/components/ProfileComponents/Permissions/index.js', import.meta.url), 'utf8');
   const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
   const appConfig = JSON.parse(await readFile(new URL('../app.json', import.meta.url), 'utf8'));
   assert.match(appConfig.expo.scheme, /^plenna$/);
@@ -684,6 +760,10 @@ test('configuração preserva OAuth e usa navigation ref separado', async () => 
   assert.ok(hookSource.indexOf('if (isExpoGo())') < hookSource.indexOf('getExpoNotifications()'));
   assert.ok(hookSource.indexOf('getExpoNotifications()') < hookSource.indexOf('Notifications.addPushTokenListener'));
   assert.equal((serviceSource.match(/Notifications\.addPushTokenListener/g) ?? []).length, 0);
+  assert.match(permissionsSource, /getNotificationPermissionStatus/);
+  assert.match(permissionsSource, /requestNotificationPermissionAndRegister/);
+  assert.match(permissionsSource, /Linking\.openSettings/);
+  assert.match(permissionsSource, /Permitir notificações/);
 });
 
 test('produção não imprime ExpoPushToken', async () => {
