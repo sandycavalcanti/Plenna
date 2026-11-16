@@ -12,6 +12,7 @@ import CardFinanceiroHome from '../../components/HomeComponents/CardFinanceiroHo
 import MetasHome from '../../components/HomeComponents/MetasHome';
 import { useMetasHome } from '../../hooks/useMetasHome';
 import { destaquesHome, unificarDestaquesHome } from '../../utils/destaquesHome';
+import { estaRecomendacaoExpirada } from '../../utils/recomendacaoExpiracao';
 import { resumirTempoHoje, formatarTempoUso } from '../../utils/resumoTempoUso';
 import SeletorMensalHome from '../../components/HomeComponents/SeletorMensalHome';
 import SeletorMes from '../../components/SeletorMes';
@@ -235,7 +236,9 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.recommendationItemTitle}>{item.titulo}</Text>
                 <Text style={styles.recommendationItemText}>{item.texto}</Text>
                 <View style={styles.recommendationActions}>
-                  <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={styles.inlineActionText}>Conversar sobre isso</Text></TouchableOpacity>
+                  {!estaRecomendacaoExpirada(item.expiraEm) ? (
+                    <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={styles.inlineActionText}>Conversar sobre isso</Text></TouchableOpacity>
+                  ) : null}
                   <TouchableOpacity accessibilityRole="button" onPress={() => recomendacoes.updateStatus(item.id, 'DESCARTADA')}><Text style={styles.recommendationSecondaryAction}>Dispensar</Text></TouchableOpacity>
                 </View>
               </View>
