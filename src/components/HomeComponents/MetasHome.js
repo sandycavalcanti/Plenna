@@ -136,6 +136,8 @@ const styles = {
     alignSelf: 'flex-start',
   },
   createAction: {
+    width: 'auto',
+    minWidth: 150,
     alignSelf: 'center',
     marginTop: 4,
   },

@@ -12,8 +12,10 @@ import CardFinanceiroHome from '../../components/HomeComponents/CardFinanceiroHo
 import MetasHome from '../../components/HomeComponents/MetasHome';
 import { useMetasHome } from '../../hooks/useMetasHome';
 import { destaquesHome, unificarDestaquesHome } from '../../utils/destaquesHome';
+import { estaRecomendacaoExpirada } from '../../utils/recomendacaoExpiracao';
 import { resumirTempoHoje, formatarTempoUso } from '../../utils/resumoTempoUso';
 import SeletorMensalHome from '../../components/HomeComponents/SeletorMensalHome';
+import SeletorMes from '../../components/SeletorMes';
 import { useResumoHome } from '../../hooks/useResumoHome';
 import { useTempoUsoHome } from '../../hooks/useTempoUsoHome';
 import { periodoMensalSaoPaulo } from '../../utils/resumoFinanceiro';
@@ -32,6 +34,7 @@ export default function HomeScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { fetchUsuario } = useDataRefresh();
   const [periodo, setPeriodo] = useState(() => periodoMensalSaoPaulo());
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const financeiro = useResumoHome(periodo);
   const descobertas = useDescobertasResumo(periodo);
   const tempo = useTempoUsoHome(!usageMonitoringReadsEnabled);
@@ -172,7 +175,22 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <SeletorMensalHome periodo={periodo} limites={financeiro.dados?.seletor} loading={financeiro.loading} error={financeiro.error} onChange={setPeriodo} />
+        <SeletorMensalHome
+          periodo={periodo}
+          limites={financeiro.dados?.seletor}
+          loading={financeiro.loading}
+          error={financeiro.error}
+          onChange={setPeriodo}
+          onChoose={financeiro.dados?.seletor ? () => setMonthPickerOpen(true) : undefined}
+        />
+        {financeiro.dados?.seletor ? <SeletorMes
+          visible={monthPickerOpen}
+          value={periodo}
+          minMonth={financeiro.dados.seletor.periodoMinimo}
+          maxMonth={financeiro.dados.seletor.periodoMaximo}
+          onChange={setPeriodo}
+          onClose={() => setMonthPickerOpen(false)}
+        /> : null}
         <PurchaseHero />
         <View style={{ marginHorizontal: 18, marginBottom: 14 }}><CardFinanceiroHome dados={financeiro.dados} loading={financeiro.loading} error={financeiro.error} onRetry={financeiro.refresh} orcamentoFixo={usuario?.usuario_meta_valor_mensal} /></View>
         <MetasHome
@@ -218,7 +236,9 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.recommendationItemTitle}>{item.titulo}</Text>
                 <Text style={styles.recommendationItemText}>{item.texto}</Text>
                 <View style={styles.recommendationActions}>
-                  <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={styles.inlineActionText}>Conversar sobre isso</Text></TouchableOpacity>
+                  {!estaRecomendacaoExpirada(item.expiraEm) ? (
+                    <TouchableOpacity accessibilityRole="button" onPress={() => conversarSobreRecomendacao(item)}><Text style={styles.inlineActionText}>Conversar sobre isso</Text></TouchableOpacity>
+                  ) : null}
                   <TouchableOpacity accessibilityRole="button" onPress={() => recomendacoes.updateStatus(item.id, 'DESCARTADA')}><Text style={styles.recommendationSecondaryAction}>Dispensar</Text></TouchableOpacity>
                 </View>
               </View>

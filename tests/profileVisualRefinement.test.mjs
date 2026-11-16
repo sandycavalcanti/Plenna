@@ -37,7 +37,8 @@ test('perfil usa acentos suaves da paleta existente sem criar cores locais', asy
   assert.doesNotMatch(header, /borderLeftWidth|borderLeftColor/);
   assert.match(header, /COLORS\.buttonOutlineBorder/);
   assert.match(finance, /COLORS\.surfaceMuted/);
-  assert.match(permissions, /borderTopColor: COLORS\.border/);
+  assert.match(permissions, /memorySection:\s*\{\s*marginTop: 0, paddingTop: 0 \}/);
+  assert.doesNotMatch(permissions, /memorySection:[\s\S]*?borderTopWidth/);
   assert.doesNotMatch(permissions, /backgroundColor: COLORS\.surfaceMuted/);
   assert.match(security, /securityIcon/);
   for (const source of [header, finance, permissions, security]) {

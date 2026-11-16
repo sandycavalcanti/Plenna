@@ -74,10 +74,15 @@ async function ambiente() {
     'react-native': {
       View: 'View', Text: 'Text', Switch: 'Switch', Pressable: 'Pressable', TextInput: 'TextInput',
       ActivityIndicator: 'ActivityIndicator',
+      Linking: { openSettings: async () => {} },
       Alert: { alert: (...args) => { state.alert = args; } },
       AppState: { addEventListener: () => ({ remove() {} }) },
     },
-    '@react-navigation/native': { useNavigation: () => ({ navigate: (...args) => state.navigations.push(args) }) },
+    '@react-navigation/native': {
+      useNavigation: () => ({ navigate: (...args) => state.navigations.push(args) }),
+      createNavigationContainerRef: () => ({ isReady: () => false }),
+    },
+    '@expo/vector-icons': { Ionicons: 'Ionicons' },
     'src/components/ProfileComponents/ProfileCard.js': { default: 'ProfileCard' },
     'src/components/ProfileComponents/Permissions/styles.js': { default: {} },
     'src/components/CustomButton.js': { default: 'Pressable' },
@@ -102,6 +107,13 @@ async function ambiente() {
       },
     },
     'src/utils/error.js': { logApiErrors: () => {} },
+    'src/services/notifications/notificationStorage.js': {
+      notificationStorage: { getExpoPushToken: async () => null },
+    },
+    'src/services/notifications/notificationService.js': {
+      getNotificationPermissionStatus: async () => ({ status: 'unavailable', reason: 'test' }),
+      requestNotificationPermissionAndRegister: async () => ({ status: 'unavailable', reason: 'test' }),
+    },
   };
   const base = new URL('../', import.meta.url);
   const cache = new Map();

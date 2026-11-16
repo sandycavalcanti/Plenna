@@ -22,6 +22,7 @@ async function profile(options = {}) {
   const r = createRenderer({
     'react-native': {
       ...Object.fromEntries(['View','Text','Switch','Pressable','Modal','ScrollView','ActivityIndicator'].map(n => [n,n])),
+      Linking: { openSettings: async () => {} },
       StyleSheet: {create: v => v}, Alert: {alert: (...args) => alerts.push(args)},
       AppState: {addEventListener: (_, fn) => {foreground.add(fn);return {remove: () => foreground.delete(fn)};}},
     },
@@ -53,6 +54,18 @@ async function profile(options = {}) {
     '../../../services/gmailOAuthService': {consultarStatusGmail: async () => null, conectarGmailInterativo: async () => {}},
     '../../../utils/error': {logApiErrors() {}},
     './styles': {__esModule:true,default:{},styles:{},presentationStyles:{}},
+    '../../../services/notifications/notificationStorage': {
+      notificationStorage: { getExpoPushToken: async () => null },
+    },
+    '../../../services/notifications/notificationService': {
+      getNotificationPermissionStatus: async () => ({ status: 'unavailable', reason: 'test' }),
+      requestNotificationPermissionAndRegister: async () => ({ status: 'unavailable', reason: 'test' }),
+    },
+    '@react-navigation/native': {
+      useNavigation: () => ({ navigate() {} }),
+      createNavigationContainerRef: () => ({ isReady: () => false }),
+    },
+    '@expo/vector-icons': { Ionicons: 'Ionicons' },
   });
   r.mount(r.load('src/components/ProfileComponents/Permissions/index.js').default);
   await settle(r);

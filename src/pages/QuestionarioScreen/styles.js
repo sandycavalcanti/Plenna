@@ -91,11 +91,11 @@ export const styles = StyleSheet.create({
     marginTop: 15,
   },
   actionsArea: {
-    width: '100%',
+    width: '95%',
     alignItems: 'center',
     paddingTop: 6,
-    paddingHorizontal: 30,
-    paddingBottom: 6,
+    paddingHorizontal: 0,
+    paddingBottom: 12,
   },
   stepThreeContainer: {
     width: '95%',
@@ -172,7 +172,7 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   secondaryAction: {
-    width: 'auto',
+    width: '100%',
     minWidth: 170,
   },
   closeButton: {

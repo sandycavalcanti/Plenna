@@ -33,6 +33,12 @@ export default StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  notificationError: {
+    marginTop: 4,
+    color: COLORS.buttonDangerText,
+    fontSize: 11,
+    lineHeight: 15,
+  },
   lastRow: { borderBottomWidth: 0, marginBottom: 2 },
   textContainer: { flex: 1, paddingRight: 12 },
   text: { fontSize: 14, fontWeight: '600', color: COLORS.cadTitulo },
@@ -50,7 +56,7 @@ export default StyleSheet.create({
     backgroundColor: COLORS.buttonSecondaryBackground,
     lineHeight: 16,
   },
-  memorySection: { marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderTopColor: COLORS.border },
+  memorySection: { marginTop: 0, paddingTop: 0 },
   memoryComposer: { marginTop: 6 },
   memoryInput: {
     minHeight: 42,

@@ -8,21 +8,20 @@ import styles from './styles';
 import { logApiErrors } from '../../../utils/error';
 import { concluirMeta } from '../../../api/metas';
 import { confirmarConclusaoMeta } from '../../../utils/confirmarConclusaoMeta';
+import { filtrarMetasNaoConcluidas, metaEstaConcluida } from '../../../utils/metasExibicao';
 
 export default function Metas({ metas, error = false, onRetry }) {
   const navigation = useNavigation();
-  const [metasVisiveis, setMetasVisiveis] = useState(Array.isArray(metas) ? metas : []);
+  const [metasVisiveis, setMetasVisiveis] = useState(() => filtrarMetasNaoConcluidas(metas));
 
   useEffect(() => {
-    setMetasVisiveis(Array.isArray(metas) ? metas : []);
+    setMetasVisiveis(filtrarMetasNaoConcluidas(metas));
   }, [metas]);
 
   function alternarMeta(meta) {
-    confirmarConclusaoMeta(meta, () => concluirMeta(meta.meta_id, !meta.meta_completado)
+    confirmarConclusaoMeta(meta, () => concluirMeta(meta.meta_id, !metaEstaConcluida(meta))
       .then(() => {
-        setMetasVisiveis((current) => current.map((currentMeta) => (
-          currentMeta.meta_id === meta.meta_id ? { ...currentMeta, meta_completado: !currentMeta.meta_completado } : currentMeta
-        )));
+        setMetasVisiveis((current) => current.filter((currentMeta) => currentMeta.meta_id !== meta.meta_id));
       })
       .catch((requestError) => logApiErrors(requestError, 'Erro ao atualizar meta')));
   }
@@ -40,23 +39,27 @@ export default function Metas({ metas, error = false, onRetry }) {
       onEdit={() => navigation.navigate('EditProfile', { mode: 'metas' })}
     >
       {error ? (
-        <AppEmptyState
-          icon="alert-circle-outline"
-          title="Não foi possível carregar suas metas."
-          description="Tente novamente para atualizar este resumo."
-          actionLabel="Tentar novamente"
-          onAction={onRetry}
-          compact
-        />
+        <View style={styles.emptyBody}>
+          <AppEmptyState
+            icon="alert-circle-outline"
+            title="Não foi possível carregar suas metas."
+            description="Tente novamente para atualizar este resumo."
+            actionLabel="Tentar novamente"
+            onAction={onRetry}
+            compact
+          />
+        </View>
       ) : metasVisiveis.length === 0 ? (
-        <AppEmptyState
-          icon="target-variant"
-          title="Nenhuma meta cadastrada."
-          description="Crie uma meta para acompanhar seu progresso."
-          actionLabel="Criar meta"
-          onAction={() => navigation.navigate('EditProfile', { mode: 'metas' })}
-          compact
-        />
+        <View style={styles.emptyBody}>
+          <AppEmptyState
+            icon="target-variant"
+            title="Nenhuma meta cadastrada."
+            description="Crie uma meta para acompanhar seu progresso."
+            actionLabel="Criar meta"
+            onAction={() => navigation.navigate('EditProfile', { mode: 'metas' })}
+            compact
+          />
+        </View>
       ) : (
         <View style={styles.list}>
           {metasVisiveis.map((meta) => (

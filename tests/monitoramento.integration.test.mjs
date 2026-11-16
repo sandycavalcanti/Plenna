@@ -14,7 +14,7 @@ function profile({ denied = false, offline = false } = {}) {
   const session = {id: 1, signal: new AbortController().signal};
   const state = { permission: !denied, offline, settings: 0, consent: true, changes: [] };
   const r = createRenderer({
-    'react-native':native(),
+    'react-native':native({Linking:{openSettings:async()=>{}}}),
     '../UsageMonitoringControls':{__esModule:true,default:()=>null},
     '../../../api/tokenStorage':{tokenStorage:{captureSession:async()=>session,assertSession:()=>{}}},
     '../../../api/consentimento':{listarConsentimentos:async()=>{if(state.offline)throw Error('NETWORK');return [{consentimento_tipo_codigo:'MONITORAMENTO_TEMPO_USO',consentimento_status:state.consent}];},registrarConsentimento:async()=>{}},
@@ -24,6 +24,13 @@ function profile({ denied = false, offline = false } = {}) {
     '../../../../modules/plenna-usage-stats':{getModuleStatus:async()=>({available:true}),hasUsageAccess:async()=>state.permission,openUsageAccessSettings:async()=>{state.settings++;return true;}},
     '../../../services/gmailOAuthService':{consultarStatusGmail:async()=>null,conectarGmailInterativo:async()=>{}},
     '../../../utils/error':{logApiErrors(){}},
+    '../../../services/notifications/notificationStorage':{
+      notificationStorage:{getExpoPushToken:async()=>null},
+    },
+    '../../../services/notifications/notificationService':{
+      getNotificationPermissionStatus:async()=>({status:'unavailable',reason:'test'}),
+      requestNotificationPermissionAndRegister:async()=>({status:'unavailable',reason:'test'}),
+    },
   });
   return { r, state, mount:()=>r.mount(r.load('src/components/ProfileComponents/Permissions/index.js').default, {}) };
 }

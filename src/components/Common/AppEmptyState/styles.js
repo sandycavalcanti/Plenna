@@ -49,6 +49,7 @@ export default StyleSheet.create({
   action: {
     width: 'auto',
     minWidth: 150,
+    alignSelf: 'center',
     marginTop: 4,
   },
 });
