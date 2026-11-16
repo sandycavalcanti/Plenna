@@ -56,7 +56,7 @@ export default StyleSheet.create({
     backgroundColor: COLORS.buttonSecondaryBackground,
     lineHeight: 16,
   },
-  memorySection: { marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderTopColor: COLORS.border },
+  memorySection: { marginTop: 0, paddingTop: 0 },
   memoryComposer: { marginTop: 6 },
   memoryInput: {
     minHeight: 42,
