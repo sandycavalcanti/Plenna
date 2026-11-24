@@ -46,6 +46,7 @@ async function profile(options = {}) {
     }},
     '../../../services/usageMonitoringService': {
       readUsageMonitoringStatus: async session => {guard(session.id);return state.statusGate ? state.statusGate : state.status;},
+      hasPreviouslyActivatedUsageMonitoring: async session => {guard(session.id);return options.previouslyActivated === true;},
       prepareUsageMonitoringActivation: async session => {guard(session.id);state.operations.push('prepare');},
       synchronizeUsageMonitoring: async () => {state.operations.push('sync');},
     },
@@ -146,6 +147,17 @@ test('activation recovery retains confirmation and existing preparation/sync ord
   assert.deepEqual(h.state.operations,[]);
   await h.alerts.at(-1)[2].find(b=>b.text==='Ativar').onPress();await settle(h.r);
   assert.deepEqual(h.state.operations,['prepare','sync']);assert.deepEqual(h.state.writes,[]);h.r.unmount();
+});
+
+test('a configured installation offers resume and still requires confirmation', async () => {
+  const h = await profile({ status: 'ACTIVATION_REQUIRED', previouslyActivated: true });
+  await button(h.r, 'Retomar monitoramento').props.onPress();
+  assert.deepEqual(h.state.operations, []);
+  await h.alerts.at(-1)[2].find(action => action.text === 'Retomar').onPress();
+  await settle(h.r);
+  assert.deepEqual(h.state.operations, ['prepare', 'sync']);
+  assert.deepEqual(h.state.writes, []);
+  h.r.unmount();
 });
 
 test('a delayed status read cannot replace a newer service failure', async () => {

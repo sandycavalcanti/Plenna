@@ -53,7 +53,7 @@ export function createMonitoringEngine(d) {
         guard();
       }
       if (reply.schemaVersion !== 3 || reply.timezone !== d.timezone() || !Array.isArray(reply.windows) || !Array.isArray(reply.catalog) || reply.windows.length > 3 || reply.catalog.length > 30) throw new Error('INVALID_PREPARATION');
-      await d.remember(identity, reply);
+      await d.remember(identity, reply, session);
       guard();
       if (!reply.windows.length) return {
         schemaVersion: 3,

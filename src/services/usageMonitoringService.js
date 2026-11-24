@@ -74,6 +74,25 @@ async function post(path, payload, value, session, signal) {
   const response = await apiClient.post('/v2/tempo-uso' + path, payload, config(value, session, signal));
   return response.data;
 }
+async function activationHistoryKey(value, session) {
+  const { data } = await apiClient.get('/users/user', {
+    usageMonitoringSessionId: session.id,
+    signal: session.signal,
+    timeout: 5000,
+  });
+  tokenStorage.assertSession(session.id);
+  if (!Number.isSafeInteger(data?.usuario_id) || data.usuario_id <= 0) return null;
+  return `plenna.rf017.activated.${value.id}.${data.usuario_id}`;
+}
+
+export async function hasPreviouslyActivatedUsageMonitoring(session) {
+  const value = await identity();
+  const historyKey = await activationHistoryKey(value, session);
+  const activated = historyKey ? await SecureStore.getItemAsync(historyKey) : null;
+  tokenStorage.assertSession(session.id);
+  return activated === 'true';
+}
+
 const engine = createMonitoringEngine({
   session: () => tokenStorage.captureSession(),
   assertSession: id => tokenStorage.assertSession(id),
@@ -83,7 +102,7 @@ const engine = createMonitoringEngine({
   permission: hasUsageAccess,
   consentChanging: monitoramentoEmAlteracao,
   prepare: (body, value, session, signal) => post('/prepare', body, value, session, signal),
-  remember: async (value, reply) => {
+  remember: async (value, reply, session) => {
     await saveIdentity({
       ...value,
       currentBoundary: undefined,
@@ -92,6 +111,14 @@ const engine = createMonitoringEngine({
       needsNewEpisode: false,
       pendingActivation: null
     });
+    if (value.pendingActivation === value.currentBoundary && value.currentBoundary) {
+      try {
+        const historyKey = await activationHistoryKey(value, session);
+        if (historyKey) await SecureStore.setItemAsync(historyKey, 'true');
+      } catch {
+        // O registro local serve apenas para a apresentação da próxima ativação.
+      }
+    }
   },
   collect: getUsageObservations,
   cancelNative: cancelUsageCollection,

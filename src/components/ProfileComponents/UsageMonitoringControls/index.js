@@ -3,7 +3,7 @@ import { styles } from "./styles";
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import { tokenStorage } from '../../../api/tokenStorage';
-import { synchronizeUsageMonitoring, prepareUsageMonitoringActivation, readUsageMonitoringStatus } from '../../../services/usageMonitoringService';
+import { synchronizeUsageMonitoring, prepareUsageMonitoringActivation, readUsageMonitoringStatus, hasPreviouslyActivatedUsageMonitoring } from '../../../services/usageMonitoringService';
 import { observeUsageSyncState } from '../../../utils/usageMonitoringStatus';
 import { listarConsentimentos, registrarConsentimento } from '../../../api/consentimento';
 import ReadingDetails from '../../ReadingDetails';
@@ -15,6 +15,7 @@ export default function UsageMonitoringControls({
 }) {
   const [busy, setBusy] = useState(false),
     [needed, setNeeded] = useState(false),
+    [previouslyActivated, setPreviouslyActivated] = useState(false),
     [message, setMessage] = useState('');
   const [detailed, setDetailed] = useState(null);
   const [detailedError, setDetailedError] = useState(false);
@@ -95,7 +96,14 @@ export default function UsageMonitoringControls({
       owner;
     const present = status => {
       setNeeded(status === 'ACTIVATION_REQUIRED');
+      if (status !== 'ACTIVATION_REQUIRED') setPreviouslyActivated(false);
       statusCallback.current?.(status);
+      if (status === 'ACTIVATION_REQUIRED' && owner) {
+        const request = generation;
+        hasPreviouslyActivatedUsageMonitoring(owner).then(activated => {
+          if (mounted && request === generation && !owner.signal.aborted) setPreviouslyActivated(activated);
+        }).catch(() => {});
+      }
     };
     const clear = () => {
       generation++;
@@ -162,18 +170,19 @@ export default function UsageMonitoringControls({
       if (live.current) setBusy(false);
     }
   }
+  const activationLabel = previouslyActivated ? 'Retomar monitoramento' : 'Concluir ativação';
   return <View>
     {consent && permission && needed && <Pressable disabled={busy} accessibilityRole="button" style={presentationStyles.inline1} onPress={async () => {
       const session = await confirmationSession();
       if (!session) return;
-      Alert.alert('Concluir ativação', 'O PLENNA consultará o uso dos aplicativos de compra a partir desta autorização, somente enquanto estiver aberto. O Android não identifica quem utilizou o aparelho.', [{
+      Alert.alert(activationLabel, 'O PLENNA consultará o uso dos aplicativos de compra a partir desta autorização, somente enquanto estiver aberto. O Android não identifica quem utilizou o aparelho.', [{
         text: 'Cancelar',
         style: 'cancel'
       }, {
-        text: 'Ativar',
+        text: previouslyActivated ? 'Retomar' : 'Ativar',
         onPress: () => activate(session)
       }]);
-    }}><Text style={styles.link}>{busy ? 'Ativando…' : 'Concluir ativação'}</Text></Pressable>}
+    }}><Text style={styles.link}>{busy ? 'Confirmando…' : activationLabel}</Text></Pressable>}
     {!!message && <Text style={styles.status} accessibilityLiveRegion="polite">{message}</Text>}
     <ReadingDetails label="Como funciona o monitoramento?" presentation="sheet">
       <Text style={styles.status}>O Plenna acompanha o tempo de uso de aplicativos de compras para ajudar você a compreender seus hábitos digitais.</Text>
