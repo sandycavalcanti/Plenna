@@ -29,6 +29,7 @@ import { invalidateProtectedSession } from '../../services/security/protectedSes
 import { useProtectedAccess } from '../../hooks/useProtectedAccess';
 import { PROTECTED_ACCESS_AREAS } from '../../services/security/protectedArea';
 import PinModal from '../../components/SecurityComponents/PinModal';
+import { notificationStorage } from '../../services/notifications/notificationStorage';
 import { disableRegisteredDevice } from '../../services/notifications/notificationService';
 
 /**
@@ -108,8 +109,8 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await disableRegisteredDevice();
             await apiClient.delete('/users');
+            await notificationStorage.clearExpoPushToken().catch(() => {});
             await tokenStorage.clearToken();
             invalidateProtectedSession();
             goToLogin();
