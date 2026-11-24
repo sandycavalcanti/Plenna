@@ -66,7 +66,7 @@ export default function DetalhesPeriodo({
     <Pressable accessibilityRole="button" accessibilityState={{
       expanded: metodo
     }} onPress={() => setMetodo(v => !v)} style={s.toggle}><Text style={s.strong}>Sobre os dados deste período</Text><Ionicons name={metodo ? 'chevron-up' : 'chevron-down'} size={18} color={c.navy} /></Pressable>
-    {metodo && <View style={s.detail}><Text style={s.caption}>Classificações são escolhas salvas; sugestões automáticas não entram nas contagens. Fatores e relações consideram somente respostas válidas, que podem cobrir parte das compras. Os registros refletem o estado disponível na consulta; não há informação completa sobre alterações posteriores.</Text>{d.limitacoes.map((v, i) => <Text key={i} style={s.caption}>{v}</Text>)}<Text style={s.caption}>Fatores descrevem respostas voluntárias. Autopercepção e classificação são registros distintos; não há classificação automática. Não há comparação com períodos sem cobertura comprovada.</Text></View>}
+    {metodo && <View style={s.detail}><Text style={s.caption}>As contagens usam as classificações que você salvou. Os fatores descritos vêm das respostas voluntárias disponíveis para o período.</Text>{d.limitacoes.map((v, i) => <Text key={i} style={s.caption}>{v}</Text>)}<Text style={s.caption}>O Plenna só compara períodos quando há cobertura comprovada. As respostas sobre como você percebeu a compra são exibidas separadamente das classificações.</Text></View>}
     {horario && <Text style={s.caption}>{horario}</Text>}
   </View>;
 }

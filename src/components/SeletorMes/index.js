@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
@@ -150,9 +150,9 @@ export default function SeletorMes({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
-        <Pressable onPress={event => event.stopPropagation()}>
+        <Pressable style={styles.sheet} onPress={event => event.stopPropagation()}>
           <SafeAreaView edges={['bottom']} style={styles.monthModal}>
-            {content}
+            <ScrollView keyboardShouldPersistTaps="handled">{content}</ScrollView>
           </SafeAreaView>
         </Pressable>
       </Pressable>

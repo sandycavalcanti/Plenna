@@ -154,7 +154,7 @@ export default function Impulsividade({
           <View style={styles.heroCard}>
             <View style={styles.ringWrap}>
               <View style={styles.ringShell} accessible accessibilityRole="image" accessibilityLabel={`${above} compras acima do limite neste período`}>
-                <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ringSvg}>
+                <Svg width="88%" height="88%" viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} style={styles.ringSvg}>
                   <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke="#EAE3F7" strokeWidth={RING_STROKE} fill="transparent" />
                   <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke={limitColor} strokeWidth={RING_STROKE} fill="transparent" strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`} strokeDashoffset={progressOffset} strokeLinecap="round" rotation="-90" origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`} />
                 </Svg>
@@ -206,7 +206,7 @@ export default function Impulsividade({
         <View style={styles.heroCard}>
           <View style={styles.ringWrap}>
             <View style={styles.ringShell} accessible accessibilityRole="image" accessibilityLabel={`${relevantQuantity} compras acima do limite neste período`}>
-              <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ringSvg}>
+              <Svg width="88%" height="88%" viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} style={styles.ringSvg}>
                 <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke="#EAE3F7" strokeWidth={RING_STROKE} fill="transparent" />
                 <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} stroke={indicatorColor} strokeWidth={RING_STROKE} fill="transparent" strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`} strokeDashoffset={progressOffset} strokeLinecap="round" rotation="-90" origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`} />
               </Svg>

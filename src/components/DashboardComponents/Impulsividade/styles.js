@@ -99,6 +99,7 @@ export const styles = StyleSheet.create({
   },
   limitContextHeader: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8
@@ -137,9 +138,10 @@ export const styles = StyleSheet.create({
     color: T.body
   },
   ringShell: {
-    width: 172,
-    height: 172,
-    borderRadius: 86,
+    width: '100%',
+    maxWidth: 172,
+    aspectRatio: 1,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',

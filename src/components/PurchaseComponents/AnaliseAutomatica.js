@@ -148,7 +148,7 @@ export default function AnaliseAutomatica({
                 {motivos.principais.map(motivo => <Text key={motivo} style={presentationStyles.inline8}>{motivo}</Text>)}
               </View>}
             </>}
-            {d.evidencias.length > 0 && <View><Text style={s.title}>Principais fatores considerados</Text>{[...d.evidencias].sort((a, b) => Number(b.sinal) - Number(a.sinal)).slice(0, 3).map(e => <View key={e.indicador} style={[s.row, s.divider]}><View style={s.icon}><Ionicons name="analytics-outline" color={DASHBOARD_THEME.colors.navy} size={19} /></View><View style={s.copy}><Text style={s.body}>{labels[e.indicador] || 'Referência disponível'}</Text><Text style={s.caption}>{e.sinal ? 'Diferença observada' : 'Sem diferença por este critério'}</Text><Text style={s.caption}>{format(e.observado, e.unidade)} · referência {format(e.referencia, e.unidade)}</Text></View></View>)}</View>}
+            {d.evidencias.length > 0 && <ReadingDetails label="Ver valores e referências">{[...d.evidencias].sort((a, b) => Number(b.sinal) - Number(a.sinal)).slice(0, 3).map(e => <View key={e.indicador} style={[s.row, s.divider]}><View style={s.icon}><Ionicons name="analytics-outline" color={DASHBOARD_THEME.colors.navy} size={19} /></View><View style={s.copy}><Text style={s.body}>{labels[e.indicador] || 'Referência disponível'}</Text><Text style={s.caption}>{e.sinal ? 'Diferença observada' : 'Sem diferença por este critério'}</Text><Text style={s.caption}>{format(e.observado, e.unidade)} · referência {format(e.referencia, e.unidade)}</Text></View></View>)}</ReadingDetails>}
             {d.descobertas[0] && <Text style={presentationStyles.inline3}>
                 {d.descobertas[0].mensagem}
               </Text>}

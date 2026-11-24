@@ -269,12 +269,12 @@ export default StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    minWidth: 120,
+    minWidth: 138,
     minHeight: 48,
   },
   submitButton: {
     flex: 1,
-    minWidth: 160,
+    minWidth: 138,
     minHeight: 48,
   },
 });

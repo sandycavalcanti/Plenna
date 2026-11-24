@@ -17,7 +17,7 @@ export default StyleSheet.create({
   descriptionInput: { minHeight: 84, borderRadius: 14, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: 14, paddingVertical: 12, color: COLORS.cadTitulo, fontSize: 15, lineHeight: 21, backgroundColor: COLORS.surface },
   inputFocused: { borderColor: COLORS.cadTextoAdicionarLimites, backgroundColor: COLORS.surface },
   error: { color: COLORS.buttonDangerText, lineHeight: 19, padding: 10, borderRadius: 10, backgroundColor: COLORS.buttonDangerBackground },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 2 },
-  actionButton: { flex: 1, width: 'auto' },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'stretch', gap: 10, marginTop: 2 },
+  actionButton: { flex: 1, width: 'auto', minWidth: 124, minHeight: 48 },
   deleteButton: { width: '100%', minHeight: 46 },
 });

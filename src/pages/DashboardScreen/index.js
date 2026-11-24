@@ -1,4 +1,3 @@
-import { segundosHistoricoUso, filtrarHistoricoUso } from '../../utils/historicoTempoUso';
 import { mensagemErroAnalytics, diagnosticoAnalytics } from '../../utils/erroAnalytics';
 import { useResumoHome } from '../../hooks/useResumoHome';
 import UsageTimePanel from '../../components/UsageTimePanel';
@@ -120,18 +119,6 @@ function formatCents(cents) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
-}
-
-function formatDailyDuration(totalMinutes) {
-  const minutes = Math.max(0, Math.round(Number(totalMinutes) || 0));
-  if (minutes <= 0) return '--';
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours === 0) return `${remainingMinutes}m`;
-  if (remainingMinutes === 0) return `${hours}h`;
-  return `${hours}h ${remainingMinutes}m`;
 }
 
 function formatReais(value) {
@@ -961,7 +948,6 @@ export default function DashboardScreen({ route, navigation }) {
   const limitData = period?.compras_acima_limite || { acima_limite: 0, dentro_limite: 0 };
   const limitTotal = Number(limitData.acima_limite || 0) + Number(limitData.dentro_limite || 0);
   const limitIndicatorColor = corPorProporcao(limitData.acima_limite, limitTotal, 'RISCO');
-  const dailyUsageMinutes = segundosHistoricoUso(filtrarHistoricoUso(tempoUso, selectedMonth)) / 60;
   const configuredBudget = Number(usuario?.usuario_meta_valor_mensal);
   const configuredBudgetCents = Number.isFinite(configuredBudget) && configuredBudget > 0
     ? Math.round(configuredBudget * 100)
@@ -994,13 +980,6 @@ export default function DashboardScreen({ route, navigation }) {
     subtitle: 'economia registrada',
     iconColor: COLORS.dadoDois,
     icon: 'sale'
-  }, {
-    key: 'tempo-sites',
-    label: 'Tempo em aplicativos',
-    value: usageMonitoringReadsEnabled ? 'Ver tempo registrado' : formatDailyDuration(dailyUsageMinutes),
-    subtitle: usageMonitoringReadsEnabled ? 'tempo em aplicativos no mês' : dailyUsageMinutes > 0 ? 'registrado no mês' : 'nenhum registro no mês',
-    iconColor: COLORS.customButtonFundo,
-    icon: 'clock-outline'
   }];
   const renderOverview = () => {
     if (overviewLoading && !overviewData) return <LoadingState />;

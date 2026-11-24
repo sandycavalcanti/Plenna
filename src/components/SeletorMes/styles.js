@@ -15,7 +15,11 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(34, 37, 64, 0.4)'
   },
+  sheet: {
+    maxHeight: '90%',
+  },
   monthModal: {
+    flexShrink: 1,
     paddingHorizontal: S.lg,
     paddingTop: S.sm,
     paddingBottom: S.sm,

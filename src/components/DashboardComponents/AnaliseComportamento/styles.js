@@ -20,13 +20,13 @@ export const styles = StyleSheet.create({
   },
   metricRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: S.sm
   },
   metric: {
     flex: 1,
-    minWidth: 0,
+    minWidth: 112,
     minHeight: 78,
-    justifyContent: 'center',
     padding: S.md,
     borderRadius: R.md,
     backgroundColor: T.surfaceMuted
@@ -72,6 +72,7 @@ export const styles = StyleSheet.create({
   },
   categoryHeader: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: S.sm
