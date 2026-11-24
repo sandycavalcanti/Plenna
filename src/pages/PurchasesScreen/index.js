@@ -43,6 +43,7 @@ export default function PurchasesScreen({
   };
   const [filtros, setFiltros] = useState(filtrosTemporaisIniciais);
   const [criacaoConta, setCriacaoConta] = useState(null);
+  const [metadataStatus, setMetadataStatus] = useState('loading');
   const [metadataRevision, setMetadataRevision] = useState(0);
   const cursorRef = useRef(null);
   const [nextCursor, setNextCursor] = useState(null);
@@ -92,10 +93,12 @@ export default function PurchasesScreen({
     if (!isFocused || protectedAccess.status !== PROTECTED_ACCESS_STATES.UNLOCKED) return;
     const controller = new AbortController();
     let session, clear;
+    setMetadataStatus('loading');
     (async () => {
       try {
         session = await tokenStorage.captureSession();
-        if (!session || controller.signal.aborted) return;
+        if (controller.signal.aborted) return;
+        if (!session) throw Error('SESSION_REQUIRED');
         tokenStorage.assertSession(session.id);
         clear = () => {
           controller.abort();
@@ -106,11 +109,22 @@ export default function PurchasesScreen({
         });
         const response = await apiClient.get('/users/user', {
           signal: controller.signal,
+          timeout: 10000,
           usageMonitoringSessionId: session.id
         });
         tokenStorage.assertSession(session.id);
-        if (!controller.signal.aborted) setCriacaoConta(response.data?.usuario_data_criacao ?? null);
-      } catch {/* O filtro permanece indisponível até recuperar os limites reais. */}
+        if (!controller.signal.aborted) {
+          const creation = response.data?.usuario_data_criacao;
+          if (!referenciaInicioHistorico(creation)) throw Error('INVALID_ACCOUNT_DATE');
+          setCriacaoConta(creation);
+          setMetadataStatus('ready');
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setCriacaoConta(null);
+          setMetadataStatus('error');
+        }
+      }
     })();
     return () => {
       controller.abort();
@@ -442,7 +456,7 @@ export default function PurchasesScreen({
         </Pressable>
       </View>}
       <FlatList data={purchases} keyExtractor={item => String(item.compra_id)} renderItem={renderPurchaseCard} ListHeaderComponent={<>
-          <FiltroTemporalCompras filtros={filtros} inicioHistorico={referenciaInicioHistorico(criacaoConta)} onRetry={() => setMetadataRevision(value => value + 1)} onChange={next => {
+          <FiltroTemporalCompras filtros={filtros} inicioHistorico={referenciaInicioHistorico(criacaoConta)} metadataStatus={metadataStatus} onRetry={() => setMetadataRevision(value => value + 1)} onChange={next => {
         if (filtroConsumo) navigation.setParams({
           filtroConsumo: undefined
         });

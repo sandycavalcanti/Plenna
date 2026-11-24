@@ -16,6 +16,7 @@ export default function FiltroTemporalCompras({
   filtros,
   onChange,
   inicioHistorico,
+  metadataStatus = 'loading',
   onRetry
 }) {
   const [expanded, setExpanded] = useState(false),
@@ -75,7 +76,12 @@ export default function FiltroTemporalCompras({
       return false;
     }
   })();
-  if (!inicioHistorico) return <View style={s.container}><Text accessibilityRole="alert">Aguardando os limites da conta para liberar os filtros.</Text><Pressable accessibilityRole="button" onPress={onRetry}><Text>Tentar novamente</Text></Pressable></View>;
+  if (!inicioHistorico) return <View style={s.container}>
+    {metadataStatus === 'error' ? <>
+      <Text accessibilityRole="alert">Não foi possível carregar o período disponível.</Text>
+      <Pressable accessibilityRole="button" onPress={onRetry}><Text>Tentar novamente</Text></Pressable>
+    </> : <Text accessibilityLiveRegion="polite">Carregando o período disponível…</Text>}
+  </View>;
   return <View style={s.container}>
     <View style={s.modes} accessibilityRole="radiogroup" accessibilityLabel="Período das compras">
       {[['MES', 'Mês'], ['INTERVALO', 'Período'], ['TODOS', 'Todo o histórico']].map(([value, label]) => <Pressable key={value} accessibilityRole="radio" accessibilityState={{

@@ -175,13 +175,20 @@ export default function GerenciarCompra({
         if (!anulado && refundBalance != null && cents > refundBalance) throw Error('O valor supera o saldo disponível para reembolso.');
         body.valorCentavos = cents;
       }
-      if (['DEVOLUCAO', 'CANCELAMENTO'].includes(action) && scopedItemId && quantityDraft.trim()) {
+      if (action === 'CANCELAMENTO' && scopedItemId) {
+        const previous = eventosAtuais(state.data.eventos, correction?.id).some(event =>
+          event.tipo === 'CANCELAMENTO' && event.itemId === scopedItemId && event.dados?.quantidade != null);
+        if (!anulado && saldo === 0) throw Error('Este item já está cancelado.');
+        if (correction?.dados?.quantidade != null) body.quantidade = correction.dados.quantidade;
+        else if (previous && saldo != null && saldo > 0) body.quantidade = saldo;
+      }
+      if (action === 'DEVOLUCAO' && scopedItemId && quantityDraft.trim()) {
         const q = Number(quantityDraft.replace(',', '.'));
         if (!Number.isFinite(q) || q <= 0) throw Error('Confira a quantidade.');
         if (!anulado && saldo != null && q > saldo) throw Error('A quantidade supera o saldo disponível.');
         body.quantidade = q;
       }
-      if (!anulado && ['DEVOLUCAO', 'CANCELAMENTO'].includes(action) && saldo === 0) throw Error('Não há quantidade disponível para esta operação.');
+      if (!anulado && action === 'DEVOLUCAO' && saldo === 0) throw Error('Não há quantidade disponível para esta operação.');
       if (action === 'CLASSIFICACAO') {
         if (!classificacao) throw Error('Escolha uma opção.');
         body.classificacao = classificacao;
@@ -287,9 +294,9 @@ export default function GerenciarCompra({
                       <Text style={s.note}>{refundBalance == null ? 'O limite será validado com os valores registrados na compra.' : `Disponível para reembolso: ${formatarValorMoedaParaTela(String(refundBalance)) || 'R$ 0,00'}`}</Text>
                       {moedaParaCentavos(valor) != null && refundBalance != null && <Text style={s.note}>{moedaParaCentavos(valor) > refundBalance ? 'O valor supera o saldo disponível.' : moedaParaCentavos(valor) === refundBalance ? 'Este valor completa o reembolso do escopo selecionado.' : 'Reembolso parcial do saldo disponível.'}</Text>}
                       </>}
-                    {scopedItemId && ['DEVOLUCAO', 'CANCELAMENTO'].includes(action) && <>
+                    {scopedItemId && action === 'DEVOLUCAO' && <>
                         <Text style={s.note}>Quantidade comprada: {scopedItem?.compra_item_quantidade ?? 'Não informada'} · Disponível: {saldo ?? 'Não informada'}</Text>
-                        <Text style={s.label}>{action === 'DEVOLUCAO' ? 'Quantidade a devolver' : 'Quantidade a cancelar'}</Text>
+                        <Text style={s.label}>Quantidade a devolver</Text>
                         {saldo > 1 && Number.isInteger(saldo) && !correction && <View style={s.header}>
                           <Pressable accessibilityRole="button" accessibilityLabel="Diminuir quantidade" disabled={quantityValue <= 1} style={s.touch} onPress={() => setQuantidade(String(Math.max(1, quantityValue - 1)))}><Ionicons name="remove-circle-outline" size={28} color="#594367" /></Pressable>
                           <Text style={s.label}>{quantityDraft}</Text>
