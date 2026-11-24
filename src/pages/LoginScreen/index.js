@@ -61,7 +61,7 @@ export default function LoginScreen({ navigation }) {
       // Um novo login começa sempre sem herdar o desbloqueio local de outra
       // conta, mesmo que o SecureStore mantenha PINs de usuários anteriores.
       invalidateProtectedSession();
-      handleLogin();
+      handleLogin(dados.onboardingCompleto !== false);
     } catch (error) {
       logApiErrors(error, 'Erro ao realizar login');
       setFeedback({ type: 'error', message: getLoginErrorMessage(error) });

@@ -12,7 +12,7 @@ import LimitSlider from '../../components/LimitSlider';
 import ProfileCard from '../../components/ProfileComponents/ProfileCard';
 import PreferencesForm from '../../components/PreferencesForm';
 import { valorMonetarioParaNumero } from '../../components/CustomTextInput/currency';
-import { logApiErrors } from '../../utils/error';
+import AppFeedback from '../../components/Common/AppFeedback';
 import { COLORS } from '../../constants';
 import { apiClient } from '../../api/client';
 import { distribuirSobraEmOutros, obterIdCategoriaOutros, validarCatalogoCategorias } from '../../utils/categorias';
@@ -22,7 +22,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { invalidateProtectedSession } from '../../services/security/protectedSession';
 import { tokenStorage } from '../../api/tokenStorage';
 import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -38,6 +37,8 @@ const EMAIL_REGEX = /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-.]*)[A-Za-z0-9_+-]@([A-Za-
 export default function SignUpScreen({ navigation, route }) {
   const completandoOnboarding = route?.params?.completarOnboarding === true;
   const [step, setStep] = useState(completandoOnboarding ? 2 : 1);
+  const [resumeStatus, setResumeStatus] = useState(completandoOnboarding ? 'loading' : 'ready');
+  const [resumeAttempt, setResumeAttempt] = useState(0);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -74,25 +75,12 @@ export default function SignUpScreen({ navigation, route }) {
   const [checkboxMonitoramento, setCheckboxMonitoramento] = useState(false);
   const [checkboxAutorizacao, setCheckboxAutorizacao] = useState(false);
   const [checkboxTermos, setCheckboxTermos] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupFeedback, setSignupFeedback] = useState(null);
+  const signupInFlight = useRef(false);
+  const signupCreated = useRef(null);
+  const emailOptIn = useRef(false);
   const [monitoringDetailsVisible, setMonitoringDetailsVisible] = useState(false);
-
-  useEffect(() => {
-    const sub = Linking.addEventListener('url', (event) => {
-      const url = event.url;
-
-      if (url.includes('oauth-success')) {
-        WebBrowser.dismissBrowser();
-        setStep(2);
-      }
-
-      if (url.includes('oauth-error')) {
-        WebBrowser.dismissBrowser();
-        Alert.alert('Erro ao conectar email');
-      }
-    });
-
-    return () => sub.remove();
-  }, []);
 
   useEffect(() => {
     if (step === 2 && categories.length === 0) listarCategorias();
@@ -104,7 +92,7 @@ export default function SignUpScreen({ navigation, route }) {
     }
 
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (completandoOnboarding) {
+      if (completandoOnboarding || signupCreated.current) {
         Alert.alert('Preferências obrigatórias', 'Finalize suas preferências para acessar o Plenna.');
         return true;
       }
@@ -115,6 +103,47 @@ export default function SignUpScreen({ navigation, route }) {
 
     return () => backSubscription.remove();
   }, [completandoOnboarding, step]);
+
+  useEffect(() => {
+    if (!completandoOnboarding) return undefined;
+    const controller = new AbortController();
+    setResumeStatus('loading');
+    (async () => {
+      try {
+        const session = await tokenStorage.captureSession();
+        if (controller.signal.aborted) return;
+        if (!session) throw Error('SESSION_REQUIRED');
+        const config = { signal: controller.signal, usageMonitoringSessionId: session.id, timeout: 10000 };
+        const [{ data: user }, { data: preferences }] = await Promise.all([
+          apiClient.get('/users/user', config),
+          apiClient.get('/preferencia', config),
+        ]);
+        tokenStorage.assertSession(session.id);
+        if (controller.signal.aborted) return;
+        if (!user || !Array.isArray(preferences)) throw Error('INVALID_ONBOARDING_DATA');
+        const monthly = Number(user.usuario_meta_valor_mensal);
+        if (monthly > 0) {
+          limiteGastoReferencia.current = monthly;
+          setLimiteGastoValor(monthly);
+        }
+        setQuantidadeComprasMes(user.usuario_limite_compra == null ? '' : String(user.usuario_limite_compra));
+        setValorMaximoCompra(user.usuario_meta_valor_compra == null ? '' : String(user.usuario_meta_valor_compra));
+        limiteTempo.current = Number(user.usuario_meta_tempo) || 0;
+        setSelectedCategories(preferences.map(preference => ({
+          categoria_id: preference.categoria_id,
+          categoria_nome: preference.categoria_nome,
+          limite: Number(preference.preferencia_meta),
+        })));
+        setResumeStatus('ready');
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          registrarFalhaPreferencias(error, 'CARREGAMENTO_USUARIO', 'CADASTRO');
+          setResumeStatus('error');
+        }
+      }
+    })();
+    return () => controller.abort();
+  }, [completandoOnboarding, resumeAttempt]);
 
   const nomeValido = nome.trim().length >= 2;
   const emailValido = EMAIL_REGEX.test(email.trim());
@@ -270,38 +299,59 @@ export default function SignUpScreen({ navigation, route }) {
     setSelectedCategories(nextCategories);
   }
 async function CadastrarUsuario() {
-  let etapaCadastro = 'VALIDACAO';
-  try {
-    setStepOneAttempted(true);
+  if (signupInFlight.current) return;
+  setSignupFeedback(null);
+  setStepOneAttempted(true);
+  if (stepOneInvalido || !checkboxTermos) {
+    setSignupFeedback({
+      type: 'warning',
+      message: stepOneInvalido ? 'Confira os campos destacados.' : 'Aceite os termos de uso para continuar.',
+    });
+    return;
+  }
 
-    if (stepOneInvalido) {
-      Alert.alert('Campos inválidos', 'Confira os campos em vermelho.');
-      return;
+  signupInFlight.current = true;
+  setSignupLoading(true);
+  let etapaCadastro = 'CADASTRO_USUARIO';
+  try {
+
+    const credentials = { email: email.trim().toLowerCase(), senha };
+    let ambiguousRegistration;
+    if (signupCreated.current !== credentials.email) {
+      try {
+        await apiClient.post('/auth/register', {
+          ...credentials, nome: nome.trim(), aceitouTermos: true,
+        }, { timeout: 10000 });
+        signupCreated.current = credentials.email;
+      } catch (error) {
+        if (error?.response && error.response.status !== 409) throw error;
+        ambiguousRegistration = error;
+      }
     }
 
-    // A API valida unicidade no cadastro, sem endpoint de enumeracao.
-
-   const registerPayload = {
-      nome: nome.trim(),
-      email: email.trim(),
-      senha,
-      aceitouTermos: checkboxTermos,
-    };
-
-    etapaCadastro = 'CADASTRO_USUARIO';
-    await apiClient.post('/auth/register', registerPayload);
-
     etapaCadastro = 'LOGIN';
-    const loginResponse = await apiClient.post('/auth/login', {
-      email: email.trim(),
-      senha,
-    });
+    let loginResponse;
+    try {
+      loginResponse = await apiClient.post('/auth/login', credentials, { timeout: 10000 });
+    } catch (error) {
+      if (ambiguousRegistration) {
+        etapaCadastro = 'CADASTRO_USUARIO';
+        throw ambiguousRegistration;
+      }
+      throw error;
+    }
+    signupCreated.current = credentials.email;
 
     etapaCadastro = 'SESSAO';
     await tokenStorage.setToken(loginResponse.data.token);
     // O cadastro também inicia uma nova sessão de usuário e não pode herdar
     // uma área de compras desbloqueada anteriormente neste processo.
     invalidateProtectedSession();
+
+    if (loginResponse.data.onboardingCompleto === true) {
+      navigation.replace('App');
+      return;
+    }
 
       if (checkboxMonitoramento) {
         try {
@@ -328,13 +378,20 @@ async function CadastrarUsuario() {
         }
       }
 
-    if (checkboxAutorizacao) {
-      await vincularEmailGoogle();
-    } else {
-      setStep(2);
-    }
+    if (emailOptIn.current) await vincularEmailGoogle();
+    setStep(2);
   } catch (error) {
     registrarFalhaPreferencias(error, etapaCadastro, 'CADASTRO');
+    const status = error?.response?.status;
+    const message = etapaCadastro === 'CADASTRO_USUARIO' && status === 409
+      ? 'Este e-mail já está cadastrado. Confira a senha para retomar ou use a recuperação de senha.'
+      : etapaCadastro === 'CADASTRO_USUARIO' && status === 400
+        ? 'Confira o e-mail, os dados do cadastro e o aceite dos termos.'
+        : 'Não foi possível continuar agora. Confira os dados e tente novamente.';
+    setSignupFeedback({ type: 'error', message });
+  } finally {
+    signupInFlight.current = false;
+    setSignupLoading(false);
   }
 }
   function listarCategorias() {
@@ -465,21 +522,30 @@ async function CadastrarUsuario() {
 
 
   async function vincularEmailGoogle() {
+    let attempt;
+    let config;
+    let connected = false;
     try {
       const session = await tokenStorage.captureSession();
-      if (!session) throw new Error('Sessao nao encontrada');
-      const response = await apiClient.get('/email/connect');
-      const authUrl = response.data.url;
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, 'plenna://oauth-success');
-      if (result?.type !== 'success') return;
+      if (!session) return;
+      config = { usageMonitoringSessionId: session.id, timeout: 5000 };
+      const { data } = await apiClient.get('/email/connect', config);
+      attempt = { tentativa: data.tentativa, state: data.state, segredo: data.segredo };
       tokenStorage.assertSession(session.id);
-      // O callback do backend só conclui o redirecionamento após persistir a
-      // integração e conceder EMAIL=true. O listener de deep link também cobre
-      // esse avanço quando a página oauth-success.html abre o aplicativo.
-      setStep(2);
-    } catch (error) {
-      logApiErrors(error, 'Erro ao vincular e-mail ao Google');
-      Alert.alert('E-mail não ativado', 'Não foi possível confirmar a captura via e-mail. Você poderá ativá-la depois em Permissões.');
+      if (!emailOptIn.current) return;
+      const result = await WebBrowser.openAuthSessionAsync(data.url, 'plenna://oauth-success');
+      tokenStorage.assertSession(session.id);
+      if (result?.type === 'success') {
+        const redirect = new URL(result.url);
+        connected = redirect.protocol === 'plenna:' && redirect.hostname === 'oauth-success' &&
+          redirect.searchParams.get('tentativa') === attempt.tentativa;
+      }
+    } catch {
+      Alert.alert('Vinculação indisponível', 'Você pode continuar o cadastro e conectar seu e-mail depois em Permissões.');
+    } finally {
+      if (!connected && attempt?.tentativa) {
+        await apiClient.post('/email/connect/cancel', attempt, config).catch(() => {});
+      }
     }
   }
 
@@ -574,13 +640,18 @@ async function CadastrarUsuario() {
           </View>
           <TouchableOpacity
             style={styles.checkboxRow}
-            onPress={() => setCheckboxAutorizacao(!checkboxAutorizacao)}
+            onPress={() => {
+              emailOptIn.current = !emailOptIn.current;
+              setCheckboxAutorizacao(emailOptIn.current);
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: checkboxAutorizacao }}
             activeOpacity={0.7}
           >
             <View style={[styles.checkbox, checkboxAutorizacao && styles.checkboxChecked]}>
               {checkboxAutorizacao && <Text style={styles.checkboxMark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna</Text>
+            <Text style={styles.checkboxText}>Autorizo vincular meu e-mail ao Plenna (opcional)</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -619,12 +690,18 @@ async function CadastrarUsuario() {
               <Text style={styles.learnMoreText}>Saiba como funciona</Text>
             </TouchableOpacity>
           </View>
-          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} />
+          {signupFeedback && <AppFeedback {...signupFeedback} onDismiss={() => setSignupFeedback(null)} />}
+          <CustomButton title="Cadastrar" style={styles.button} onPress={CadastrarUsuario} disabled={signupLoading} loading={signupLoading} />
     </View>
   </ScrollView>
 )}
 
-      {step === 2 && (
+      {step === 2 && resumeStatus === 'loading' && <ActivityIndicator accessibilityLabel="Carregando preferências salvas" />}
+      {step === 2 && resumeStatus === 'error' && <View>
+        <AppFeedback type="error" message="Não foi possível carregar suas preferências salvas." />
+        <CustomButton title="Tentar novamente" onPress={() => setResumeAttempt(value => value + 1)} />
+      </View>}
+      {step === 2 && resumeStatus === 'ready' && (
         <ScrollView
           style={styles.containerScroll}
           contentContainerStyle={styles.contentContainer}
@@ -670,7 +747,9 @@ async function CadastrarUsuario() {
               <Text style={styles.monitoringModalBody}>{monitoringExplanation}</Text>
               <Text style={styles.monitoringModalBody}>{monitoringManagement}</Text>
             </ScrollView>
-            <CustomButton title="Entendi" variant="secondary" onPress={() => setMonitoringDetailsVisible(false)} style={styles.monitoringModalAction} />
+            <SafeAreaView edges={['bottom']}>
+              <CustomButton title="Entendi" variant="secondary" onPress={() => setMonitoringDetailsVisible(false)} style={styles.monitoringModalAction} />
+            </SafeAreaView>
           </Pressable>
         </Pressable>
       </Modal>

@@ -12,12 +12,14 @@ const diagnostics = modules.load('src/utils/preferenciasDiagnostico.js');
 const { calcularOrcamento, validarValorMonetario, MAX_VALOR_MONETARIO } = modules.load('src/utils/orcamento.js');
 const { parseMoneyDraft } = modules.load('src/components/MoneyInput/money.js');
 
-function flow({ editing = false, get, put, post, initialStep = 2 } = {}) {
+function flow({ editing = false, get, put, post, initialStep = 2, resumeUser = {}, resumePreferences = [] } = {}) {
   const reads = [], writes = [], logs = [];
   let parentProps;
   const apiClient = {
     async get(url) {
       reads.push(url);
+      if (!editing && initialStep === 2 && url === '/users/user') return { data: resumeUser };
+      if (!editing && initialStep === 2 && url === '/preferencia') return { data: resumePreferences };
       if (get) return { data: await get(url) };
       if (url === '/categories') return { data: catalog };
       if (url === '/users/user') return { data: { usuario_meta_valor_mensal: '963000.00', usuario_meta_valor_compra: '0.29' } };
@@ -40,6 +42,13 @@ function flow({ editing = false, get, put, post, initialStep = 2 } = {}) {
       return r.React.createElement(Form, props);
     } },
     '../../api/client': { apiClient },
+    '../../api/tokenStorage': {
+      tokenStorage: {
+        captureSession: async () => ({ id: 1, signal: new AbortController().signal }),
+        assertSession() {},
+        async setToken() {},
+      },
+    },
     '../../utils/preferenciasDiagnostico': {
       ...diagnostics,
       registrarFalhaPreferencias: (error, stage, mode) => logs.push(diagnostics.diagnosticarFalhaPreferencias(error, stage, mode)),
@@ -140,9 +149,9 @@ for (const editing of [false, true]) {
 
 test('cadastro real carrega catálogo ao entrar na etapa, sem abrir modal, e salva Outros com ID real', async () => {
   const h = flow();
-  assert.equal(h.button().disabled, true);
+  assert.equal(h.button(), undefined);
   await h.r.flush();
-  assert.deepEqual(h.reads, ['/categories']);
+  assert.deepEqual(h.reads, ['/categories', '/users/user', '/preferencia']);
   assert.equal(h.r.nodes((n) => n.type === 'Modal')[0].props.visible, false);
   assert.equal(h.button().disabled, false);
   await h.button().onPress();
@@ -268,17 +277,29 @@ test('catálogo indisponível e novas tentativas simultâneas compartilham uma l
   available = true;
   const retry = h.r.nodes((n) => n.type === 'Button' && n.props.title.includes('Tentar carregar'))[0].props.onPress;
   const first = retry(); const second = retry();
-  assert.equal(h.reads.length, 2);
+  assert.equal(h.reads.filter(path => path === '/categories').length, 2);
   resolveRead(catalog);
   await Promise.all([first, second]); await h.r.flush();
   await h.button().onPress();
   assert.equal(h.writes.length, 2);
 });
 
+test('retomar cadastro recupera orçamento e categorias persistidos', async () => {
+  const h = flow({
+    resumeUser: { usuario_meta_valor_mensal: '500.00', usuario_meta_valor_compra: '75.00' },
+    resumePreferences: [{ categoria_id: 1, categoria_nome: 'Roupas', preferencia_meta: '150.00' }],
+  });
+  await h.r.flush();
+  assert.equal(h.parent().limiteGastoValor, 500);
+  assert.equal(Number(h.parent().valorMaximoCompra), 75);
+  assert.deepEqual(h.parent().selectedCategories.map(({ categoria_id, limite }) => ({ categoria_id, limite })),
+    [{ categoria_id: 1, limite: 150 }]);
+});
+
 test('seleção usa catálogo do pai sem leituras extras ao abrir modal', async () => {
   const h = flow(); await h.r.flush();
   await h.add(); await h.add(1);
-  assert.deepEqual(h.reads, ['/categories']);
+  assert.deepEqual(h.reads, ['/categories', '/users/user', '/preferencia']);
   await h.change('Limite mensal', '100');
   await h.button().onPress();
   assert.equal(h.writes[1].payload.preferencias[0].categoriaId, 1);
@@ -378,6 +399,7 @@ for (const failingUrl of ['/auth/register', '/auth/login']) {
 test('handler do cadastro valida catálogo antes de qualquer PUT mesmo se chamado fora do botão', async () => {
   let resolveRead;
   const h = flow({ get: () => new Promise((resolve) => { resolveRead = resolve; }) });
+  await h.r.flush();
   await h.parent().onSalvar(false);
   assert.deepEqual(h.writes, []);
   assert.equal(h.logs[0].etapa, 'VALIDACAO');
