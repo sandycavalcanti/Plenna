@@ -64,7 +64,7 @@ for (const qualidade of ['COMPLETO', 'PARCIAL']) for (const cobertura of ['COMPL
     Object.assign(d.financeiro, { qualidade, cobertura, comprasSemValor: qualidade === 'PARCIAL' ? 1 : 0 });
     const chart = apresentarMeiaLua(d);
     const conservative = qualidade === 'PARCIAL' || cobertura !== 'COMPLETA';
-    const expectedState = conservative ? (percent > 100 ? 'VERMELHO' : 'NEUTRO') : expected;
+    const expectedState = expected;
     const expectedColor = { VERDE: '#267344', AMARELO: '#926500', LARANJA: '#A64C14', VERMELHO: '#B32646', NEUTRO: '#76658A' }[expectedState];
     assert.equal(chart.estado, expectedState);
     assert.equal(chart.cor, expectedColor);
@@ -78,8 +78,9 @@ test('orçamento fixo da Home conserva a ressalva de cobertura parcial', () => {
   const d = data(49, 'NEUTRO');
   d.financeiro.cobertura = 'DESCONHECIDA';
   const chart = apresentarMeiaLua(d, 20000);
-  assert.equal(chart.estado, 'NEUTRO');
+  assert.equal(chart.estado, 'VERDE');
   assert.equal(chart.percentual, 49);
+  assert.match(text(render({ dados: d })), /Dados parciais/);
   const above = data(115, 'VERMELHO');
   above.financeiro.qualidade = 'PARCIAL';
   above.financeiro.comprasSemValor = 1;

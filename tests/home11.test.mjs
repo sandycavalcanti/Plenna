@@ -58,10 +58,26 @@ test('Dashboard retains horizontal presentation and shared budget helper; Home u
  const home=await readFile(new URL('src/pages/HomeScreen/index.js',base),'utf8');assert.doesNotMatch(home,/useAnaliseComportamento|fetchCompras|AlertasHabito/);assert.match(home,/useResumoHome/);assert.match(home,/MetasHome/);assert.match(home,/CardFinanceiroHome/);assert.doesNotMatch(home,/navigate\('Dashboard', \{ periodo/);
  const screen=await readFile(new URL('src/pages/DashboardScreen/index.js',base),'utf8');assert.match(screen,/incomingPeriod/);assert.match(screen,/scrollTo/);assert.match(screen,/onLayout=\{mark\('tempo'\)\}/);
 });
-test('time hook never reads usage without consent; errors remain explicit',async()=>{
- const s=await readFile(new URL('src/hooks/useTempoUsoHome.js',base),'utf8');const code=s.replace(/^import .*;\r?\n/gm,'').replace('export function','function');
- for(const active of [false,true]){let state;const calls=[];const h=new Function('useCallback','useRef','useState','useFocusEffect','apiClient','tokenStorage',`${code};return useTempoUsoHome(true);`)(fn=>fn,()=>({current:0}),initial=>{state=initial;return[initial,s=>{state=s;}];},()=>{}, {get:async path=>{calls.push(path);if(path==='/consentimento')return{data:[{consentimento_tipo_codigo:'MONITORAMENTO_TEMPO_USO',consentimento_status:active}]};throw Error('offline');}},{captureSession:async()=>({id:1,signal:new AbortController().signal}),assertSession:()=>{}});
- await h.refresh();assert.equal(state.estado,active?'ERRO':'SEM_CONSENTIMENTO');assert.equal(calls.includes('/tempo-uso'),active);}
+test('history remains readable without a collection consent request and reports read failures',async()=>{
+ const s=await readFile(new URL('src/hooks/useTempoUsoHome.js',base),'utf8');
+ const code=s.replace(/^import .*;\r?\n/gm,'').replace('export function','function');
+ for(const failure of [false,true]){
+  let state;
+  const calls=[];
+  const records=[{tempo_uso_id:1}];
+  const h=new Function('useCallback','useRef','useState','useFocusEffect','apiClient','tokenStorage',`${code};return useTempoUsoHome(true);`)(
+   fn=>fn,()=>({current:0}),initial=>{state=initial;return[initial,next=>{state=next;}];},()=>{},
+   {get:async(path, config)=>{
+    calls.push(path);
+    assert.equal(config.usageMonitoringSessionId,1);
+    if(failure)throw Error('offline');
+    return {data:records};
+   }},
+   {captureSession:async()=>({id:1,signal:new AbortController().signal}),assertSession:()=>{}});
+  await h.refresh();
+  assert.deepEqual(calls,['/tempo-uso']);
+  assert.deepEqual(state,{estado:failure?'ERRO':'DISPONIVEL',registros:failure?[]:records});
+ }
 });
 
 test('private perspectives and recommendations unavailable without leaking evidence',()=>{

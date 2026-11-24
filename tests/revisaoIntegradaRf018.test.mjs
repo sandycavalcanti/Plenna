@@ -167,7 +167,9 @@ test('purchase list has no clear-filter rendering while preserving the period fi
   assert.doesNotMatch(source, /Limpar filtro/);
    assert.match(source, /comprasPeriodo\(\s*eligiblePurchases\s*,\s*filtroConsumo\s*\)/);
   assert.doesNotMatch(source, /mostrarOcultas|Compras ocultas|Voltar às compras visíveis/);
-  assert.doesNotMatch(source, /oculto|itensOcultos/);
-  assert.match(itemSource, /purchase\.tb_compra_item\.map/);
-  assert.doesNotMatch(itemSource, /itensOcultos/);
+  assert.match(source, /summaries\[purchase\.compra_id\]\?\.oculto === true/);
+  assert.match(source, /filter\(i => !resumos\[c\.compra_id\]\?\.itensOcultos\?\.includes\(i\.compra_item_id\)\)/);
+  assert.match(itemSource, /const visibleItems = useMemo\(\(\) => \(purchase\.tb_compra_item \|\| \[\]\)\.filter\(item => item\.compra_item_ativo !== 0 && !resumo\?\.itensOcultos\?\.includes\(item\.compra_item_id\)\)/);
+  assert.match(itemSource, /visibleItems\.length > 0 \? visibleItems\.map\(item/);
+  assert.doesNotMatch(itemSource, /mostrarOcultas|Itens ocultos|Voltar aos itens visíveis/);
 });

@@ -37,7 +37,8 @@ test('cards de dashboard usam borda semântica e reservam sombra para superfíci
   assert.match(theme, /borders:[\s\S]*?card:[\s\S]*?borderWidth: 1/);
   assert.match(theme, /borders:[\s\S]*?borderColor: COLORS\.border/);
   assert.ok((dashboard.match(/\.\.\.B\.card/g) || []).length >= 8);
-  assert.match(dashboard, /monthModal:[\s\S]*?\.\.\.SH\.card/);
+  const selector = await read('src/components/SeletorMes/styles.js');
+  assert.match(selector, /monthModal:[\s\S]*?\.\.\.SH\.card/);
   assert.match(profileCard, /dashboardContainer:[\s\S]*?\.\.\.DASHBOARD_BORDERS\.card/);
   assert.match(monthlySummary, /\.\.\.DASHBOARD_BORDERS\.card/);
   assert.doesNotMatch(monthlySummary, /shadowColor|shadowOpacity|shadowRadius|elevation/);

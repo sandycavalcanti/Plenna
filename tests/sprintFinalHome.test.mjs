@@ -30,7 +30,7 @@ test('meta date is an invitation to review, never evidence of failed financial p
 for(const [percent,state] of [[0,'VERDE'],[16.6,'VERDE'],[49,'VERDE'],[50,'AMARELO'],[74,'AMARELO'],[75,'LARANJA'],[86,'LARANJA'],[100,'LARANJA'],[115,'VERMELHO']]){
  test('known utilization with unknown coverage '+percent,()=>{
   const result=apresentarMeiaLua({financeiro:{qualidade:'PARCIAL',cobertura:'DESCONHECIDA',totalConhecidoCentavos:Math.round(percent*100)},orcamento:{valorCentavos:10000,disponibilidade:'REFERENCIA_ATUAL',percentualConhecido:percent,excessoConhecidoCentavos:percent>100?1500:null}});
-  assert.equal(result.estado,percent>100?state:'NEUTRO');assert.equal(result.progresso,Math.min(percent/100,1));assert.equal(result.percentual,percent);
+  assert.equal(result.estado,state);assert.equal(result.progresso,Math.min(percent/100,1));assert.equal(result.percentual,percent);
   assert.equal(result.restante,Math.max(0,10000-Math.round(percent*100)));
  });
 }
