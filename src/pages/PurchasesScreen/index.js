@@ -186,7 +186,9 @@ export default function PurchasesScreen({
       tokenStorage.assertSession(session.id);
       if (requestId !== purchaseRequest.current || controller.signal.aborted) return;
       if (!Array.isArray(response.data?.compras) || response.data.compras.length > 50 || response.data.proximoCursor !== null && (!Number.isSafeInteger(response.data.proximoCursor) || response.data.proximoCursor <= 0)) throw Error('INVALID_PURCHASE_LIST');
-      const eligiblePurchases = response.data.compras.filter(purchase => ['AGUARDANDO_CONFIRMACAO', 'CONFIRMADA', 'IGNORADA'].includes(purchase.compra_status));
+      // Defense in depth: ignored records are internal-only and must never be
+      // rendered even if an older or misconfigured API returns one.
+      const eligiblePurchases = response.data.compras.filter(purchase => ['AGUARDANDO_CONFIRMACAO', 'CONFIRMADA'].includes(purchase.compra_status));
       const summaries = await consultarResumosCompras(eligiblePurchases);
       tokenStorage.assertSession(session.id);
       if (requestId !== purchaseRequest.current || controller.signal.aborted) return;

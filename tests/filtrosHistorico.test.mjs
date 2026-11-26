@@ -5,7 +5,8 @@ import {createRenderer} from './helpers/componentRenderer.mjs';
 const native={View:'View',Text:'Text',TextInput:'TextInput',Modal:'Modal',ScrollView:'ScrollView',Pressable:'Pressable',StyleSheet:{create:value=>value}};
 test('período e status são independentes; intervalo mantém dias civis válidos',()=>{
   assert.deepEqual(parametrosHistorico(filtrosIniciais),{});
-  assert.deepEqual(parametrosHistorico({...filtrosIniciais,modo:'MES',mes:'2026-09',status:'IGNORADA'}),{mes:'2026-09',status:'IGNORADA'});
+  assert.throws(()=>parametrosHistorico({...filtrosIniciais,modo:'MES',mes:'2026-09',status:'IGNORADA'}));
+  assert.deepEqual(parametrosHistorico({...filtrosIniciais,modo:'MES',mes:'2026-09',status:'CONFIRMADA'}),{mes:'2026-09',status:'CONFIRMADA'});
   assert.deepEqual(parametrosHistorico({...filtrosIniciais,modo:'INTERVALO',inicio:'30/09/2026',fim:'01/10/2026'}),{inicio:'2026-09-30',fim:'2026-10-01'});
   assert.equal(dataCivilInput('30/02/2026'),null);
   assert.throws(()=>parametrosHistorico({...filtrosIniciais,modo:'INTERVALO',inicio:'02/10/2026',fim:'01/10/2026'}));
