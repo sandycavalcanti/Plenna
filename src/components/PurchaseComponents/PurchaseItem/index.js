@@ -133,8 +133,7 @@ export default function PurchaseItem({
   const visibleItems = useMemo(() => (purchase.tb_compra_item || []).filter(item => item.compra_item_ativo !== 0 && !resumo?.itensOcultos?.includes(item.compra_item_id)), [purchase.tb_compra_item, resumo?.itensOcultos]);
   const movements = [[resumo?.cancelamentos, 'Cancelamento registrado'], [resumo?.devolucoes, 'Devolu\u00e7\u00e3o registrada'], [resumo?.reembolsadoCentavos, 'Reembolso registrado']].filter(([count]) => Number.isSafeInteger(count) && count > 0).map(([, label]) => label);
   const itemsCount = visibleItems.length;
-  const establishment = purchase.compra_fonte || 'Origem não informada';
-  const primaryItemName = visibleItems.map(item => String(item.compra_item_nome || '').trim()).find(Boolean) || null;
+  const establishment = purchase.compra_fonte?.trim() || 'Loja não informada';
   // Os helpers são usados somente na apresentação; o objeto recebido não é alterado.
   const statusLabel = getStatusLabel(purchase.compra_status);
   const voluntaryClassification = resumo?.classificacao === 'PREFIRO_NAO_CLASSIFICAR' ? 'PENDENTE' : resumo?.classificacao ?? purchase.compra_classificacao;
@@ -264,8 +263,7 @@ export default function PurchaseItem({
       <View style={styles.headerRow}>
         <View style={purchaseStyles.icon}><MaterialCommunityIcons name="shopping-outline" size={22} color={COLORS.cadTitulo} /></View>
         <View style={styles.headerInfo}>
-          <Text style={primaryItemName ? styles.primaryItemName : styles.establishment} numberOfLines={1}>{primaryItemName || establishment}</Text>
-          {primaryItemName ? <Text style={styles.purchaseSource} numberOfLines={1}>{establishment}</Text> : null}
+          <Text style={styles.establishment} numberOfLines={1}>{establishment}</Text>
           <Text style={styles.date}>{formatDate(purchase.compra_horario)}</Text>
         </View>
         <View style={styles.headerValueGroup}>

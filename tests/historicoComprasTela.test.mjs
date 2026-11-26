@@ -59,10 +59,44 @@ test('card compacto expande somente itens visíveis e preserva o gerenciamento e
  h.mount(Card,{purchase:{compra_id:4,compra_status:'CONFIRMADA',compra_classificacao:'PENDENTE',compra_valor:20,
    compra_horario:'2026-10-01T02:30:00Z',tb_compra_item:[1,2].map(compra_item_id=>({compra_item_id,compra_item_nome:compra_item_id===1?'Visível':'Oculto',compra_item_ativo:1,compra_item_valor:10}))},
    resumo:{itensOcultos:[2]},onManage:(_purchase,item)=>calls.push(item?.compra_item_id)});
- assert.equal(h.nodes(node=>node.type==='Text'&&text(node)==='Visível').length,1);
+ assert.equal(h.nodes(node=>node.type==='Text'&&text(node)==='Visível').length,0);
  assert.ok(h.nodes(node=>node.type==='Text'&&text(node)==='30/09/2026').length);
  h.nodes(node=>node.props.accessibilityLabel==='Ver itens da compra')[0].props.onPress();await h.flush();
  assert.ok(h.nodes(node=>node.type==='Text'&&text(node)==='Visível').length);
  assert.equal(h.nodes(node=>node.type==='Text'&&text(node)==='Oculto').length,0);
  h.nodes(node=>node.props.accessibilityLabel==='Gerenciar item Visível')[0].props.onPress();assert.deepEqual(calls,[1]);h.unmount();
+});
+
+for (const scenario of [
+  { name: 'manual com um item', fonte: ' Papelaria Central ', title: 'Papelaria Central', productCount: 1 },
+  { name: 'e-mail com vários itens e classificação', fonte: 'Loja da Praça', title: 'Loja da Praça', productCount: 2, email: true, status: 'AGUARDANDO_CONFIRMACAO', classification: 'NAO_IMPULSIVA' },
+  { name: 'compra antiga sem loja e com devolução', title: 'Loja não informada', productCount: 1, date: '2019-05-01T12:00:00Z', returned: true },
+  { name: 'e-mail sem loja', fonte: null, title: 'Loja não informada', productCount: 1, email: true },
+  { name: 'loja em branco', fonte: '   ', title: 'Loja não informada', productCount: 1 },
+]) test(`card usa apenas o nome da loja no cabeçalho: ${scenario.name}`, async () => {
+  const h = createRenderer();
+  const Card = h.load('src/components/PurchaseComponents/PurchaseItem/index.js').default;
+  const products = Array.from({ length: scenario.productCount }, (_, i) => ({
+    compra_item_id: i + 1, compra_item_nome: `Produto ${i + 1}`, compra_item_ativo: 1, compra_item_valor: 20,
+  }));
+  const onContext = id => assert.equal(id, 4);
+  h.mount(Card, { purchase: {
+    compra_id: 4, compra_status: scenario.status ?? 'CONFIRMADA', compra_fonte: scenario.fonte,
+    compra_classificacao: 'PENDENTE', compra_email: scenario.email === true,
+    compra_horario: scenario.date ?? '2026-10-01T12:00:00Z', compra_valor: 40, tb_compra_item: products,
+  }, resumo: { devolucoes: scenario.returned ? 1 : 0, classificacao: scenario.classification }, onContext });
+  const texts = () => h.nodes(node => node.type === 'Text').map(text);
+  assert.equal(texts().filter(value => value === scenario.title).length, 1);
+  assert.ok(texts().some(value => /40,00/.test(value)));
+  assert.equal(texts().includes('Via e-mail'), scenario.email === true);
+  assert.equal(texts().includes('Devolução registrada'), scenario.returned === true);
+  if (scenario.classification) assert.ok(texts().includes('Sua classificação: Não impulsiva'));
+  if (scenario.status) assert.ok(texts().includes('Aguardando confirmação'));
+  for (const product of products) assert.ok(!texts().includes(product.compra_item_nome));
+  h.nodes(node => node.props.accessibilityLabel === 'Abrir análise e contexto da compra')[0].props.onPress();
+  h.nodes(node => node.props.accessibilityLabel === 'Ver itens da compra')[0].props.onPress();
+  await h.flush();
+  assert.ok(texts().includes('Itens da compra'));
+  for (const product of products) assert.equal(texts().filter(value => value === product.compra_item_nome).length, 1);
+  h.unmount();
 });

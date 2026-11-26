@@ -41,17 +41,7 @@ export const styles = StyleSheet.create({
   establishment: {
     color: COLORS.histChatItemTitulo,
     fontSize: 16,
-    fontWeight: '700'
-  },
-  primaryItemName: {
-    color: COLORS.histChatItemTitulo,
-    fontSize: 16,
     fontWeight: '800'
-  },
-  purchaseSource: {
-    color: COLORS.dadoUm,
-    fontSize: 12,
-    fontWeight: '600'
   },
   date: {
     color: COLORS.histChatItemMensagem,
