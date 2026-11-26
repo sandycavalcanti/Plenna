@@ -7,7 +7,7 @@ const saved = resultado => ({versaoContrato:1,compraId:1,atualidade:'VIGENTE',av
 const fixture = name => JSON.parse(readFileSync(new URL(`./fixtures/${name}.json`, import.meta.url), 'utf8'));
 const text = node => typeof node === 'string' || typeof node === 'number' ? String(node) : node?.props?.children?.map(text).join('') || '';
 
-test('contexto válido sem limite convive com fonte automática independente, sem escrita ou consulta contextual duplicada', async () => {
+test('contexto válido sem limite fica disponível sem card comparativo ou consulta contextual duplicada', async () => {
   const data = fixture('historicoCompra');
   data.contextual = fixture('contextualRefinamento');
   data.dependenciasHistoricas.versaoMotorContextual = data.contextual.versaoMotor;
@@ -22,7 +22,7 @@ test('contexto válido sem limite convive com fonte automática independente, se
   await h.flush();
   const displayed = () => h.nodes(n => n.type === 'Text').map(text).join(' ');
   assert.match(displayed(), /compra não estava nos seus planos/);
-  assert.equal(h.nodes(n => n.type === 'NumericAnalysis').length, 1);
+  assert.equal(h.nodes(n => n.type === 'NumericAnalysis').length, 0);
   assert.equal(calls.length, 1);
   assert.doesNotMatch(displayed(), /A partir do que você contou|O PLENNA observou|Motor contextual/);
   h.update({ compraId: 1, revisao: 1, compact: true, active: false });
@@ -32,7 +32,7 @@ test('contexto válido sem limite convive com fonte automática independente, se
   assert.equal(calls.length, 1);
   h.nodes(n => n.type === 'Pressable' && text(n) === 'Entender esta análise')[0].props.onPress();
   await h.flush();
-  assert.equal(h.nodes(n => n.type === 'NumericAnalysis').length, 1);
+  assert.equal(h.nodes(n => n.type === 'NumericAnalysis').length, 0);
   assert.match(displayed(), /Como o Plenna interpretou/);
   assert.match(displayed(), /As associações não comprovam causa/);
   assert.doesNotMatch(displayed(), /avaliação 4|contexto 1|R7_CONTEXTO/);

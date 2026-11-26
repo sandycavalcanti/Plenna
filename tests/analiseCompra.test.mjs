@@ -76,12 +76,12 @@ function screen(initial=envelope(),referencias={versaoContrato:1,compraId:1,disp
   return {h,calls,posts,press,controller,background:()=>listener('background'),data:()=>data};
 }
 
-test('fontes automática e contextual independentes, pergunta única e painel sem novas consultas',async()=>{
+test('Análise começa no card do Plenna e preserva a pergunta e o painel contextual',async()=>{
   const s=screen();await s.h.flush();
   const displayed=()=>s.h.nodes(n=>n.type==='Text').map(text).join(' ');
-  assert.equal(s.calls.length,2);assert.equal(s.posts.length,0);
+  assert.equal(s.calls.length,1);assert.equal(s.posts.length,0);
   assert.match(displayed(), /Análise do Plenna/);assert.match(displayed(), /Fatores relacionados/);
-  assert.doesNotMatch(displayed(), /Interpretação das suas declarações/);
+  assert.doesNotMatch(displayed(), /Interpretação das suas declarações|Ainda não há dados para comparar|Por quê\?/);
   const pergunta='Como o planejamento desses itens se encaixou numa compra que não estava nos planos?';
   assert.equal(displayed().split(pergunta).length-1,1);
   s.press('Entender esta análise');await s.h.flush();
@@ -89,7 +89,7 @@ test('fontes automática e contextual independentes, pergunta única e painel se
   for(const title of ['Como o Plenna interpretou','Por que isso apareceu','Sobre esta interpretação'])assert.match(displayed(),new RegExp(title));
   assert.equal(displayed().split(pergunta).length-1,1);
   assert.doesNotMatch(displayed(),/Ver origem do resultado|R7_CONTEXTO|584,56|84,56/);
-  assert.equal(s.calls.length,2);assert.equal(s.posts.length,0);
+  assert.equal(s.calls.length,1);assert.equal(s.posts.length,0);
   s.press('Fechar Entender esta análise');await s.h.flush();assert.doesNotMatch(displayed(),/Evidências utilizadas/);
   s.h.unmount();
 });
@@ -136,7 +136,7 @@ test('sem dados financeiros atuais preserva comparação registrada sem inventar
   assert.equal(apresentarAvaliacao(d,1).fatores.some(f=>f.codigo==='LIMITE_EXCEDIDO'),false);
   s.press('Entender esta análise');await s.h.flush();
   const displayed=s.h.nodes(n=>n.type==='Text').map(text).join(' ');
-  assert.match(displayed,/Comparação financeira/);assert.match(displayed,/20,00/);assert.match(displayed,/não comprova um limite vigente/);assert.equal(s.calls.length,2);
+  assert.match(displayed,/Comparação financeira/);assert.match(displayed,/20,00/);assert.match(displayed,/não comprova um limite vigente/);assert.equal(s.calls.length,1);
   assert.doesNotMatch(displayed,/584,56|84,56/);assert.deepEqual(d,before);assert.equal(s.posts.length,0);
   s.h.unmount();
 });
@@ -160,14 +160,14 @@ test('três fatores do insight derivado e mudanças de validade não reutilizam 
   s.h.unmount();
 });
 
-test('sem avaliação mostra dado objetivo e consulta automática; background, sessão e proteção o removem',async()=>{
+test('sem avaliação mostra dado objetivo; background, sessão e proteção o removem',async()=>{
   const initial=envelope({atualidade:'SEM_AVALIACAO',resultado:null,avaliacaoId:null,criadaEm:null});
   const props={compra:{compra_id:1,compra_status:'CONFIRMADA',compra_ativo:1,compra_valor:125.5,tb_compra_item:[{compra_item_id:10}]},itensPermitidos:[10]};
   for(const modo of ['background','session','protected']) {
     const s=screen(initial,null,props);await s.h.flush();
     const displayed=()=>s.h.nodes(n=>n.type==='Text').map(text).join(' ');
     assert.match(displayed(),/Sobre este registro/);assert.match(displayed(),/125,50/);
-    assert.equal(s.calls.length,2);assert.equal(s.posts.length,0);
+    assert.equal(s.calls.length,1);assert.equal(s.posts.length,0);
     if(modo==='background')s.background();
     if(modo==='session')s.controller.abort();
     if(modo==='protected')s.h.update({compraId:1,revisao:1,...props,restricaoInsight:'COMPRA_OCULTA'});

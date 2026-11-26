@@ -343,7 +343,7 @@ test('análise compacta atualiza avaliação por ação explícita, sem reproces
     (n) => n.type==='Pressable'&&text(n)==='Atualizar reflexão',
   )[0].props.onPress();
   await r.flush();
-  assert.equal(loads,1);assert.equal(updates,1);assert.ok(automaticMounts>0);
+  assert.equal(loads,1);assert.equal(updates,1);assert.equal(automaticMounts,0);
   r.unmount();
 });
 

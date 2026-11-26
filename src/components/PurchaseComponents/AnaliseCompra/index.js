@@ -10,7 +10,6 @@ import { styles as s } from './styles';
 import { apresentarDadosObjetivos } from './dimensoes';
 import { interpretarSinais } from './sinaisDecisao';
 import RespostaAnalise from './RespostaAnalise';
-import AnaliseAutomatica from '../AnaliseAutomatica';
 export function formatarAtualizacao(value) {
   if (typeof value !== 'string' || !value.trim() || !Number.isFinite(Date.parse(value))) return null;
   const date = new Date(value),
@@ -115,7 +114,6 @@ export default function AnaliseCompra({
     if (onOpenDetails) onOpenDetails(value);else setLocalPanel(value);
   };
   return <View style={s.content}>
-    {!restricaoInsight && respostaPermitida && <AnaliseAutomatica compact compraId={compraId} revisao={revisao} refreshKey={refreshKey} active={active} />}
     {!insight && objetivo && <View style={s.reflection}><Ionicons name="receipt-outline" size={22} color={DASHBOARD_THEME.colors.navy} /><View style={s.copy}>
       <Text accessibilityRole="header" style={s.title}>Sobre este registro</Text><Text style={s.body}>{objetivo.observacao}</Text>
       <Text style={s.caption}>{objetivo.origem}. Contexto voluntário e histórico são dimensões independentes.</Text>
