@@ -8,7 +8,7 @@ test('mês inicial usa São Paulo na virada UTC e histórico inclui retroativos 
   const now=new Date('2026-11-01T02:59:59Z');
   assert.equal(filtrosTemporaisIniciais(now).mes,'2026-10');
   assert.equal(filtrosTemporaisIniciais(new Date('2027-01-01T03:00:00Z')).mes,'2027-01');
-  assert.deepEqual(parametrosTemporaisCompras({...filtrosIniciais,status:'IGNORADA',busca:'ignorar'},now),{});
+  assert.deepEqual(parametrosTemporaisCompras({...filtrosIniciais,busca:'ignorar'},now),{});
   assert.equal(referenciaInicioHistorico('2026-10-01T02:00:00Z'), '2026-09-30');
   assert.equal(referenciaInicioHistorico('2026-10-01T03:00:00Z',[{compra_horario:'2010-02-02T12:00:00Z'}]),'2026-10-01');
   assert.equal(referenciaInicioHistorico(undefined,[]),null);

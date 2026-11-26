@@ -1,4 +1,4 @@
-export const filtrosIniciais = {modo:'TODOS',mes:'',inicio:'',fim:'',status:'TODOS',busca:''};
+export const filtrosIniciais = {modo:'TODOS',mes:'',inicio:'',fim:'',busca:''};
 export function diaAtualCompras(now = new Date()) {
   const parts = new Intl.DateTimeFormat('en-US', {timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
   return ['year','month','day'].map(type=>parts.find(part=>part.type===type).value).join('-');
@@ -28,7 +28,7 @@ export function dataCivilInput(value) {
 }
 export function parametrosHistorico(filtros) {
   if(!['TODOS','MES','INTERVALO'].includes(filtros.modo))throw Error('Período não disponível.');
-  if(!['TODOS','CONFIRMADA','AGUARDANDO_CONFIRMACAO','IGNORADA'].includes(filtros.status))throw Error('Status não disponível.');
+  if(filtros.status !== undefined && !['TODOS','CONFIRMADA','AGUARDANDO_CONFIRMACAO'].includes(filtros.status))throw Error('Status não disponível.');
   const params={};
   if(filtros.modo==='MES') {
     if(!/^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(filtros.mes)) throw Error('Informe um mês válido.');
@@ -38,7 +38,7 @@ export function parametrosHistorico(filtros) {
     if(!inicio||!fim||inicio>fim)throw Error('Confira as datas de início e fim.');
     Object.assign(params,{inicio,fim});
   }
-  if(filtros.status!=='TODOS')params.status=filtros.status;
+  if(filtros.status && filtros.status!=='TODOS')params.status=filtros.status;
   if(filtros.busca?.trim())params.busca=filtros.busca.trim().slice(0,100);
   return params;
 }

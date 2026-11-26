@@ -11,14 +11,18 @@ test('histórico não oferece controle de ocultas e mantém compras ocultas fora
     useWindowDimensions:()=>({width:320}),Animated:{Value:class{interpolate(){return 0;}},View:'View',event:()=>()=>{}},
     FlatList:props=>({type:'View',props:{children:[props.ListHeaderComponent,...(props.data||[]).map((item,index)=>props.renderItem({item,index})),props.ListFooterComponent]}})});
   native.Animated.FlatList=native.FlatList;
-  const rows=[1,2].map(compra_id=>({compra_id,compra_status:'CONFIRMADA',compra_ativo:1,compra_horario:'2026-09-02T12:00:00Z'}));
+  const rows=[
+    {compra_id:1,compra_status:'CONFIRMADA',compra_ativo:1,compra_horario:'2026-09-02T12:00:00Z'},
+    {compra_id:2,compra_status:'CONFIRMADA',compra_ativo:1,compra_horario:'2026-09-02T12:00:00Z'},
+    {compra_id:3,compra_status:'IGNORADA',compra_ativo:1,compra_horario:'2026-09-02T12:00:00Z'},
+  ];
   h=createRenderer({
     'react-native':native,
     '@react-navigation/native':{useNavigation:()=>({navigate(){},setParams(){}}),useIsFocused:()=>true,useFocusEffect:callback=>h.React.useEffect(callback,[callback])},
     '../../hooks/useProtectedAccess':{PROTECTED_ACCESS_STATES:{UNLOCKED:'unlocked',LOCKED:'locked'},useProtectedAccess:()=>gate},
     '../../api/client':{apiClient:{get:async(url,config)=>{requests.push({url,params:config.params});return {data:url==='/users/user'?{usuario_data_criacao:'2026-09-01T12:00:00Z'}:{compras:rows,proximoCursor:null}};}}},
     '../../api/tokenStorage':{tokenStorage:{captureSession:async()=>({id:1,signal:session.signal}),assertSession:()=>{if(session.signal.aborted)throw Error('SESSION');}}},
-    '../../services/resumosCompras':{consultarResumosCompras:async()=>({1:{oculto:false},2:{oculto:true}})},
+     '../../services/resumosCompras':{consultarResumosCompras:async()=>({1:{oculto:false},2:{oculto:true}})},
     '../../components/PurchaseComponents/PurchaseItem':{__esModule:true,default:props=>{shown.push(props.purchase.compra_id);return {type:'Text',props:{children:[`Compra ${props.purchase.compra_id}`]}};}},
     '../../components/PurchaseComponents/ContextoCompra':{__esModule:true,default:()=>null},
     '../../components/PurchaseComponents/GerenciarCompra':{__esModule:true,default:()=>null},
@@ -26,7 +30,7 @@ test('histórico não oferece controle de ocultas e mantém compras ocultas fora
   });
   h.mount(h.load('src/pages/PurchasesScreen/index.js').default,{});await h.flush();await h.flush();
   assert.deepEqual(requests.find(r=>r.url==='/compras/historico').params,parametrosTemporaisCompras(filtrosTemporaisIniciais()));
-  assert.ok(shown.includes(1),JSON.stringify(h.nodes(node=>node.type==='Text').map(text)));assert.ok(!shown.includes(2));
+  assert.ok(shown.includes(1),JSON.stringify(h.nodes(node=>node.type==='Text').map(text)));assert.ok(!shown.includes(2));assert.ok(!shown.includes(3));
   assert.equal(h.nodes(node=>node.props.accessibilityLabel==='Buscar estabelecimento').length,0);
   assert.equal(h.nodes(node=>node.props.accessibilityRole==='tab').length,0);
   const press=label=>{const button=h.nodes(node=>node.type==='Pressable'&&text(node)===label)[0];assert.ok(button,label);button.props.onPress();};
@@ -34,11 +38,11 @@ test('histórico não oferece controle de ocultas e mantém compras ocultas fora
   assert.deepEqual(requests.filter(r=>r.url==='/compras/historico').at(-1).params,parametrosTemporaisCompras(filtrosIniciais));
   assert.equal(h.nodes(node=>node.type==='Text'&&text(node).startsWith('Conta criada')).length,0);
   assert.equal(h.nodes(node=>node.props.accessibilityLabel==='Mostrar compras ocultas').length,0);
-  assert.ok(!shown.includes(2));
+  assert.ok(!shown.includes(2));assert.ok(!shown.includes(3));
   press('Mês');await h.flush();await h.flush();
-  assert.ok(!shown.includes(2));
+  assert.ok(!shown.includes(2));assert.ok(!shown.includes(3));
   assert.equal(h.nodes(node=>node.props.accessibilityLabel==='Atualizar compras').length,0);
-  assert.ok(!shown.includes(2));
+  assert.ok(!shown.includes(2));assert.ok(!shown.includes(3));
   session.abort();await h.flush();assert.equal(h.nodes(node=>node.type==='Text'&&text(node)==='Compra 1').length,0);
   h.unmount();
 });
