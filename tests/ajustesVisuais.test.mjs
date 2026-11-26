@@ -15,8 +15,11 @@ test('ações do questionário usam a mesma largura estrutural do formulário', 
 test('ações de criar meta explicitam centralização no estado vazio', async () => {
   const home = await read('src/components/HomeComponents/MetasHome.js');
   const emptyState = await read('src/components/Common/AppEmptyState/styles.js');
+  const button = await read('src/components/CustomButton/styles.js');
   assert.match(home, /createAction:\s*\{[\s\S]*?width: 'auto'[\s\S]*?alignSelf: 'center'/);
   assert.match(emptyState, /action:\s*\{[\s\S]*?alignSelf: 'center'/);
+  assert.match(button, /content:\s*\{[^}]*alignSelf: 'stretch'[^}]*alignItems: 'center'[^}]*justifyContent: 'center'/);
+  assert.doesNotMatch(button, /content:\s*\{[^}]*width: '100%'/);
 });
 
 test('permissões usam a divisória da linha anterior entre proatividade e memória', async () => {

@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
   },
   content: {
     minHeight: 24,
-    width: '100%',
+    alignSelf: 'stretch',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
