@@ -5,7 +5,7 @@ import { transformSync } from '@babel/core';
 const hookSource=await readFile(new URL('../src/hooks/useAnaliseComportamento.js',import.meta.url),'utf8');
 const componentSource=await readFile(new URL('../src/components/DashboardComponents/AnaliseComportamento/index.js',import.meta.url),'utf8');
 const testStyles=new Proxy({}, {get:()=>({})});
-const data=(extra={})=>({versaoContrato:1,analise:{periodo:'2026-10',avaliacao:{estado:'DADOS_INSUFICIENTES'},indicadores:{frequencia:{compras:1},financeiro:{comprasComValor:1,comprasSemValor:0},comparacao:{disponibilidade:'INDISPONIVEL'},categorias:{grupos:[{categoriaId:2,compras:1,participacao:1}],comprasSemCategoria:0}}},categorias:[{id:2,nome:'Outros'}],recomendacoes:{recomendacoes:[{codigo:'REVISAR_LIMITE_INDIVIDUAL',titulo:'Revise seu limite por compra',mensagem:'Confira seu planejamento atual.',referencias:['compra:1'],limitacoes:[]}]},...extra});
+const data=(extra={})=>({versaoContrato:1,analise:{periodo:'2026-10',avaliacao:{estado:'DADOS_INSUFICIENTES'},indicadores:{frequencia:{compras:5},financeiro:{total:1737.16,comprasComValor:5,comprasSemValor:0},comparacao:{disponibilidade:'INDISPONIVEL'},categorias:{grupos:[{categoriaId:2,compras:1,participacao:1/3},{categoriaId:3,compras:2,participacao:2/3},{categoriaId:4,compras:1,participacao:1/3}],comprasCategorizadas:3,comprasSemCategoria:2}}},categorias:[{id:2,nome:'Outros'},{id:3,nome:'Eletrônicos'},{id:4,nome:'Educação'}],recomendacoes:{recomendacoes:[{codigo:'REVISAR_LIMITE_INDIVIDUAL',titulo:'Revise seu limite por compra',mensagem:'Confira seu planejamento atual.',referencias:['compra:1'],limitacoes:[]}]},...extra});
 function hook(get,periodo='2026-10') {
  let state,sessionId=1,controller=new AbortController();const effects=[];const ref={current:0};
  const tokenStorage={captureSession:async()=>({id:sessionId,signal:controller.signal}),assertSession:id=>{if(id!==sessionId)throw Error('invalid');}};
@@ -18,6 +18,22 @@ const code=transformSync(componentSource.replace(/^import .*;\r?\n/gm,'').replac
 let opened=null;
 const Component=new Function('React','View','Text','ActivityIndicator','Pressable','ProfileCard','MaterialCommunityIcons','useState','COLORS','styles',`${code};return AnaliseComportamento;`)(React,'View','Text','ActivityIndicator','Pressable','ProfileCard','Icon',initial=>[opened,next=>{opened=next;}],{dadoTres:'#AFA1E8'},testStyles);
 const text=tree=>tree==null||tree===false?'':Array.isArray(tree)?tree.map(text).join(' '):typeof tree==='object'?text(tree.children):String(tree);
+test('consumo exibe valor integral e a base de categorias do período',()=>{
+ const d=data();const tree=Component({dados:d});
+ const nodes=t=>Array.isArray(t)?t.flatMap(nodes):t&&typeof t==='object'?[t,...nodes(t.children)]:[];
+ const amount=nodes(tree).find(n=>n.type==='Text'&&/1\.737,16/.test(text(n)));
+ assert.equal(amount.props.numberOfLines,1);assert.equal(amount.props.adjustsFontSizeToFit,true);
+ const rendered=text(tree).replace(/\s+/g,' ');
+ assert.match(rendered,/3 de 5 compras têm categoria informada/);
+ assert.match(rendered,/1 de 3 · 33\s*%/);assert.match(rendered,/2 de 3 · 67\s*%/);
+ assert.match(rendered,/podem somar mais de 100%/);
+ const indicadores=d.analise.indicadores;
+ indicadores.categorias={comprasCategorizadas:0,comprasSemCategoria:5,grupos:[]};
+ assert.match(text(Component({dados:d})),/0 de 5 compras têm categoria informada/);
+ assert.doesNotMatch(text(Component({dados:d})),/Ver mais|100%/);
+ indicadores.frequencia.compras=0;
+ assert.doesNotMatch(text(Component({dados:d})),/Suas categorias|0 de 0/);
+});
 test('hook calls authenticated client contract with selected period and accepts response',async()=>{
  const calls=[];const h=hook(async(...args)=>{calls.push(args);return{data:data()};});
  assert.equal(h.result.loading,true);await h.result.refresh();assert.equal(h.state().error,false);assert.equal(h.state().dados.versaoContrato,1);assert.equal(calls[0][0],'/analises/comportamento');assert.equal(calls[0][1].params.periodo,'2026-10');assert.equal(calls[0][1].usageMonitoringSessionId,1);assert.ok(calls[0][1].signal);
@@ -61,6 +77,7 @@ test('progressive explanations stay compact, preserve caveats and reset when mon
  const toggle=nodes(tree).find(n=>n.type==='Pressable'&&text(n).includes('Ver mais'));
  assert.equal(toggle.props.accessibilityState.expanded,false);toggle.props.onPress();
  const expandedTree=Component({dados:d});
+ assert.match(text(expandedTree),/Educação/);
  assert.doesNotMatch(text(expandedTree),/Confira seu planejamento atual/);
  const recommendation=nodes(expandedTree).find(n=>n.type==='Pressable'&&text(n).includes('Revise seu limite'));
  recommendation.props.onPress();

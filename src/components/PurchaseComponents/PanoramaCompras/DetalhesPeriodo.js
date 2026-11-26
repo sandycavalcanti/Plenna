@@ -53,6 +53,7 @@ export default function DetalhesPeriodo({
                 height: `${n / max * 100}%`
               }]} /></View><Text style={s.caption}>{label}</Text></View>;
         })}</View>
+      <Text style={s.caption}>Usa a data registrada na compra, que pode ser a do cadastro manual ou a do e-mail. Cada compra é contabilizada uma única vez.</Text>
       {!!d.habitos.categorias.length && <><Text style={s.caption}>Categorias mais frequentes</Text>{d.habitos.categorias.slice(0, 3).map((v, i) => <Categoria key={`${v.nome}:${i}`} categoria={v} />)}<Text style={s.caption}>Uma compra pode ter várias categorias.</Text></>}
     </View>}
     <ComportamentoPeriodo dados={d.comportamento} />
@@ -66,7 +67,11 @@ export default function DetalhesPeriodo({
     <Pressable accessibilityRole="button" accessibilityState={{
       expanded: metodo
     }} onPress={() => setMetodo(v => !v)} style={s.toggle}><Text style={s.strong}>Sobre os dados deste período</Text><Ionicons name={metodo ? 'chevron-up' : 'chevron-down'} size={18} color={c.navy} /></Pressable>
-    {metodo && <View style={s.detail}><Text style={s.caption}>As contagens usam as classificações que você salvou. Os fatores descritos vêm das respostas voluntárias disponíveis para o período.</Text>{d.limitacoes.map((v, i) => <Text key={i} style={s.caption}>{v}</Text>)}<Text style={s.caption}>O Plenna só compara períodos quando há cobertura comprovada. As respostas sobre como você percebeu a compra são exibidas separadamente das classificações.</Text></View>}
+    {metodo && <View style={s.detail}>
+      <Text style={s.caption}>Consideramos suas compras confirmadas no período. Compras canceladas, ocultas ou com itens marcados como pessoais ficam de fora.</Text>
+      <Text style={s.caption}>Usamos suas classificações e respostas voluntárias atuais, que podem ter mudado desde a compra.</Text>
+      <Text style={s.caption}>As análises ajudam você a refletir sobre seus hábitos de consumo, sem finalidade de diagnóstico. Só comparamos períodos quando há dados suficientes.</Text>
+    </View>}
     {horario && <Text style={s.caption}>{horario}</Text>}
   </View>;
 }

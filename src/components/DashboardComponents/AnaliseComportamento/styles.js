@@ -36,6 +36,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: S.sm
   },
+  moneyMetric: {
+    minWidth: 148
+  },
   value: {
     flexShrink: 1,
     fontSize: 21,

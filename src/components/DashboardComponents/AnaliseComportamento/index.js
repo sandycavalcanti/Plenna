@@ -57,10 +57,10 @@ export default function AnaliseComportamento({
             <Text style={styles.label}>Compras confirmadas</Text>
           </View>
 
-          <View style={styles.metric}>
+          <View style={[styles.metric, styles.moneyMetric]}>
             <View style={styles.metricTop}>
               <MaterialCommunityIcons name="cash-check" size={19} color={COLORS.dadoTres} accessible={false} />
-              <Text style={styles.value}>
+              <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>
                 {typeof financeiro.total === 'number' && Number.isFinite(financeiro.total) ? financeiro.total.toLocaleString('pt-BR', {
                 style: 'currency',
                 currency: 'BRL'
@@ -72,13 +72,17 @@ export default function AnaliseComportamento({
         </View>
 
         {financeiro.comprasSemValor > 0 && <Text style={styles.note}>{financeiro.comprasSemValor} compra(s) sem valor. Os totais conhecidos podem estar incompletos.</Text>}
-        {groups.length > 0 && <View style={styles.groupSection}>
+        {frequencia.compras > 0 && <View style={styles.groupSection}>
             <Text style={styles.sectionHeading}>Suas categorias</Text>
+            <Text style={styles.note}>
+              {`${concentration.comprasCategorizadas} de ${frequencia.compras} ${frequencia.compras === 1 ? 'compra com categoria informada' : 'compras têm categoria informada'}.`}
+            </Text>
+            {groups.length > 0 && <Text style={styles.note}>Uma compra pode incluir diferentes categorias. Por isso, os percentuais podem somar mais de 100%.</Text>}
             {(categoriesExpanded ? groups : groups.slice(0, 2)).map(group => <Pressable key={group.categoriaId} accessibilityRole="button" accessibilityLabel={`Ver compras da categoria ${labels.get(group.categoriaId) || 'não identificada'}`} disabled={!onCategorySelect} onPress={() => onCategorySelect(group.categoriaId)} style={styles.category}>
                 <View style={styles.categoryHeader}>
                   <Text style={styles.categoryName}>{labels.get(group.categoriaId) || 'Categoria não identificada'}</Text>
                   <Text style={styles.note}>
-                    {group.compras} compra(s) · {(group.participacao * 100).toLocaleString('pt-BR', {
+                    {group.compras} de {concentration.comprasCategorizadas} · {(group.participacao * 100).toLocaleString('pt-BR', {
                 maximumFractionDigits: 0
               })}%
                   </Text>
@@ -89,15 +93,13 @@ export default function AnaliseComportamento({
             }]} />
                       </View>}
                   </Pressable>)}
-            <Pressable accessibilityRole="button" accessibilityState={{
+            {groups.length > 2 && <Pressable accessibilityRole="button" accessibilityState={{
           expanded: categoriesExpanded
         }} accessibilityLabel={categoriesExpanded ? 'Mostrar menos categorias' : 'Ver mais categorias'} style={styles.moreButton} onPress={() => setOpenedCategoriesPeriod(categoriesExpanded ? null : analise.periodo)}>
               <Text style={styles.actionText}>{categoriesExpanded ? 'Mostrar menos' : 'Ver mais'}</Text>
               <MaterialCommunityIcons name={categoriesExpanded ? 'chevron-up' : 'chevron-down'} size={19} color={COLORS.dadoTres} accessible={false} />
-            </Pressable>
+            </Pressable>}
           </View>}
-
-        {concentration.comprasSemCategoria > 0 && <Text style={styles.note}>{concentration.comprasSemCategoria} compra(s) sem categoria informada.</Text>}
 
         {recommendations.length > 0 && <Text style={styles.sectionHeading}>Para refletir</Text>}
         {recommendations.slice(0, 2).map(recommendation => {

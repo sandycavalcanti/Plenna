@@ -58,7 +58,7 @@ const texto=n=>typeof n==='string'||typeof n==='number'?String(n):n?.props?.chil
 test('componente apresenta quatro blocos somente após abrir, fecha e limpa em filtro, background e sessão',async()=>{
   const calls=[],abort=new AbortController();let appListener;
   const h=createRenderer({'react-native':{View:'View',Text:'Text',Pressable:'Pressable',Modal:'Modal',ScrollView:'ScrollView',ActivityIndicator:'ActivityIndicator',StyleSheet:{create:v=>v},AppState:{addEventListener:(_event,listener)=>{appListener=listener;return {remove(){}};}}},
-    '../../../api/client':{apiClient:{get:async(url,options)=>{calls.push({url,options});return {data:fixture(options.params.detalhes==='1',options.params.mes,options.params.comportamento==='1')};}}},
+    '../../../api/client':{apiClient:{get:async(url,options)=>{calls.push({url,options});return {data:{...fixture(options.params.detalhes==='1',options.params.mes,options.params.comportamento==='1'),comAutopercepcao:3}};}}},
     '../../../api/tokenStorage':{tokenStorage:{captureSession:async()=>({id:7,signal:abort.signal}),assertSession:()=>{if(abort.signal.aborted)throw Error('SESSION_REQUIRED');}}}});
   h.mount(h.load('src/components/PurchaseComponents/PanoramaCompras/index.js').default,{filtros,active:true,refreshKey:0});await h.flush();
   assert.equal(calls.length,1);assert.equal(h.nodes(n=>n.type==='Modal')[0].props.visible,false);
@@ -66,6 +66,13 @@ test('componente apresenta quatro blocos somente após abrir, fecha e limpa em f
   press('Explorar análise do período');await h.flush();assert.equal(calls.length,2);assert.equal(calls[0].options.params.comportamento,undefined);assert.equal(calls[1].options.params.comportamento,'1');assert.equal(h.nodes(n=>n.type==='Modal')[0].props.visible,true);
   let displayed=h.nodes(n=>n.type==='Text').map(texto).join(' ');for(const label of ['Resumo do período','Destaque do período','Hábitos de compra','Fatores observados','Reflexão de outubro','Vínculos registrados'])assert.ok(displayed.includes(label),label);
   assert.equal(displayed.split('Vínculos registrados').length-1,1);
+  assert.match(displayed,/2\s+Com contexto\s+3\s+Com autopercepção/);
+  assert.match(displayed,/data registrada na compra/);
+  assert.doesNotMatch(displayed,/sem finalidade de diagnóstico/);
+  press('Sobre os dados deste período');await h.flush();
+  displayed=h.nodes(n=>n.type==='Text').map(texto).join(' ');
+  assert.match(displayed,/Compras canceladas, ocultas ou com itens marcados como pessoais/);
+  assert.match(displayed,/sem finalidade de diagnóstico/);
   assert.match(displayed,/outubro de 2026/i);assert.doesNotMatch(displayed,/Relações relevantes/);
   press('Detalhes de Promoções');await h.flush();displayed=h.nodes(n=>n.type==='Text').map(texto).join(' ');assert.match(displayed,/2 compras com resposta válida/);assert.match(displayed,/1 compra com resposta “não”/);
   h.update({filtros:{...filtros,mes:'2026-09'}});await h.flush();assert.equal(h.nodes(n=>n.type==='Modal')[0].props.visible,false);assert.equal(calls.at(-1).options.params.mes,'2026-09');
