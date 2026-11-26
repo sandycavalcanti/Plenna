@@ -270,7 +270,7 @@ export default function PurchasesScreen({
       // Ignorada permanece no banco, mas sai imediatamente da única lista
       // visual porque esse status final não é uma página recuperável.
       setPurchases(currentPurchases => currentPurchases.filter(item => item.compra_id !== purchase.compra_id));
-      setOperationFeedback({ type: 'info', message: 'Compra ignorada. Ela continua registrada, mas não aparece nas listas pendentes ou confirmadas.' });
+      setOperationFeedback({ type: 'info', message: 'Compra ignorada com sucesso.' });
     } catch (error) {
       logApiErrors(error, 'Erro ao ignorar compra');
       setOperationFeedback({ type: 'error', message: 'Não foi possível ignorar a compra. Tente novamente.' });
@@ -416,7 +416,7 @@ export default function PurchasesScreen({
   function renderPurchaseCard({
     item
   }) {
-    return <PurchaseItem purchase={item} onContext={item.compra_status === 'IGNORADA' ? undefined : setContextoCompraId} onManage={(compra, item) => setGerenciamento({
+    return <PurchaseItem purchase={item} onContext={setContextoCompraId} onManage={(compra, item) => setGerenciamento({
       compra,
       item
     })} resumo={resumos[item.compra_id]} isDeleting={deletingId === item.compra_id} hasItemDeleting={deletingItemId !== null} isItemDeleting={deletingItemId !== null && item.tb_compra_item?.some(purchaseItem => purchaseItem.compra_item_id === deletingItemId)} isStatusActionRunning={Boolean(statusActions[item.compra_id])} statusAction={statusActions[item.compra_id]} onConfirm={handleConfirmPurchase} onIgnore={handleIgnorePurchase} onDelete={handleDeletePurchase} onDeleteItem={purchaseItem => handleDeleteItem(item, purchaseItem)} />;
