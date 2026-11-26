@@ -26,7 +26,9 @@ test('mês, intervalo e todo histórico usam os filtros da lista, sem piso artif
 });
 test('valida contrato, período, contagens e denominadores antes de mostrar dados',()=>{
   assert.equal(validarPanorama(fixture(true),{mes:'2026-10'},true).universo,3);
-  for(const mutate of [d=>d.periodo.mes='2026-09',d=>d.comContexto=4,d=>d.comAutopercepcao=3,d=>d.sinais[0].validos=4,
+  const semContexto={...fixture(),comContexto:0,comAutopercepcao:3};
+  assert.equal(validarPanorama(semContexto,{mes:'2026-10'},false).comAutopercepcao,3);
+  for(const mutate of [d=>d.periodo.mes='2026-09',d=>d.comContexto=4,d=>d.comAutopercepcao=4,d=>d.sinais[0].validos=4,
     d=>d.sinais[0].proporcao=0.9,d=>d.sinais[0].condicao=3,d=>d.sinais[0].origem='AUTOMATICA',d=>d.habitos.diasSemana[0].compras=4,
     d=>d.habitos.categorias[0].compras=3,d=>d.relacoes.push(d.relacoes[0])]) {
     const d=fixture(true);mutate(d);assert.throws(()=>validarPanorama(d,{mes:'2026-10'},true));

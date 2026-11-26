@@ -50,7 +50,7 @@ export function validarPanorama(d,params,detalhes,comportamento=false) {
     params.mes&&(p.mes!==params.mes||diaSP(p.inicio)!==params.mes+'-01')||
     params.inicio&&(diaSP(p.inicio)!==params.inicio||diaSP(new Date(Date.parse(p.fimExclusivo)-1))!==params.fim)||
     modo==='TODOS'&&p.inicio!==null||
-    ![d.universo,d.comContexto,d.comAutopercepcao].every(inteiro)||d.comContexto>d.universo||d.comAutopercepcao>d.comContexto||
+    ![d.universo,d.comContexto,d.comAutopercepcao].every(inteiro)||d.comContexto>d.universo||d.comAutopercepcao>d.universo||
     d.disponibilidade!==(d.universo?'DISPONIVEL':'SEM_DADOS')||typeof d.reflexao!=='string'||
     !Array.isArray(d.limitacoes)||!d.limitacoes.every(v=>typeof v==='string'))throw Error('INVALID_PANORAMA');
   if(detalhes) {
