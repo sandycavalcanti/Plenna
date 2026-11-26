@@ -318,55 +318,22 @@ for (const [label, reason] of [
     assert.equal(s.writes[0].dataEfetiva, null);
     s.r.unmount();
   });
-test('partial item return remains scoped and does not invent a refund', async () => {
-  const s = sheet({ action: 'DEVOLUCAO', item: { compra_item_id: 9 } });
-  await s.r.flush();
-  s.r
-    .nodes((n) => n.props.accessibilityLabel === 'Quantidade do evento')[0]
-    .props.onChangeText('0,5');
-  await s.r.flush();
-  s.press('Confirmar registro');
-  await s.r.flush();
-  assert.equal(s.writes[0].quantidade, 0.5);
-  assert.equal(s.writes[0].itemId, 9);
-  assert.equal(s.writes[0].valorCentavos, undefined);
-  s.r.unmount();
-});
-
-test('última unidade é fixa e uma devolução sem saldo não é enviada', async () => {
-  const item = { compra_item_id: 9, compra_item_nome: 'Livro', compra_item_quantidade: 2, compra_item_valor: '15.00' };
-  const prior = { id: 1, itemId: 9, tipo: 'DEVOLUCAO', dados: { quantidade: 1 } };
-  const s = sheet({ action: 'DEVOLUCAO', item, eventos: [prior] });
-  await s.r.flush();
-  assert.equal(s.r.nodes(n => n.props.accessibilityLabel === 'Quantidade do evento').length, 0);
-  s.press('Confirmar registro');
-  await s.r.flush();
-  assert.equal(s.writes[0].quantidade, 1);
-  assert.equal(s.writes[0].tipo, 'DEVOLUCAO');
-  s.r.unmount();
-  const exhausted = sheet({ action: 'DEVOLUCAO', item, eventos: [{ ...prior, dados: { quantidade: 2 } }] });
-  await exhausted.r.flush();
-  exhausted.press('Confirmar registro');
-  await exhausted.r.flush();
-  assert.equal(exhausted.writes.length, 0);
-  exhausted.r.unmount();
-});
-
-test('seletor inteiro usa um controle e respeita os limites', async () => {
-  const s = sheet({ action: 'DEVOLUCAO', item: { compra_item_id: 9, compra_item_quantidade: 3, compra_item_valor: '10.00' } });
-  await s.r.flush();
-  assert.equal(s.r.nodes(n => n.props.accessibilityLabel === 'Quantidade do evento').length, 0);
-  const plus = () => s.r.nodes(n => n.props.accessibilityLabel === 'Aumentar quantidade')[0];
-  const minus = () => s.r.nodes(n => n.props.accessibilityLabel === 'Diminuir quantidade')[0];
-  assert.equal(minus().props.disabled, true);
-  plus().props.onPress(); await s.r.flush();
-  plus().props.onPress(); await s.r.flush();
-  assert.equal(plus().props.disabled, true);
-  minus().props.onPress(); await s.r.flush();
-  s.press('Confirmar registro'); await s.r.flush();
-  assert.equal(s.writes[0].quantidade, 2);
-  assert.equal(s.writes[0].valorCentavos, undefined);
-  s.r.unmount();
+test('full return sends only the selected item without quantity or refund', async () => {
+  for (const quantidade of [null, 3]) {
+    const item = { compra_item_id: 9, compra_item_nome: 'Livro', compra_item_quantidade: quantidade, compra_item_valor: '10.00' };
+    const s = sheet({ action: 'DEVOLUCAO', item, compra: { tb_compra_item: [item, { compra_item_id: 10 }] } });
+    await s.r.flush();
+    assert.ok(s.r.nodes(n => n.type === 'Text' && n.props.children.includes('Valor do item')).length);
+    assert.equal(s.r.nodes(n => /quantidade/i.test(n.props.accessibilityLabel || '')).length, 0);
+    s.press('Confirmar registro');
+    await s.r.flush();
+    assert.equal(s.writes.length, 1);
+    assert.equal(s.writes[0].tipo, 'DEVOLUCAO');
+    assert.equal(s.writes[0].itemId, 9);
+    assert.equal(Object.hasOwn(s.writes[0], 'quantidade'), false);
+    assert.equal(Object.hasOwn(s.writes[0], 'valorCentavos'), false);
+    s.r.unmount();
+  }
 });
 
 test('máscara permite colar, editar e apagar; bloqueia reembolso além do saldo', async () => {

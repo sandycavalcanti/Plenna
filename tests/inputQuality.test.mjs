@@ -66,7 +66,7 @@ test('campos diretos de formulários mantêm placeholder e delimitação explíc
   assert.match(questionarioScreen, /stepThreeInputFocused/);
   assert.equal((metaForm.match(/placeholderTextColor=\{COLORS\.dadoUm\}/g) || []).length, 3);
   assert.match(movementForm, /placeholder="Ex\.: 150,00" placeholderTextColor=\{COLORS\.dadoUm\}/);
-  assert.equal((purchaseManagement.match(/placeholderTextColor=\{COLORS\.dadoUm\}/g) || []).length, 2);
+  assert.match(purchaseManagement, /accessibilityLabel="Valor reembolsado"[^>]*placeholderTextColor=\{COLORS\.dadoUm\}/);
 });
 
 test('MetaFormSheet reduz a área do modal no Android e mantém ações dentro da rolagem', () => {

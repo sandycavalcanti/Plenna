@@ -2,8 +2,6 @@ import { StyleSheet } from "react-native";
 import { DASHBOARD_THEME } from "../../constants/dashboardTheme";
 export const s = StyleSheet.create({
   headerIcon: {padding: 10, borderRadius: 24, backgroundColor: DASHBOARD_THEME.colors.accentSoft},
-  amount: {padding: 14, borderRadius: 16, backgroundColor: DASHBOARD_THEME.colors.accentSoft, gap: 8},
-  amountValue: {fontSize: 25, fontWeight: '700', color: DASHBOARD_THEME.colors.navy},
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',

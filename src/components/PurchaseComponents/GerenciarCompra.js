@@ -15,7 +15,7 @@ import { randomUUID } from 'expo-crypto';
 import { apiClient } from '../../api/client';
 import { tokenStorage } from '../../api/tokenStorage';
 import { criarGravadorEvento, confirmarOperacoesRecuperadas, moedaParaCentavos, dataEfetiva, mensagemGestao } from '../../services/gestaoCompraService';
-const options = [['EXCLUSAO_REGISTRO', 'trash-outline', 'Excluir registro', 'Duplicado, incorreto ou criado por engano.'], ['CANCELAMENTO', 'close-circle-outline', 'Registrar cancelamento', 'Sem presumir reembolso.'], ['DEVOLUCAO', 'return-down-back-outline', 'Registrar devolução', 'Compra inteira ou quantidade deste item.'], ['REEMBOLSO', 'cash-outline', 'Registrar reembolso', 'Valor efetivamente devolvido.'], ['CLASSIFICACAO', 'chatbubble-outline', 'Como você considera esta compra?', 'Uma escolha sua, que pode ser revista.']];
+const options = [['EXCLUSAO_REGISTRO', 'trash-outline', 'Excluir registro', 'Duplicado, incorreto ou criado por engano.'], ['CANCELAMENTO', 'close-circle-outline', 'Registrar cancelamento', 'Sem presumir reembolso.'], ['DEVOLUCAO', 'return-down-back-outline', 'Registrar devolução', 'Compra inteira ou item selecionado.'], ['REEMBOLSO', 'cash-outline', 'Registrar reembolso', 'Valor efetivamente devolvido.'], ['CLASSIFICACAO', 'chatbubble-outline', 'Como você considera esta compra?', 'Uma escolha sua, que pode ser revista.']];
 const reasons = [['DUPLICADO', 'Registro duplicado'], ['INCORRETO', 'Registro incorreto'], ['NAO_REALIZADA', 'Compra ou item não realizado'], ['OUTRO', 'Outro motivo']];
 export default function GerenciarCompra({
   compra,
@@ -35,7 +35,6 @@ export default function GerenciarCompra({
     [action, setAction] = useState(acaoInicial),
     [busy, setBusy] = useState(false),
     [valor, setValor] = useState(''),
-    [quantidade, setQuantidade] = useState(''),
     [date, setDate] = useState(''),
     [motivo, setMotivo] = useState(null),
     [classificacao, setClassificacao] = useState(null),
@@ -45,9 +44,7 @@ export default function GerenciarCompra({
   const scopedItemId = correction ? correction.itemId : item?.compra_item_id;
   const scopedItem = scopedItemId ? (compra.tb_compra_item || []).find(i => i.compra_item_id === scopedItemId) || (item?.compra_item_id === scopedItemId ? item : null) : null;
   const saldo = saldoQuantidade(scopedItem, state.data?.eventos || [], action, correction?.id);
-  const quantityDraft = quantidade || (!correction && saldo != null && saldo > 0 ? String(Math.min(1, saldo)) : '');
-  const quantityValue = Number(quantityDraft.replace(',', '.'));
-  const returnValue = valorQuantidadeCentavos(scopedItem, quantityValue);
+  const itemValue = valorQuantidadeCentavos(scopedItem, action === 'DEVOLUCAO' ? Number(scopedItem?.compra_item_quantidade ?? 1) : 1);
   const refundBalance = saldoReembolso(compra, scopedItem, state.data?.eventos || [], correction?.id);
   useEffect(() => {
     if (eventoInicial && state.data && !initialApplied.current) {
@@ -138,7 +135,6 @@ export default function GerenciarCompra({
     setCorrection(event);
     setAnulado(false);
     setValor(event?.dados.valorCentavos ? formatarValorMoedaParaTela(String(event.dados.valorCentavos)) : '');
-    setQuantidade(event?.dados.quantidade ? String(event.dados.quantidade) : '');
     setDate(event?.dataEfetiva ? event.dataEfetiva.split('-').reverse().join('/') : '');
     setMotivo(event?.dados?.motivo ?? null);
     setDateOpen(false);
@@ -182,13 +178,9 @@ export default function GerenciarCompra({
         if (correction?.dados?.quantidade != null) body.quantidade = correction.dados.quantidade;
         else if (previous && saldo != null && saldo > 0) body.quantidade = saldo;
       }
-      if (action === 'DEVOLUCAO' && scopedItemId && quantityDraft.trim()) {
-        const q = Number(quantityDraft.replace(',', '.'));
-        if (!Number.isFinite(q) || q <= 0) throw Error('Confira a quantidade.');
-        if (!anulado && saldo != null && q > saldo) throw Error('A quantidade supera o saldo disponível.');
-        body.quantidade = q;
+      if (action === 'DEVOLUCAO' && scopedItemId && correction?.dados?.quantidade != null) {
+        body.quantidade = correction.dados.quantidade;
       }
-      if (!anulado && action === 'DEVOLUCAO' && saldo === 0) throw Error('Não há quantidade disponível para esta operação.');
       if (action === 'CLASSIFICACAO') {
         if (!classificacao) throw Error('Escolha uma opção.');
         body.classificacao = classificacao;
@@ -263,13 +255,14 @@ export default function GerenciarCompra({
                 {action !== 'CLASSIFICACAO' && <View style={purchaseStyles.card}>
                   <Text style={s.label}>{scopedItem ? scopedItem.compra_item_nome || 'Item selecionado' : 'Compra inteira'}</Text>
                   <Text style={s.note}>{scopedItem ? 'Esta operação se aplica somente ao item.' : 'Esta operação se aplica à compra inteira.'}</Text>
-                  {scopedItem && <Text style={s.note}>Valor unitário: {valorQuantidadeCentavos(scopedItem, 1) == null ? 'Não informado' : formatarValorMoedaParaTela(String(valorQuantidadeCentavos(scopedItem, 1)))}</Text>}
+                  {scopedItem && <Text style={s.note}>{action === 'DEVOLUCAO' ? 'Valor do item' : 'Valor unitário'}: {itemValue == null ? 'Não informado' : formatarValorMoedaParaTela(String(itemValue)) || 'R$ 0,00'}</Text>}
+                  {scopedItem && action === 'DEVOLUCAO' && Number(compra.compra_desconto) > 0 && <Text style={s.note}>Valor antes do desconto da compra, sem rateio por item.</Text>}
                   {['DEVOLUCAO', 'CANCELAMENTO'].includes(action) && <Text style={s.note}>{action === 'DEVOLUCAO' ? 'A devolução fica no Histórico. Registre o reembolso separadamente.' : 'O cancelamento fica no Histórico. A situação do registro permanece Confirmada.'}</Text>}
                 </View>}
                 {correction && <View style={purchaseStyles.card}><Text style={purchaseStyles.title}>Corrigir evento registrado</Text>{correction.dados?.valorCentavos != null && <Text style={purchaseStyles.caption}>Valor anterior: {(correction.dados.valorCentavos / 100).toLocaleString('pt-BR', {
                   style: 'currency',
                   currency: 'BRL'
-                })}</Text>}{correction.dados?.quantidade != null && <Text style={purchaseStyles.caption}>Quantidade anterior: {correction.dados.quantidade}</Text>}<Text style={purchaseStyles.caption}>O evento anterior será preservado no histórico.</Text></View>}
+                })}</Text>}{action !== 'DEVOLUCAO' && correction.dados?.quantidade != null && <Text style={purchaseStyles.caption}>Quantidade anterior: {correction.dados.quantidade}</Text>}<Text style={purchaseStyles.caption}>O evento anterior será preservado no histórico.</Text></View>}
                 {action === 'EXCLUSAO_REGISTRO' && <>
                     <Text style={s.note}>
                       {scopedItem ? 'O item sai da lista e o total da compra é recalculado. Se for o último item, a compra também será excluída.' : 'A compra e seus itens saem da lista e dos cálculos.'} O histórico permanece armazenado. Isso não registra cancelamento ou reembolso.
@@ -294,18 +287,6 @@ export default function GerenciarCompra({
                       <Text style={s.note}>{refundBalance == null ? 'O limite será validado com os valores registrados na compra.' : `Disponível para reembolso: ${formatarValorMoedaParaTela(String(refundBalance)) || 'R$ 0,00'}`}</Text>
                       {moedaParaCentavos(valor) != null && refundBalance != null && <Text style={s.note}>{moedaParaCentavos(valor) > refundBalance ? 'O valor supera o saldo disponível.' : moedaParaCentavos(valor) === refundBalance ? 'Este valor completa o reembolso do escopo selecionado.' : 'Reembolso parcial do saldo disponível.'}</Text>}
                       </>}
-                    {scopedItemId && action === 'DEVOLUCAO' && <>
-                        <Text style={s.note}>Quantidade comprada: {scopedItem?.compra_item_quantidade ?? 'Não informada'} · Disponível: {saldo ?? 'Não informada'}</Text>
-                        <Text style={s.label}>Quantidade a devolver</Text>
-                        {saldo > 1 && Number.isInteger(saldo) && !correction && <View style={s.header}>
-                          <Pressable accessibilityRole="button" accessibilityLabel="Diminuir quantidade" disabled={quantityValue <= 1} style={s.touch} onPress={() => setQuantidade(String(Math.max(1, quantityValue - 1)))}><Ionicons name="remove-circle-outline" size={28} color="#594367" /></Pressable>
-                          <Text style={s.label}>{quantityDraft}</Text>
-                          <Pressable accessibilityRole="button" accessibilityLabel="Aumentar quantidade" disabled={quantityValue >= saldo} style={s.touch} onPress={() => setQuantidade(String(Math.min(saldo, quantityValue + 1)))}><Ionicons name="add-circle-outline" size={28} color="#594367" /></Pressable>
-                        </View>}
-                        {saldo > 1 && Number.isInteger(saldo) && !correction ? null : saldo === 1 && !correction ? <Text style={s.label}>1 unidade</Text> : <TextInput accessibilityLabel="Quantidade do evento" placeholder="Quantidade (vazio: item inteiro)" placeholderTextColor={COLORS.dadoUm} keyboardType="decimal-pad" value={quantityDraft} onChangeText={setQuantidade} style={s.input} />}
-                        {action === 'DEVOLUCAO' && <View style={s.amount}><Text style={s.label}>Valor dos itens devolvidos</Text><Text style={s.amountValue}>{returnValue == null ? 'Não disponível' : formatarValorMoedaParaTela(String(returnValue)) || 'R$ 0,00'}</Text></View>}
-                        {action === 'DEVOLUCAO' && Number(compra.compra_desconto) > 0 && <Text style={s.note}>Valor antes do desconto da compra, sem rateio por item. Não representa reembolso.</Text>}
-                        </>}
                     {action !== 'EXCLUSAO_REGISTRO' && <><Text style={s.label}>{action === 'REEMBOLSO' ? 'Data do reembolso' : action === 'DEVOLUCAO' ? 'Data da devolução' : action === 'CANCELAMENTO' ? 'Data do cancelamento' : 'Data da ocorrência'} (opcional)</Text>
                     <Pressable accessibilityRole="button" accessibilityLabel="Data efetiva do evento" style={s.option} onPress={() => setDateOpen(v => !v)}><Ionicons name="calendar-outline" size={22} color={DASHBOARD_THEME.colors.navy} /><Text style={{flex: 1}}>{date || 'Selecionar data'}</Text><Ionicons name="chevron-forward" size={18} color={DASHBOARD_THEME.colors.navy} /></Pressable>
                     {dateOpen && <CalendarioData value={date ? new Date(dataEfetiva(date) + 'T12:00:00') : undefined} max={new Date()} onChange={value => {
