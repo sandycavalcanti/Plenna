@@ -18,7 +18,10 @@ export default function UsageTimeCard({
   state,
   onRetry,
   onSettings,
-  onDetails
+  onDetails,
+  onResume,
+  resumeBusy,
+  resumeMessage
 }) {
   const [expanded, setExpanded] = useState(false);
   const [durationWidth, setDurationWidth] = useState(0);
@@ -30,14 +33,9 @@ export default function UsageTimeCard({
   const denominator = recorded.reduce((sum, app) => sum + app.seconds, 0);
   const top = recorded[0];
   const visible = expanded ? recorded : recorded.slice(0, 4);
-  const action = state?.action === 'PROFILE' ? onSettings : onRetry;
+  const action = state?.action === 'PROFILE' ? onSettings : state?.action === 'RESUME' ? onResume : onRetry;
   const paused = state?.kind === 'PAUSED';
-  let message = state?.message;
-  if (paused) {
-    message = total == null ? 'Tempo registrado indisponível.' : null;
-  } else if (state?.kind === 'SYNCING') {
-    message = total == null ? 'Carregando tempo registrado…' : null;
-  }
+  const message = state?.message;
   return <View style={[categoryStyles.section, compact && styles.compactSection]} testID="usage-time-card">
     <ProfileCard title={compact ? 'Tempo em aplicativos · hoje' : 'Tempo em aplicativos'} titleIcon={compact ? 'clock-outline' : null} variant="dashboard">
       {total != null && <View style={[styles.summary, compact && styles.todaySummary]} testID={compact ? 'usage-today-highlight' : 'usage-month-summary'}>
@@ -90,7 +88,8 @@ export default function UsageTimeCard({
         {updated && <Text style={styles.updated}>{updated}</Text>}
         {compact && onDetails && <Pressable style={styles.details} accessibilityRole="button" accessibilityLabel="Ver detalhes do tempo em aplicativos no Dashboard" onPress={onDetails}><Text style={styles.actionText}>Ver detalhes</Text><MaterialCommunityIcons name="chevron-right" size={20} color={DASHBOARD_THEME.colors.navy} /></Pressable>}
       </View>}
-      {!paused && state?.action && action && <Pressable style={styles.action} accessibilityRole="button" onPress={action}><Text style={styles.actionText}>{state.action === 'PROFILE' ? 'Ver no Perfil' : 'Tentar novamente'}</Text></Pressable>}
+      {resumeMessage && <Text style={styles.status} accessibilityLiveRegion="polite">{resumeMessage}</Text>}
+      {!paused && state?.action && action && <Pressable style={styles.action} accessibilityRole="button" disabled={state.action === 'RESUME' && resumeBusy} onPress={action}><Text style={styles.actionText}>{state.action === 'PROFILE' ? 'Ver no Perfil' : state.action === 'RESUME' ? resumeBusy ? 'Confirmando…' : 'Retomar monitoramento' : 'Tentar novamente'}</Text></Pressable>}
     </ProfileCard>
   </View>;
 }

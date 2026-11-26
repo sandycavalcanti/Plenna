@@ -5,6 +5,7 @@ import { View, Text, Pressable, Alert } from 'react-native';
 import { tokenStorage } from '../../../api/tokenStorage';
 import { synchronizeUsageMonitoring, prepareUsageMonitoringActivation, readUsageMonitoringStatus, hasPreviouslyActivatedUsageMonitoring } from '../../../services/usageMonitoringService';
 import { observeUsageSyncState } from '../../../utils/usageMonitoringStatus';
+import { useUsageMonitoringActivation } from '../../../hooks/useUsageMonitoringActivation';
 import { listarConsentimentos, registrarConsentimento } from '../../../api/consentimento';
 import ReadingDetails from '../../ReadingDetails';
 export default function UsageMonitoringControls({
@@ -15,8 +16,8 @@ export default function UsageMonitoringControls({
 }) {
   const [busy, setBusy] = useState(false),
     [needed, setNeeded] = useState(false),
-    [previouslyActivated, setPreviouslyActivated] = useState(false),
-    [message, setMessage] = useState('');
+    [previouslyActivated, setPreviouslyActivated] = useState(false);
+  const activation = useUsageMonitoringActivation();
   const [detailed, setDetailed] = useState(null);
   const [detailedError, setDetailedError] = useState(false);
   const [revision, setRevision] = useState(0);
@@ -109,7 +110,6 @@ export default function UsageMonitoringControls({
       generation++;
       if (!mounted) return;
       setDetailed(null);
-      setMessage('');
       setDetailMessage('');
       present('CHECKING');
     };
@@ -151,39 +151,10 @@ export default function UsageMonitoringControls({
       unsubscribe();
     };
   }, [consent, permission, statusRevision]);
-  async function activate(expectedSession) {
-    if (busy || !live.current) return;
-    setBusy(true);
-    setMessage('');
-    let session;
-    try {
-      session = await tokenStorage.captureSession();
-      if (!session) return;
-      if (expectedSession.signal.aborted || expectedSession.id !== session.id) return;
-      tokenStorage.assertSession(session.id);
-      await prepareUsageMonitoringActivation(session);
-      await synchronizeUsageMonitoring();
-      tokenStorage.assertSession(session.id);
-    } catch {
-      if (live.current && session && !session.signal.aborted) setMessage('Não foi possível concluir a ativação. Tente novamente.');
-    } finally {
-      if (live.current) setBusy(false);
-    }
-  }
   const activationLabel = previouslyActivated ? 'Retomar monitoramento' : 'Concluir ativação';
   return <View>
-    {consent && permission && needed && <Pressable disabled={busy} accessibilityRole="button" style={presentationStyles.inline1} onPress={async () => {
-      const session = await confirmationSession();
-      if (!session) return;
-      Alert.alert(activationLabel, 'O PLENNA consultará o uso dos aplicativos de compra a partir desta autorização, somente enquanto estiver aberto. O Android não identifica quem utilizou o aparelho.', [{
-        text: 'Cancelar',
-        style: 'cancel'
-      }, {
-        text: previouslyActivated ? 'Retomar' : 'Ativar',
-        onPress: () => activate(session)
-      }]);
-    }}><Text style={styles.link}>{busy ? 'Confirmando…' : activationLabel}</Text></Pressable>}
-    {!!message && <Text style={styles.status} accessibilityLiveRegion="polite">{message}</Text>}
+    {consent && permission && needed && <Pressable disabled={busy || activation.busy} accessibilityRole="button" style={presentationStyles.inline1} onPress={() => activation.confirm(activationLabel, previouslyActivated ? 'Retomar' : 'Ativar')}><Text style={styles.link}>{activation.busy ? 'Confirmando…' : activationLabel}</Text></Pressable>}
+    {!!activation.message && <Text style={styles.status} accessibilityLiveRegion="polite">{activation.message}</Text>}
     <ReadingDetails label="Como funciona o monitoramento?" presentation="sheet">
       <Text style={styles.status}>O Plenna acompanha o tempo de uso de aplicativos de compras para ajudar você a compreender seus hábitos digitais.</Text>
       <Text accessibilityRole="header" style={styles.title}>Como funciona?</Text>

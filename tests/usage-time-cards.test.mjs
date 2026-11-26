@@ -14,6 +14,7 @@ function render(initial={},props={}){
  const r=createRenderer({
   '../../hooks/useUsageMonitoringPeriod':{useUsageMonitoringPeriod:(...args)=>{calls.periods.push(args);return current;}},
   '../../services/usageMonitoringService':{synchronizeUsageMonitoring:async()=>calls.sync++},
+  '../services/usageMonitoringService':{activateUsageMonitoring:async()=>assert.fail('confirmation required')},
   '../../utils/tempoUsoSync':{obterJanelaDiaLocal:()=>({dataLocal:'2026-11-07'})},
  });
  r.mount(r.load('src/components/UsageTimePanel/index.js').default,{month:'2026-11',...props});
@@ -46,9 +47,9 @@ test('technical information and individual history are absent in both card varia
 });
 test('empty history does not invent zero or a leading app; observed zero stays zero registered',()=>{
  const r=render({data:{summary:{availability:'NO_DATA'},observations:[],legacy:[]}}, {compact:true});
- assert.match(r.text(),/Nenhum tempo registrado hoje/);assert.match(r.text(),/Seus dados de uso aparecerão aqui quando estiverem disponíveis/);assert.doesNotMatch(r.text(),/0 s|SHEIN|Mais utilizado|Atualizado/);
+ assert.match(r.text(),/Aguardando uma leitura do Android para hoje/);assert.doesNotMatch(r.text(),/0 min|SHEIN|Mais utilizado|Atualizado/);
  const zero=fixture();zero.observations=[observation('2026-11-07',[['com.zzkko',0]])];zero.summary.totalRegisteredMs=0;zero.summary.sourceTotals.v2RegisteredMs=0;
- r.change({data:zero});assert.match(r.text(),/TEMPO REGISTRADO HOJE.*0 s/);assert.doesNotMatch(r.text(),/mais utilizado/i);r.unmount();
+ r.change({data:zero});assert.match(r.text(),/TEMPO REGISTRADO HOJE.*0 min.*Nenhum tempo de uso registrado hoje/);assert.doesNotMatch(r.text(),/mais utilizado/i);r.unmount();
 });
 test('many apps stay compact until the user expands totals, with no horizontal list',async()=>{
  const data={summary:{availability:'PARTIAL',totalRegisteredSeconds:210,sourceTotals:{v2RegisteredSeconds:null,legacyRegisteredSeconds:210}},observations:[],legacy:Array.from({length:6},(_,i)=>({tempo_uso_nome:`Loja ${i+1}`,tempo_uso_data_local:'2026-11-07',tempo_uso_duracao_segundos:(i+1)*10}))};
@@ -78,15 +79,15 @@ test('one real app uses 100 percent, while zero or unavailable totals never prod
  r.unmount();
 });
 
-test('controlled pause remains invisible with or without data, while a real read failure keeps its retry',()=>{
+test('controlled pause is distinct from unavailable data and a real read failure keeps its retry',()=>{
  for(const compact of [true,false]){
-  const r=render({monitoring:'CONTROLLED_PAUSE'},{compact});assert.doesNotMatch(r.text(),/pausad|liberaç|sucesso/i);
-  r.change({data:null});assert.match(r.text(),/indisponível/);assert.doesNotMatch(r.text(),/0 s|pausad|liberaç/i);
+  const r=render({monitoring:'CONTROLLED_PAUSE'},{compact});assert.match(r.text(),/Atualizações pausadas/);
+  r.change({data:null});assert.match(r.text(),/Atualizações pausadas/);assert.doesNotMatch(r.text(),/0 min|sucesso/i);
   r.change({readError:true});assert.match(r.text(),/Não foi possível carregar/);assert.equal(r.nodes(n=>n.type==='Pressable').length,1);r.unmount();
  }
 });
 test('short and long durations preserve meaningful units and never round a positive short access to zero minutes',()=>{
- for(const [value,label] of [[0,'0 s'],[0.5,'< 1 s'],[19.763,'19 s'],[49.657,'49 s'],[60,'1 min'],[3600,'1 h'],[3660,'1 h 1 min']])assert.equal(usageTimeLabel(value),label);
+ for(const [value,label] of [[0,'0 min'],[0.5,'< 1 s'],[19.763,'19 s'],[49.657,'49 s'],[60,'1 min'],[3600,'1 h'],[3660,'1 h 1 min']])assert.equal(usageTimeLabel(value),label);
 });
 test('last update is an observed timestamp, unaffected by reads or missing timestamps',()=>{
  const d=fixture();const label=usageUpdateLabel(d);d.serverTime='2099-01-01T00:00:00Z';assert.equal(usageUpdateLabel(d),label);
@@ -95,7 +96,7 @@ test('last update is an observed timestamp, unaffected by reads or missing times
 test('real failures remain visible alongside historical values; controlled pause never claims success or offers another send',()=>{
  const r=render();const original=r.text();assert.match(original,/1 min/);
  r.change({monitoring:'ERROR'});assert.match(r.text(),/1 min/);assert.match(r.text(),/Não foi possível atualizar/);
- r.change({monitoring:'CONTROLLED_PAUSE'});assert.doesNotMatch(r.text(),/pausadas|liberação/i);assert.match(r.text(),/1 min/);
+ r.change({monitoring:'CONTROLLED_PAUSE'});assert.match(r.text(),/Atualizações pausadas/);assert.match(r.text(),/1 min/);
  assert.doesNotMatch(r.text(),/sincronizados|sucesso|Cobertura/);
  assert.equal(r.nodes(n=>n.type==='Pressable').length,0);assert.equal(r.calls.sync,0);assert.equal(r.calls.reads,0);
  r.change({readError:true});assert.match(r.text(),/Não foi possível atualizar este período/);

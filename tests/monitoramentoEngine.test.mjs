@@ -14,6 +14,17 @@ test('background and logout discard results and cancel native work',async()=>{co
 test('aggregate-only authorization does not request or send detailed accesses',async()=>{const h=fixture();h.state.detail=false;await h.engine.run();assert.equal(h.state.nativeDetailed,false);assert.deepEqual(h.state.sent[0].observations[0].accesses,[]);});
 test('expired Android data is reported unavailable instead of correcting downward',async()=>{const h=fixture();h.reply.previous=[{localDate:'2026-11-06',packageId:'com.zzkko',version:4,durationMs:900000}];await h.engine.run();const o=h.state.sent[0].observations[0];assert.equal(o.status,'UNAVAILABLE');assert.equal(o.durationMs,null);assert.equal(o.expectedVersion,4);});
 test('activation challenge is answered only during an explicit activation',async()=>{const h=fixture();let calls=0;h.d.prepare=async body=>{calls++;return body.activationProof==='proof'?h.reply:{schemaVersion:3,activationChallenge:'proof'};};await h.engine.run({activate:true});assert.equal(calls,2);});
+test('explicit resume waits for foreground preparation and then performs its own activation',async()=>{
+ const h=fixture(),requests=[];
+ let release;
+ const barrier=new Promise(resolve=>{release=resolve;});
+ h.d.prepare=async body=>{requests.push(body.activate);if(!body.activate){await barrier;throw Error('ACTIVATION_REQUIRED');}return h.reply;};
+ const regular=assert.rejects(h.engine.run(),/ACTIVATION_REQUIRED/);
+ await new Promise(resolve=>setImmediate(resolve));
+ const authorized=h.engine.run({activate:true,expectedSessionId:1});
+ release();await Promise.all([regular,authorized]);
+ assert.deepEqual(requests,[false,true]);assert.equal(h.state.sent.length,1);
+});
 test('malformed acknowledgement is not published as success',async()=>{const h=fixture();h.d.submit=async()=>({schemaVersion:3});let updates=0;h.d.updated=()=>updates++;await assert.rejects(h.engine.run(),/INVALID_INGESTION_RESPONSE/);assert.equal(updates,0);});
 
 

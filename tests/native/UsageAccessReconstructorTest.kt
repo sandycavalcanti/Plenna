@@ -125,10 +125,22 @@ fun main() {
   val pauseNotAvailable=firstReturn(4000,paused=false);check(duration(pauseNotAvailable)==0L && q(pauseNotAvailable) and UsageAccessReconstructor.OPEN != 0)
   check(duration(firstReturn(4000))==2000L) // only observed PAUSED closes it
   val noEvents=UsageAccessReconstructor(listOf(1000L to 4000L),setOf(app),1000).finish();check(noEvents[0]["sourceStatus"]=="UNAVAILABLE")
+  val own = "com.Plenna"
+  val initial = UsageAccessReconstructor(listOf(1000L to 4000L, 5000L to 6000L),setOf(app),1000,ownPackage=own)
+  initial.accept(RESUMED,900,own,"MainActivity")
+  initial.confirmInitialWindow()
+  val initialRows = initial.finish()
+  check(initialRows[0]["sourceStatus"]=="AVAILABLE" && duration(initialRows)==0L && accesses(initialRows,0).isEmpty())
+  check(initialRows[1]["sourceStatus"]=="UNAVAILABLE")
+  val leftBeforeActivation = UsageAccessReconstructor(listOf(1000L to 4000L),setOf(app),1000,ownPackage=own)
+  leftBeforeActivation.accept(RESUMED,500,own,"MainActivity")
+  leftBeforeActivation.accept(PAUSED,900,own,"MainActivity")
+  leftBeforeActivation.confirmInitialWindow()
+  check(leftBeforeActivation.finish()[0]["sourceStatus"]=="UNAVAILABLE")
   val lockedFirst=UsageAccessReconstructor(listOf(1000L to 5000L),setOf(app),1000)
   lockedFirst.accept(RESUMED,1500,app,"A");lockedFirst.accept(SCREEN_OFF,2500)
   lockedFirst.accept(SCREEN_ON,4000);lockedFirst.accept(UNLOCKED,4100);lockedFirst.accept(RESUMED,4500,app,"A");lockedFirst.accept(PAUSED,4800,app,"A")
   val lockRows=lockedFirst.finish();check(duration(lockRows)==1300L && q(lockRows,1) and UsageAccessReconstructor.RESUMPTION != 0 && q(lockRows,1) and UsageAccessReconstructor.INDEPENDENT==0)
   check(firstClosed==firstReturn(4000)) // deterministic identity, no duplicated access
-  println("Monitoramento de acessos: 37 cenarios aprovados")
+  println("Monitoramento de acessos: 40 cenarios aprovados")
 }

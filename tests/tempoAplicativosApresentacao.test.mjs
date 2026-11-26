@@ -15,6 +15,7 @@ function harness(state={},props={}) {
     '../../../utils/tempoUsoSync':{obterJanelaDiaLocal:()=>({dataLocal:today})},
     '../../hooks/useUsageMonitoringPeriod':{useUsageMonitoringPeriod:(...args)=>{calls.push(args);return {data:fixture(),monitoring:'READY',loading:false,readError:false,refresh(){},...state};}},
     '../../services/usageMonitoringService':{synchronizeUsageMonitoring:async()=>{}},
+    '../services/usageMonitoringService':{activateUsageMonitoring:async()=>assert.fail('confirmation required')},
   };
   const r=createRenderer(mocks);
   const usageStyles=r.load('src/components/UsageTimePanel/styles.js');

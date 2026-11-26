@@ -5,7 +5,8 @@ internal class UsageAccessReconstructor(
   private val windows: List<Pair<Long, Long>>,
   private val packages: Set<String>,
   private val eligibleFrom: Long,
-  private val maxAccesses: Int = 3000
+  private val maxAccesses: Int = 3000,
+  private val ownPackage: String? = null
 ) {
   companion object {
     // OPENING indica início observado; não comprova uma entrada independente.
@@ -47,12 +48,31 @@ internal class UsageAccessReconstructor(
   private var finished = false
   private val evidenceByWindow = BooleanArray(windows.size)
   val evidence: Boolean get() = evidenceByWindow.any { it }
+  private var ownForegroundSince: Long? = null
+
+  fun confirmInitialWindow() {
+    val resumed = ownForegroundSince ?: return
+    if (!chronologyReliable || !interactive || locked || ownPackage in packages) return
+    windows.forEachIndexed { i, window ->
+      // The Plenna activity observed just before authorization is still in foreground.
+      // Use it as source evidence only. No pre-authorization duration is registered.
+      if (window.first == eligibleFrom && resumed < window.first && window.first - resumed <= 300_000L)
+        evidenceByWindow[i] = true
+    }
+  }
 
   fun accept(type: ForegroundUsageAccumulator.Event, time: Long, pkg: String? = null, activity: String? = null) {
     check(!finished)
     if (time < last) { chronologyReliable=false; awaitingUnlock.clear(); mark(time,CLOCK); active.values.forEach { it.quality=it.quality or CLOCK or PARTIAL }; return }
     flushBefore(time)
     last = time
+    when (type) {
+      ForegroundUsageAccumulator.Event.RESUMED -> ownForegroundSince = time.takeIf { ownPackage != null && pkg == ownPackage && interactive && !locked }
+      ForegroundUsageAccumulator.Event.PAUSED, ForegroundUsageAccumulator.Event.STOPPED -> if (pkg == ownPackage) ownForegroundSince = null
+      ForegroundUsageAccumulator.Event.SCREEN_OFF, ForegroundUsageAccumulator.Event.LOCKED,
+      ForegroundUsageAccumulator.Event.STARTUP, ForegroundUsageAccumulator.Event.SHUTDOWN -> ownForegroundSince = null
+      else -> Unit
+    }
     windows.forEachIndexed { i,w -> if(time>=w.first && time<w.second)evidenceByWindow[i]=true }
     val name = activity ?: ""
     when (type) {

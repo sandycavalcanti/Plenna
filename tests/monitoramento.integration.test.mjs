@@ -68,6 +68,7 @@ test('internal access payload stays intact while both summary cards omit individ
     '../../utils/tempoUsoSync':{obterJanelaDiaLocal:()=>({dataLocal:'2026-11-07'})},
     '../../hooks/useUsageMonitoringPeriod':{useUsageMonitoringPeriod:()=>({data,monitoring:'READY',loading:false,readError:false,refresh(){}})},
     '../../services/usageMonitoringService':{synchronizeUsageMonitoring:()=>assert.fail('presentation must not send')},
+    '../services/usageMonitoringService':{activateUsageMonitoring:()=>assert.fail('presentation must not activate')},
     '../../api/client':{apiClient:{get:async()=>{accessReads++;return {data:accessReply};}}},
   });
   r.mount(r.load('src/components/UsageTimePanel/index.js').default,{month:'2026-11'});

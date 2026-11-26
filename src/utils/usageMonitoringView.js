@@ -135,7 +135,7 @@ export function usageLastUpdate(data) {
 }
 
 // Apenas apresentação: mantém os acumulados e a ambiguidade fornecidos pela API.
-export const usageTimeLabel = seconds => usageDuration(seconds).replace(/(\d)(h|min|s)/g, '$1 $2');
+export const usageTimeLabel = seconds => seconds === 0 ? '0 min' : usageDuration(seconds).replace(/(\d)(h|min|s)/g, '$1 $2');
 export function usageMonthLabel(month) {
   const [year, number] = month.split('-').map(Number);
   return new Date(year, number - 1, 15).toLocaleDateString('pt-BR', {
@@ -189,6 +189,7 @@ export function usageCardMetrics(data, today) {
     apps: []
   };
   const metrics = usagePeriodMetrics(data);
+  if (metrics.total === 0 && data.observations?.some(o => o.sourceStatus === 'UNAVAILABLE')) return { total: null, apps: [] };
   if (metrics.total == null || !Number.isFinite(metrics.total) || metrics.total < 0) return {
     total: null,
     apps: []
@@ -221,7 +222,7 @@ export function usageCardState(period, data, metrics, compact) {
   const messages = {
     DISABLED: 'Monitoramento desativado.',
     PERMISSION: 'Permita o acesso no Android para atualizar os registros.',
-    ACTIVATION: 'Conclua a ativação no Perfil.',
+    ACTIVATION: compact ? 'Conclua a ativação no Perfil.' : 'Confirme a retomada para atualizar os registros.',
     SERVICE_UNAVAILABLE: 'Tempo em aplicativos indisponível no momento.',
     STATUS_UNAVAILABLE: 'Não foi possível verificar o monitoramento.',
     SOURCE_UNAVAILABLE: 'Os registros estão temporariamente indisponíveis.',
@@ -230,16 +231,22 @@ export function usageCardState(period, data, metrics, compact) {
     LOADING: 'Carregando tempo registrado…',
     SYNCING: 'Atualizando registros…',
     PENDING: 'Seus registros aparecerão após a próxima atualização.',
-    PAUSED: metrics.total != null ? 'Atualizações pausadas.' : 'Aguardando liberação para atualizar.',
-    EMPTY: compact ? 'Nenhum registro hoje.' : 'Nenhum registro neste mês.'
+    PAUSED: 'Atualizações pausadas.',
+    EMPTY: compact ? 'Aguardando uma leitura do Android para hoje.' : 'Nenhum registro neste mês.'
   };
   let message = messages[state.kind] ?? null;
   if (['DATA', 'PARTIAL'].includes(state.kind)) {
-    if (metrics.total == null) message = 'Não foi possível calcular o tempo registrado neste período.';else if (data?.observations?.some(o => o.sourceStatus === 'UNAVAILABLE')) message = 'Alguns registros podem estar desatualizados.';else if (metrics.total > 0 && !metrics.apps.length) message = 'Detalhamento por aplicativo indisponível.';
+    if (metrics.total == null) message = 'Não foi possível calcular o tempo registrado neste período.';
+    else if (data?.observations?.some(o => o.sourceStatus === 'UNAVAILABLE' && o.lastAvailable?.applications?.some(app => app.durationSeconds != null && !app.suppression))) message = 'Alguns registros podem estar desatualizados.';
+    else if (data?.observations?.some(o => o.sourceStatus === 'UNAVAILABLE')) message = 'Há períodos sem dados de uso disponíveis.';
+    else if (metrics.total === 0) message = compact || period.today && usageCardMetrics(usageTodayData(data, period.today), period.today).total === 0
+      ? 'Nenhum tempo de uso registrado hoje' : 'Nenhum tempo de uso registrado neste mês.';
+    else if (!metrics.apps.length) message = 'Detalhamento por aplicativo indisponível.';
   }
   return {
     ...state,
+    kind: compact && state.kind === 'EMPTY' ? 'PENDING' : state.kind,
     message,
-    action: period.monitoring === 'SERVICE_DISABLED' || state.kind === 'PAUSED' ? null : state.action
+    action: !compact && state.kind === 'ACTIVATION' ? 'RESUME' : period.monitoring === 'SERVICE_DISABLED' || state.kind === 'PAUSED' ? null : state.action
   };
 }

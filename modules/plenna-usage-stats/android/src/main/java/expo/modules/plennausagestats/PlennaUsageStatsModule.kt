@@ -223,7 +223,7 @@ class PlennaUsageStatsModule : Module() {
       try {
         val manager=context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val events=manager.queryEvents(ForegroundUsageAccumulator.queryStart(periods.minOf { it.first }),periods.maxOf { it.second }) ?: return unavailable("SOURCE_UNAVAILABLE")
-        val reconstructor=UsageAccessReconstructor(periods,packages.toSet(),eligibleFrom.toLong())
+        val reconstructor=UsageAccessReconstructor(periods,packages.toSet(),eligibleFrom.toLong(),ownPackage=context.packageName)
         val event=UsageEvents.Event();var count=0
         while(events.hasNextEvent()) {
           if (generation.get()!=version) return unavailable("CANCELLED")
@@ -246,6 +246,7 @@ class PlennaUsageStatsModule : Module() {
         }
         if (!allowed()) return unavailable("USAGE_ACCESS_DENIED")
         if (generation.get()!=version) return unavailable("CANCELLED")
+        reconstructor.confirmInitialWindow()
         if (!reconstructor.evidence) return unavailable("SOURCE_UNAVAILABLE")
         val result=reconstructor.finish()
         return if(includeDetails) result else result.map { day ->

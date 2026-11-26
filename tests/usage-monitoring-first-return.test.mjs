@@ -41,7 +41,7 @@ async function harness() {
 }
 
 test('first valid closed use reaches payload, acknowledged storage and both cards on the first return',async()=>{
- const h=await harness();assert.deepEqual(h.totals(),['0 s','0 s']);const before={runs:h.state.runs,collects:h.state.collects,submits:h.state.submits};
+ const h=await harness();assert.deepEqual(h.totals(),['0 min','0 min']);const before={runs:h.state.runs,collects:h.state.collects,submits:h.state.submits};
  h.state.nativeMs=26650;await h.foreground();
  assert.equal(h.state.lastPayload.observations[0].durationMs,26650);assert.equal(h.state.knownMs,26650);assert.deepEqual(h.totals(),['26 s','26 s']);
  assert.equal(h.state.runs,before.runs+1);assert.equal(h.state.collects,before.collects+1);assert.equal(h.state.submits,before.submits+1);h.r.unmount();

@@ -2,6 +2,7 @@
 export function createMonitoringEngine(d) {
   let pending = null,
     owner = null,
+    pendingActivation = false,
     controller = null;
   const stop = () => {
     controller?.abort();
@@ -15,11 +16,12 @@ export function createMonitoringEngine(d) {
     if (!session) throw new Error('SESSION_REQUIRED');
     if (expectedSessionId !== undefined && session.id !== expectedSessionId) throw new Error('SESSION_INVALIDATED');
     while (pending) {
-      if (owner === session.id && !controller.signal.aborted) return pending;
+      if (owner === session.id && !controller.signal.aborted && (!activate || pendingActivation)) return pending;
       await pending.catch(() => {});
       d.assertSession(session.id);
     }
     owner = session.id;
+    pendingActivation = activate;
     controller = new AbortController();
     const local = controller;
     const guard = () => {

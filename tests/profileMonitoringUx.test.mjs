@@ -28,6 +28,12 @@ async function profile(options = {}) {
     },
     '../../../api/usageMonitoringPolicy': {usageMonitoringEnabled: true},
     '../../../api/tokenStorage': {tokenStorage: {captureSession: async () => state.session, assertSession: guard}},
+    '../api/tokenStorage': {tokenStorage: {captureSession: async () => state.session, assertSession: guard}},
+    '../services/usageMonitoringService': {activateUsageMonitoring: async session => {
+      guard(session.id);
+      state.operations.push('prepare', 'sync');
+      return 'READY';
+    }},
     '../../../api/consentimento': {
       listarConsentimentos: async () => {
         if (state.consentError) throw Error('OFFLINE');

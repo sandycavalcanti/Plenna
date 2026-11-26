@@ -130,7 +130,7 @@ export async function prepareUsageMonitoringActivation(session) {
   tokenStorage.assertSession(session.id);
   await saveIdentity({
     ...value,
-    pendingActivation: tokenStorage.getUsageBoundary()
+    pendingActivation: value.currentBoundary
   });
   setSyncStatus(session.id, 'PENDING');
   tokenStorage.assertSession(session.id);
@@ -163,10 +163,11 @@ function setSyncStatus(sessionId, status, details) {
   publishUsageSyncState(sessionId, status, details);
 }
 let syncGeneration = 0;
-export async function synchronizeUsageMonitoring() {
+export async function synchronizeUsageMonitoring(expectedSessionId) {
   if (!usageMonitoringEnabled) throw new Error('RF017_DISABLED');
   const session = await tokenStorage.captureSession();
   if (!session) throw new Error('SESSION_REQUIRED');
+  if (expectedSessionId !== undefined && session.id !== expectedSessionId) throw new Error('SESSION_INVALIDATED');
   // A parada controlada pertence à sessão de login. Retornar ao foreground
   // não autoriza outra coleta ou envio enquanto esse bloqueio estiver ativo.
   if (getUsageMonitoringSyncStatus(session.id) === 'CONTROLLED_PAUSE') throw new Error('CONTROLLED_SYNC_PAUSED');
@@ -176,10 +177,14 @@ export async function synchronizeUsageMonitoring() {
   try {
     const value = await identity();
     tokenStorage.assertSession(session.id);
-    const result = await engine.run({
-      activate: !!value.pendingActivation && value.pendingActivation === tokenStorage.getUsageBoundary(),
+    const activate = !!value.pendingActivation && value.pendingActivation === tokenStorage.getUsageBoundary();
+    let result = await engine.run({
+      activate,
       expectedSessionId: session.id
     });
+    if (activate && result?.reason === 'NO_ELIGIBLE_INTERVAL') {
+      result = await engine.run({ expectedSessionId: session.id });
+    }
     tokenStorage.assertSession(session.id);
     if (generation === syncGeneration) setSyncStatus(session.id, result?.reason === 'NO_ELIGIBLE_INTERVAL' ? 'PENDING' : 'READY');
     return result;
@@ -190,6 +195,15 @@ export async function synchronizeUsageMonitoring() {
     }
     throw error;
   }
+}
+export async function activateUsageMonitoring(session) {
+  const status = await readUsageMonitoringStatus(session);
+  if (status === 'CONSENT_REQUIRED' || status === 'PERMISSION_REQUIRED') return status;
+  if (!['ACTIVATION_REQUIRED', 'PENDING', 'READY', 'SYNCING'].includes(status)) throw new Error(status);
+  await prepareUsageMonitoringActivation(session);
+  await synchronizeUsageMonitoring(session.id);
+  tokenStorage.assertSession(session.id);
+  return getUsageMonitoringSyncStatus(session.id);
 }
 export function cancelUsageMonitoring() {
   engine.stop();
